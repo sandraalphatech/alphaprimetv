@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Prime — Documentos Legais</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>(function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <style>
+        body { min-height: 100vh; display: flex; flex-direction: column; }
+
+        .legal-wrapper {
+            flex: 1;
+            padding: 100px 20px 60px;
+            background: radial-gradient(ellipse at 50% 0%, var(--secondary-color), var(--bg-dark) 70%);
+        }
+
+        .legal-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .legal-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--text-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .legal-header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+
+        /* Layout */
+        .legal-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 28px;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        /* Sidebar */
+        .legal-sidebar {
+            position: sticky;
+            top: 90px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-nav-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 9px 10px;
+            border-radius: 10px;
+            color: var(--text-muted);
+            font-size: 0.83rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+            line-height: 1.4;
+            margin-bottom: 2px;
+            font-family: inherit;
+        }
+
+        .doc-nav-item .nav-icon { flex-shrink: 0; font-size: 1rem; }
+
+        .doc-nav-item.active {
+            background: rgba(124, 58, 237, 0.12);
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .doc-nav-item:hover:not(.active) {
+            background: rgba(124, 58, 237, 0.06);
+            color: var(--text-light);
+        }
+
+        /* Content */
+        .legal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+        }
+
+        .doc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(124, 58, 237, 0.12);
+            color: var(--primary-color);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .doc-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-light);
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .doc-updated {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+
+        .doc-intro {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.75;
+            margin-bottom: 32px;
+            padding: 16px 20px;
+            background: rgba(124, 58, 237, 0.06);
+            border-left: 3px solid var(--primary-color);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .doc-section {
+            margin-bottom: 28px;
+        }
+
+        .doc-section h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-section p {
+            color: var(--text-muted);
+            line-height: 1.75;
+            margin-bottom: 10px;
+            font-size: 0.88rem;
+        }
+
+        .doc-section ul, .doc-section ol {
+            color: var(--text-muted);
+            padding-left: 22px;
+            margin-bottom: 10px;
+        }
+
+        .doc-section li {
+            margin-bottom: 5px;
+            line-height: 1.65;
+            font-size: 0.88rem;
+        }
+
+        .doc-section strong {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .doc-warning {
+            background: rgba(236, 72, 153, 0.07);
+            border: 1px solid rgba(236, 72, 153, 0.2);
+            border-radius: 10px;
+            padding: 14px 18px;
+            color: var(--text-muted);
+            font-size: 0.87rem;
+            line-height: 1.65;
+            margin: 16px 0;
+        }
+
+        .doc-contact-box {
+            background: rgba(124, 58, 237, 0.06);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 12px;
+            font-size: 0.87rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .doc-contact-box a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .doc-contact-box a:hover { text-decoration: underline; }
+
+        hr.doc-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 32px 0;
+        }
+
+        /* Scrollbar sidebar */
+        .legal-sidebar::-webkit-scrollbar { width: 4px; }
+        .legal-sidebar::-webkit-scrollbar-track { background: transparent; }
+        .legal-sidebar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        /* Footer */
+/* Footer */
+footer {
+    background: var(--bg-dark);
+    border-top: 1px solid var(--border-color);
+    padding: 1.5rem 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.footer-links {
+    display: flex; 
+    gap: 2rem; 
+    flex-wrap: nowrap; 
+    align-content: center; 
+    flex-wrap: nowrap; 
+    justify-content: center;
+}
+
+.footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--primary-color);
+}
+
+        /* Mobile */
+        @media (max-width: 860px) {
+            .legal-layout { grid-template-columns: 1fr; }
+            .legal-sidebar { position: static; max-height: none; }
+            .legal-content { padding: 24px 18px; }
+            .doc-title { font-size: 1.35rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <img src="icons/logoheader.png" class="logo" alt="">
+            <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav.home">Início</a></li>
+            <li><a href="index.html#features" data-i18n="nav.features">Funcionalidades</a></li>
+            <li><a href="index.html#download" data-i18n="nav.download">Download</a></li>
+            <li><a href="index.html#contact" data-i18n="nav.contact">Contato</a></li>
+        </ul>
+        <div class="nav-auth">
+            <button class="btn-nav-login" onclick="window.location.href='login.html'" data-i18n="nav.login">Entrar</button>
+        </div>
+        <button class="theme-toggle" title="Modo claro">☀️</button>
+        <button class="menu-toggle">☰</button>
+    </div>
+</nav>
+
+<!-- Legal Page -->
+<div class="legal-wrapper">
+    <div class="legal-header">
+        <h1 id="page-heading">Documentos Legais</h1>
+        <p id="page-sub">Transparência, privacidade e segurança para os nossos utilizadores.</p>
+    </div>
+
+    <div class="legal-layout">
+        <aside class="legal-sidebar">
+            <div class="sidebar-title" id="sidebar-title">Documentos</div>
+            <nav id="doc-nav"></nav>
+        </aside>
+
+        <main class="legal-content" id="legal-content">
+            <!-- rendered by JS -->
+        </main>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer">
+        <p>&copy; 2026 Alpha Prime. <span id="footer-rights">Todos os direitos reservados.</span></p>
+        <div class="footer-links">
+            <a href="legal.html" data-i18n="footer.terms">Termos de Uso e Politicas de Privacidade (Documentos Legais)</a>
+        </div>
+    </div>
+    </div>
+</footer>
+
+
+<script src="theme.js"></script>
+<script src="i18n.js"></script>
+<script>
+/* ── Legal Content Data ─────────────────────────────────────────────────── */
+const LEGAL = {
+
+/* ══════════════════════════ PORTUGUÊS ══════════════════════════════════ */
+pt: {
+  pageTitle: 'Documentos Legais',
+  pageSub: 'Transparência, privacidade e segurança para os nossos utilizadores.',
+  sidebarTitle: 'Documentos',
+  footerRights: 'Todos os direitos reservados.',
+  updated: 'Última atualização:',
+  docs: [
+
+    /* 1 — Termos e Condições */
+    { id:'terms', icon:'📋', nav:'Termos e Condições', title:'Termos e Condições de Utilização', date:'07 de julho de 2026', html:`
+<p class="doc-intro">Estes Termos e Condições ("Termos") regulam a utilização do aplicativo Alpha Prime e dos serviços associados. Ao criar uma conta ou utilizar o Alpha Prime, o utilizador aceita integralmente os presentes Termos. Caso não concorde, não deverá utilizar o serviço.</p>
+
+<div class="doc-section"><h2>1. Objeto</h2>
+<p>O Alpha Prime é um software reprodutor de mídia (<em>media player</em>) que permite ao utilizador reproduzir, organizar e gerir listas IPTV compatíveis que sejam de sua propriedade ou cujo uso seja por ele devidamente autorizado. A Alpha Prime <strong>não fornece, produz, hospeda, distribui, retransmite, comercializa nem licencia qualquer conteúdo audiovisual.</strong></p></div>
+
+<div class="doc-section">
+    <h2>2. Período de Teste, Cadastro e Conta de Utilizador</h2>
+    <p>O Alpha Prime pode ser utilizado gratuitamente durante um período de teste de <strong>7 (sete) dias</strong>, sem necessidade de criação de uma conta. Após o término do período de teste, para continuar a utilizar o aplicativo e gerir as subscrições dos seus dispositivos, o utilizador deverá criar um cadastro fornecendo: nome completo, país, telefone de contato, data de nascimento, endereço de e-mail válido e uma senha que será armazenada de forma criptografada.</p>
+    <p>Ao criar uma conta, o utilizador declara que:</p>
+    <ul>
+        <li>Todas as informações fornecidas são verdadeiras, completas e atualizadas;</li>
+        <li>É responsável pela confidencialidade das suas credenciais de acesso;</li>
+        <li>É o único responsável por todas as atividades realizadas na sua conta;</li>
+        <li>Notificará imediatamente a Alpha Prime em caso de acesso não autorizado.</li>
+    </ul>
+</div>
+
+<div class="doc-section">
+    <h2>3. Licença de Utilização</h2>
+
+    <p>Após o período de teste gratuito, a aquisição de uma licença concede ao utilizador uma licença <strong>limitada, pessoal, intransmissível, não exclusiva e revogável</strong> para utilizar o aplicativo Alpha Prime durante o período contratado, exclusivamente para uso pessoal.</p>
+
+    <p>A licença refere-se exclusivamente ao direito de utilização do software Alpha Prime e <strong>não inclui listas IPTV, canais de televisão, filmes, séries ou qualquer outro conteúdo audiovisual</strong>.</p>
+</div>
+
+<div class="doc-section"><h2>4. O Que Está Sendo Adquirido</h2>
+<p>Ao adquirir uma licença do Alpha Prime, o utilizador obtém <strong>exclusivamente o direito de utilizar o software Alpha Prime</strong> durante o período contratado. A licença concede acesso às funcionalidades do software, incluindo, quando disponíveis:</p>
+<ul><li>Reprodução de listas IPTV compatíveis;</li><li>Guia eletrónico de programação (EPG);</li><li>Gravação de conteúdos (quando suportada pelo dispositivo);</li><li>Atualizações do aplicativo;</li><li>Suporte técnico relacionado ao funcionamento do software.</li></ul>
+<div class="doc-warning">⚠️ <strong>A licença não inclui</strong> qualquer lista IPTV, canais de televisão, filmes, séries, eventos desportivos ou qualquer outro conteúdo audiovisual. Para utilizar o aplicativo é necessário que o utilizador possua, por sua própria iniciativa e responsabilidade, uma lista IPTV compatível obtida junto de um fornecedor devidamente autorizado, inserindo as credenciais na área "Gerir Listas" do aplicativo.</div></div>
+
+<div class="doc-section"><h2>5. Conteúdo de Terceiros</h2>
+<p>O Alpha Prime é exclusivamente um aplicativo reprodutor de mídia. O aplicativo não disponibiliza canais de televisão, filmes, séries, eventos desportivos, rádios ou qualquer outro conteúdo protegido por direitos de autor. Todo o conteúdo reproduzido é fornecido exclusivamente pelas listas adicionadas pelo próprio utilizador.</p>
+<p>O utilizador declara ser o único responsável pela origem, legalidade e autorização de utilização das listas, URLs, credenciais ou servidores configurados no aplicativo. O Alpha Prime não verifica, controla, aprova ou mantém qualquer relação comercial com os fornecedores das listas utilizadas.</p></div>
+
+<div class="doc-section"><h2>6. Fornecedores de Listas</h2>
+<p>O Alpha Prime poderá, a seu exclusivo critério, indicar fornecedores de listas IPTV compatíveis apenas para facilitar a utilização do aplicativo. Tal indicação <strong>não constitui parceria comercial, representação, garantia de qualidade, endosso ou responsabilidade</strong> sobre os serviços desses fornecedores. Toda a contratação ocorre diretamente entre o utilizador e o respetivo fornecedor.</p></div>
+
+<div class="doc-section"><h2>7. Responsabilidades do Utilizador</h2>
+<p>O utilizador compromete-se a não:</p>
+<ul><li>Realizar engenharia reversa, descompilar, desmontar ou modificar o aplicativo;</li><li>Copiar, redistribuir, sublicenciar ou revender o aplicativo ou a conta sem autorização expressa;</li><li>Ceder ou transferir a licença a terceiros sem autorização expressa;</li><li>Partilhar credenciais de acesso sem autorização;</li><li>Utilizar o aplicativo para fins ilícitos;</li><li>Atacar ou comprometer servidores ou infraestruturas;</li><li>Utilizar bots, scripts ou automações não autorizadas;</li><li>Distribuir malware ou conteúdos prejudiciais através do aplicativo;</li><li>Realizar chargebacks fraudulentos.</li></ul></div>
+
+<div class="doc-section"><h2>8. Suspensão e Encerramento</h2>
+<p>A Alpha Prime reserva-se o direito de suspender ou encerrar contas, a qualquer momento, em casos de: uso fraudulento; chargeback indevido; partilha não autorizada de conta; ataques a sistemas; violações repetidas dos presentes Termos.</p></div>
+
+<div class="doc-section"><h2>9. Limitação de Responsabilidade</h2>
+<p>O serviço é prestado "no estado em que se encontra" e "conforme disponibilidade". A Alpha Prime não garante funcionamento ininterrupto, ausência de erros ou compatibilidade com todos os dispositivos. A Alpha Prime não será responsável por danos indiretos, incidentais ou consequentes, incluindo a indisponibilidade de listas IPTV de terceiros.</p></div>
+
+<div class="doc-section"><h2>10. Propriedade Intelectual</h2>
+<p>O código-fonte, identidade visual, logótipo, marca Alpha Prime e interface são propriedade exclusiva da Alpha Prime, protegidos pelas legislações de propriedade intelectual aplicáveis.</p></div>
+
+<div class="doc-section"><h2>11. Alterações</h2>
+<p>A Alpha Prime reserva-se o direito de alterar os presentes Termos a qualquer momento, publicando a versão atualizada. O uso continuado após a publicação de alterações constitui aceitação dos novos termos.</p></div>
+
+<div class="doc-section"><h2>12. Lei Aplicável</h2>
+<p>Os presentes Termos são regidos pela legislação brasileira, em especial pelo Código de Defesa do Consumidor (Lei nº 8.078/1990), pelo Marco Civil da Internet (Lei nº 12.965/2014) e pela Lei Geral de Proteção de Dados Pessoais (Lei nº 13.709/2018). Para resolução de conflitos, fica eleito o foro da comarca do domicílio do utilizador no Brasil, salvo disposição legal em contrário.</p>
+<div class="doc-contact-box"><strong>Contato:</strong> <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    /* 2 — Privacidade */
+    { id:'privacy', icon:'🔒', nav:'Privacidade (LGPD)', title:'Política de Privacidade', date:'07 de julho de 2026', html:`
+<p class="doc-intro">Esta Política descreve como o Alpha Prime coleta, utiliza, armazena e protege os dados pessoais dos seus usuários, em conformidade com a <strong>Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018)</strong> e demais legislações brasileiras aplicáveis.</p>
+
+<div class="doc-section"><h2>1. Controlador dos Dados</h2>
+<p>Alpha Prime<a href="mailto:contato@alphaprimetv.com" style="color:var(--primary-color)">contato@alphaprimetv.com</a></p></div>
+
+<div class="doc-section"><h2>2. Dados que Coletamos</h2>
+<p><strong>Fornecidos pelo usuário:</strong></p>
+<ul><li>Nome completo</li><li>Data de nascimento</li><li>País</li><li>Endereço de e-mail</li><li>Número de telefone (opcional)</li><li>Senha (armazenada em formato criptografado)</li><li>Dados de pagamento (processados por terceiros — não armazenamos dados de cartão ou conta)</li></ul>
+<p><strong>Coletados automaticamente:</strong></p>
+<ul><li>Endereço IP</li><li>User-Agent (navegador / app)</li><li>Sistema operacional e modelo do dispositivo</li><li>Identificador do dispositivo (quando aplicável)</li><li>Data, hora e logs de acesso</li></ul></div>
+
+<div class="doc-section"><h2>3. Finalidades do Tratamento</h2>
+<ul><li>Autenticação e gestão de conta</li><li>Prestação e melhoria do serviço</li><li>Suporte técnico</li><li>Segurança e prevenção de fraudes</li><li>Cumprimento de obrigações legais</li><li>Comunicações essenciais do serviço</li></ul></div>
+
+<div class="doc-section"><h2>4. Base Legal (LGPD)</h2>
+<ul><li><strong>Execução de contrato</strong> — art. 7º, V da LGPD</li><li><strong>Cumprimento de obrigação legal</strong> — art. 7º, II da LGPD</li><li><strong>Interesse legítimo</strong> — art. 7º, IX da LGPD (prevenção de fraudes e segurança)</li><li><strong>Consentimento</strong> — art. 7º, I da LGPD (quando aplicável, ex.: comunicações de marketing)</li></ul></div>
+
+<div class="doc-section"><h2>5. Compartilhamento de Dados</h2>
+<p>Os dados poderão ser compartilhados com: fornecedores de infraestrutura e hospedagem; processadores de pagamento; serviços de comunicação (e-mail); autoridades legais ou regulatórias, quando exigido por lei. <strong>Não vendemos dados pessoais a terceiros.</strong></p></div>
+
+<div class="doc-section"><h2>6. Segurança</h2>
+<ul><li>Comunicações HTTPS com TLS</li><li>Criptografia de senhas (hash + salt)</li><li>Controle de acesso restrito</li><li>Monitoramento de segurança e logs de auditoria</li></ul></div>
+
+<div class="doc-section"><h2>7. Retenção de Dados</h2>
+<p>Os dados pessoais são conservados pelo período necessário à prestação do serviço e pelo prazo legalmente exigível após o encerramento da conta, nos termos do art. 16 da LGPD.</p></div>
+
+<div class="doc-section"><h2>8. Direitos do Titular</h2>
+<p>Nos termos do art. 18 da LGPD, o usuário tem direito a:</p>
+<ul><li><strong>Acesso</strong> — confirmar a existência e obter os dados tratados</li><li><strong>Correção</strong> — corrigir dados incompletos, inexatos ou desatualizados</li><li><strong>Anonimização, bloqueio ou eliminação</strong> — de dados desnecessários ou excessivos</li><li><strong>Portabilidade</strong> — receber os dados em formato estruturado</li><li><strong>Eliminação</strong> — dos dados tratados com consentimento</li><li><strong>Revogação do consentimento</strong> — a qualquer momento</li><li><strong>Oposição ao tratamento</strong> — em caso de descumprimento da LGPD</li><li><strong>Petição à ANPD</strong> — Autoridade Nacional de Proteção de Dados</li></ul></div>
+
+<div class="doc-section"><h2>9. Transferências Internacionais</h2>
+<p>Quando aplicável, as transferências internacionais de dados são realizadas com as garantias previstas no art. 33 da LGPD, incluindo países com grau de proteção adequado reconhecido pela ANPD ou mediante cláusulas contratuais específicas.</p></div>
+
+<div class="doc-section"><h2>10. Contato do Encarregado (DPO)</h2>
+<div class="doc-contact-box"><strong>Para exercer os seus direitos ou esclarecer dúvidas sobre o tratamento de dados:</strong><br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    /* 3 — Cookies */
+    { id:'cookies', icon:'🍪', nav:'Política de Cookies', title:'Política de Cookies', date:'07 de julho de 2026', html:`
+<p class="doc-intro">Esta Política explica como o Alpha Prime utiliza cookies e tecnologias similares nos seus serviços digitais.</p>
+
+<div class="doc-section"><h2>1. O Que São Cookies</h2>
+<p>Cookies são pequenos ficheiros de texto armazenados no dispositivo do utilizador que permitem reconhecer o browser e guardar determinadas preferências entre sessões.</p></div>
+
+<div class="doc-section"><h2>2. Tipos de Cookies que Utilizamos</h2>
+<p><strong>Cookies Essenciais</strong> — necessários para o funcionamento do serviço (autenticação, segurança, sessão). Não podem ser desativados sem comprometer o serviço.</p>
+<p><strong>Cookies Funcionais</strong> — guardam preferências do utilizador (idioma, tema claro/escuro, configurações da interface). Melhoram a experiência sem fins analíticos.</p>
+<p><strong>Cookies Analíticos</strong> — recolhem dados de utilização de forma agregada e anónima para melhoria do serviço (quando aplicável).</p>
+<p><strong>Cookies de Terceiros</strong> — serviços externos como Cloudflare (segurança e CDN) e processadores de pagamento poderão definir os seus próprios cookies, regidos pelas respetivas políticas de privacidade.</p></div>
+
+<div class="doc-section"><h2>3. Armazenamento Local</h2>
+<p>Para além de cookies, o Alpha Prime poderá utilizar <em>localStorage</em> para guardar preferências de sessão (ex.: tema, idioma). Estes dados permanecem no dispositivo e não são transmitidos a terceiros.</p></div>
+
+<div class="doc-section"><h2>4. Gestão de Cookies</h2>
+<p>O utilizador poderá gerir as suas preferências de cookies através das configurações do browser. A desativação de cookies essenciais poderá impedir o funcionamento correto do serviço.</p></div>
+
+<div class="doc-section"><h2>5. Alterações</h2>
+<p>Esta Política poderá ser atualizada a qualquer momento. A data da última atualização consta no início do documento.</p>
+<div class="doc-contact-box"><strong>Dúvidas:</strong> <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    /* 4 — Reembolso */
+    { id:'refund', icon:'💳', nav:'Reembolso e Cancelamento', title:'Política de Reembolso e Cancelamento', date:'07 de julho de 2026', html:`
+<p class="doc-intro">Esta Política descreve as condições de cancelamento e reembolso aplicáveis à licença do aplicativo Alpha Prime.</p>
+
+<div class="doc-section"><h2>1. Objeto do Pagamento</h2>
+<p>O valor pago refere-se <strong>exclusivamente à licença de utilização do software Alpha Prime</strong>. A licença não inclui qualquer lista IPTV, canais, filmes, séries ou conteúdo audiovisual. A impossibilidade de utilização decorrente da ausência, expiração, suspensão ou incompatibilidade de uma lista IPTV de terceiros <strong>não constitui motivo de reembolso</strong> da licença do aplicativo.</p></div>
+
+<div class="doc-section"><h2>2. Cancelamento e Não-Renovação</h2>
+<p>A licença do Alpha Prime <strong>não é renovada automaticamente</strong>. O utilizador pode desativar o serviço a qualquer momento através da sua área de cliente. A desativação produz efeitos imediatos, não havendo reembolso proporcional pelo período remanescente da licença.</p>
+<p>O Alpha Prime oferece um <strong>período de teste gratuito de 7 (sete) dias</strong>, durante o qual o utilizador pode avaliar todas as funcionalidades do aplicativo sem qualquer custo ou compromisso de pagamento. Ao adquirir uma licença paga, o utilizador declara já ter testado o serviço e considerá-lo adequado às suas necessidades.</p></div>
+
+<div class="doc-section"><h2>3. Reembolso</h2>
+<p>Uma vez que o Alpha Prime disponibiliza um período de teste gratuito de 7 dias antes de qualquer pagamento, os reembolsos de licenças pagas são concedidos <strong>apenas em casos excecionais</strong>, nomeadamente:</p>
+<ul><li>erro técnico comprovado, imputável ao Alpha Prime, que tenha impossibilitado totalmente o uso do serviço;</li><li>cobrança duplicada ou indevida devidamente comprovada.</li></ul>
+<p>Os pedidos deverão ser formulados no prazo de <strong>48 (quarenta e oito) horas</strong> a contar da data do pagamento e acompanhados do respetivo comprovativo.</p></div>
+
+<div class="doc-section"><h2>4. Situações sem Direito a Reembolso</h2>
+<ul><li>Uso do período de teste gratuito antes da compra;</li><li>Desativação voluntária da licença antes do término do período contratado;</li><li>Violação dos Termos e Condições de Utilização;</li><li>Partilha ou cedência não autorizada da conta;</li><li>Bloqueio por fraude ou uso abusivo;</li><li>Chargeback anterior;</li><li>Incompatibilidade ou ausência de lista IPTV de terceiros.</li></ul></div>
+
+<div class="doc-section"><h2>5. Chargebacks</h2>
+<div class="doc-warning">⚠️ Toda contestação de pagamento (chargeback) realizada de forma indevida ou fraudulenta poderá resultar em: <strong>bloqueio imediato e definitivo da conta</strong>; cobrança de encargos administrativos; adoção de medidas judiciais quando cabível.</div></div>
+
+<div class="doc-section"><h2>6. Prazo de Reembolso</h2>
+<p>Após aprovação do pedido:</p>
+<ul><li><strong>PIX / Transferência bancária:</strong> até 5 dias úteis</li><li><strong>Cartão de crédito:</strong> conforme prazo da administradora (geralmente 1 a 2 ciclos de faturação)</li></ul></div>
+
+<div class="doc-section"><h2>7. Como Solicitar</h2>
+<p>Pedidos de reembolso devem ser enviados via e-mail com o assunto <strong>"Pedido de Reembolso"</strong>, acompanhados do comprovativo de pagamento e da justificação do pedido.</p>
+<div class="doc-contact-box"><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a> — Assunto: "Pedido de Reembolso"</div></div>`},
+
+    /* 5 — Aviso Legal */
+    { id:'disclaimer', icon:'⚖️', nav:'Aviso Legal (Disclaimer)', title:'Aviso Legal (Disclaimer)', date:'07 de julho de 2026', html:`
+<p class="doc-intro">O presente Aviso Legal esclarece a natureza jurídica do Alpha Prime e delimita as suas responsabilidades perante os utilizadores e terceiros.</p>
+
+<div class="doc-section"><h2>1. Natureza do Serviço</h2>
+<p>O Alpha Prime é um <strong>software reprodutor de mídia (media player / IPTV player)</strong>. O Alpha Prime não é, nem deve ser confundido com:</p>
+<ul><li>um serviço de televisão por subscrição;</li><li>um operador de radiodifusão;</li><li>um distribuidor de conteúdos audiovisuais;</li><li>uma plataforma de streaming proprietária de conteúdos;</li><li>um agregador ou revendedor de canais de televisão ou serviços de entretenimento.</li></ul></div>
+
+<div class="doc-section"><h2>2. Isenção de Responsabilidade pelo Conteúdo</h2>
+<p>O Alpha Prime <strong>não hospeda, armazena, transmite, distribui, comercializa, licencia, produz, aprova nem controla</strong> qualquer conteúdo audiovisual reproduzido através do aplicativo.</p>
+<p>Todo o conteúdo acessível através do aplicativo é configurado exclusivamente pelo próprio utilizador mediante a introdução de listas IPTV obtidas por sua conta e responsabilidade. A Alpha Prime não tem conhecimento prévio, controlo ou capacidade de monitorizar o conteúdo das listas inseridas pelos utilizadores.</p></div>
+
+<div class="doc-section"><h2>3. Responsabilidade do Utilizador</h2>
+<p>O utilizador é o <strong>único responsável</strong> pela legalidade, origem e autorização de utilização das listas IPTV, URLs, credenciais ou servidores que introduz no aplicativo. O utilizador declara possuir as autorizações necessárias para aceder e reproduzir todo o conteúdo que configura no aplicativo.</p></div>
+
+<div class="doc-section"><h2>4. Isenção de Responsabilidade por Danos</h2>
+<p>A Alpha Prime não poderá ser responsabilizada por:</p>
+<ul><li>conteúdo ilegal ou violador de direitos de autor configurado pelo utilizador;</li><li>indisponibilidade de listas ou servidores de terceiros;</li><li>qualidade de transmissão das listas;</li><li>remoção de canais pelo fornecedor da lista;</li><li>bloqueios ou interrupções de serviço do fornecedor;</li><li>danos causados por uso inadequado do aplicativo.</li></ul></div>
+
+<div class="doc-section"><h2>5. Disponibilidade do Serviço</h2>
+<p>O Alpha Prime pode sofrer indisponibilidades programadas ou não programadas para manutenção, atualização ou circunstâncias alheias ao seu controlo. A Alpha Prime não garante funcionamento ininterrupto do aplicativo.</p></div>
+
+<div class="doc-section"><h2>6. Indicações de Terceiros</h2>
+<p>As eventuais indicações de fornecedores de listas IPTV são <strong>meramente informativas</strong> e não constituem endosso, parceria, representação ou garantia de qualidade. A Alpha Prime não é responsável pelos serviços, conteúdos ou práticas dos fornecedores indicados.</p>
+<div class="doc-contact-box"><strong>Questões Legais:</strong> <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    /* 6 — Copyright */
+    { id:'copyright', icon:'©️', nav:'Direitos Autorais (DMCA)', title:'Política de Direitos Autorais', date:'07 de julho de 2026', html:`
+<p class="doc-intro">O Alpha Prime respeita os direitos de propriedade intelectual de terceiros e espera que os seus utilizadores façam o mesmo.</p>
+
+<div class="doc-section"><h2>1. Posição do Alpha Prime</h2>
+<p>O Alpha Prime é um software reprodutor de mídia que <strong>não hospeda, armazena, transmite ou distribui</strong> qualquer conteúdo audiovisual. O Alpha Prime não possui relação com o conteúdo reproduzido pelos utilizadores através das suas próprias listas IPTV.</p></div>
+
+<div class="doc-section"><h2>2. Denúncias de Violação</h2>
+<p>Caso acredite que alguma funcionalidade do aplicativo facilita ou incentiva de forma direta a violação de direitos de autor, poderá enviar uma notificação para:</p>
+<div class="doc-contact-box"><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a><br>Assunto: <strong>"DMCA — Denúncia de Violação"</strong></div>
+<p style="margin-top:12px">A notificação deverá incluir:</p>
+<ul><li>Identificação do titular dos direitos ou representante autorizado;</li><li>Descrição da obra protegida que se alega ter sido violada;</li><li>Indicação específica do elemento considerado violador;</li><li>Declaração de boa-fé;</li><li>Declaração de veracidade das informações fornecidas.</li></ul></div>
+
+<div class="doc-section"><h2>3. Ação da Alpha Prime</h2>
+<p>Ao receber uma notificação válida, a Alpha Prime analisará o pedido e adotará as medidas que entender cabíveis, podendo incluir a suspensão de contas que utilizem o aplicativo para fins que infrinjam direitos de terceiros.</p></div>
+
+<div class="doc-section"><h2>4. Responsabilidade do Utilizador</h2>
+<p>O utilizador é <strong>inteiramente responsável</strong> pelo conteúdo que reproduz através do aplicativo. A reprodução de conteúdo protegido por direitos de autor sem a devida autorização é da exclusiva responsabilidade do utilizador, não podendo a Alpha Prime ser responsabilizada por tais atos.</p></div>
+
+<div class="doc-section"><h2>5. Propriedade do Software</h2>
+<p>O código-fonte, interface, logótipo, marca e demais elementos do aplicativo Alpha Prime são protegidos por direitos de autor e propriedade industrial. É proibida a sua reprodução ou utilização sem autorização expressa.</p></div>`},
+
+    /* 7 — Uso Aceitável */
+    { id:'aup', icon:'✅', nav:'Uso Aceitável', title:'Política de Uso Aceitável', date:'07 de julho de 2026', html:`
+<p class="doc-intro">Esta Política define os usos permitidos e proibidos do aplicativo Alpha Prime, com o objetivo de garantir um ambiente seguro e legal para todos os utilizadores.</p>
+
+<div class="doc-section"><h2>1. Uso Permitido</h2>
+<p>O Alpha Prime poderá ser utilizado exclusivamente para:</p>
+<ul><li>reprodução de listas IPTV que o utilizador possua ou para as quais tenha autorização legal;</li><li>gestão pessoal de listas, favoritos e configurações;</li><li>utilização das funcionalidades disponibilizadas pelo aplicativo no âmbito de uma licença válida.</li></ul></div>
+
+<div class="doc-section"><h2>2. Usos Expressamente Proibidos</h2>
+<ul>
+<li><strong>Engenharia reversa:</strong> descompilar, desmontar, analisar ou tentar extrair o código-fonte do aplicativo;</li>
+<li><strong>Modificação:</strong> alterar, adaptar ou criar obras derivadas do aplicativo;</li>
+<li><strong>Distribuição não autorizada:</strong> distribuir, sublicenciar, arrendar ou vender cópias do aplicativo;</li>
+<li><strong>Revenda de contas:</strong> partilhar, ceder ou revender contas ou licenças sem autorização expressa;</li>
+<li><strong>Automações:</strong> utilizar bots, scripts, crawlers ou ferramentas automatizadas de acesso não autorizadas;</li>
+<li><strong>Ataques:</strong> realizar ataques de força bruta, DoS, DDoS, injeção SQL ou qualquer tentativa de comprometer sistemas;</li>
+<li><strong>Fraude:</strong> utilizar o aplicativo para fins fraudulentos, incluindo chargebacks indevidos;</li>
+<li><strong>Malware:</strong> distribuir vírus, ransomware ou qualquer software malicioso através do aplicativo;</li>
+<li><strong>Espionagem:</strong> intercetar, monitorizar ou registar comunicações sem autorização;</li>
+<li><strong>Violação de leis:</strong> qualquer utilização ilegal, incluindo distribuição de conteúdo sem autorização.</li>
+</ul></div>
+
+<div class="doc-section"><h2>3. Consequências da Violação</h2>
+<p>A violação desta Política poderá resultar em:</p>
+<ul><li>suspensão ou encerramento imediato da conta, sem direito a reembolso;</li><li>comunicação às autoridades competentes;</li><li>adoção de medidas legais civis e/ou criminais.</li></ul></div>
+
+<div class="doc-section"><h2>4. Reporte de Abusos</h2>
+<div class="doc-contact-box">Para reportar utilizações abusivas do aplicativo:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    /* 8 — Menores */
+    { id:'minors', icon:'👶', nav:'Política para Menores', title:'Política para Menores de Idade', date:'07 de julho de 2026', html:`
+<p class="doc-intro">Esta Política estabelece as regras relativas à utilização do aplicativo Alpha Prime por menores de idade, em conformidade com as legislações aplicáveis de proteção de dados e proteção de menores.</p>
+
+<div class="doc-section"><h2>1. Requisito de Idade</h2>
+<p>O Alpha Prime destina-se a utilizadores com idade igual ou superior a <strong>18 (dezoito) anos</strong>. A criação de uma conta implica a declaração de que o utilizador tem pelo menos 18 anos de idade.</p></div>
+
+<div class="doc-section"><h2>2. Proteção de Dados de Menores</h2>
+<p>O Alpha Prime não recolhe intencionalmente dados pessoais de menores de 13 anos. Caso tomemos conhecimento de que recolhemos dados de menores sem o consentimento parental adequado, procederemos à <strong>eliminação imediata</strong> desses dados e ao encerramento da conta.</p></div>
+
+<div class="doc-section"><h2>3. Controlo Parental</h2>
+<p>O Alpha Prime disponibiliza funcionalidades de controlo parental que permitem ao titular da conta configurar restrições de acesso a determinados conteúdos. O titular da conta é responsável pela ativação e gestão dessas funcionalidades quando o aplicativo for utilizado em ambiente familiar.</p></div>
+
+<div class="doc-section"><h2>4. Responsabilidade dos Pais e Tutores</h2>
+<p>Pais e tutores legais são responsáveis por:</p>
+<ul><li>supervisionar a utilização do aplicativo por menores;</li><li>ativar as funcionalidades de controlo parental disponíveis;</li><li>garantir que o conteúdo acessado é adequado à idade dos menores;</li><li>não partilhar as credenciais da conta com menores de 18 anos.</li></ul></div>
+
+<div class="doc-section"><h2>5. Denúncias</h2>
+<div class="doc-contact-box">Para denunciar utilização do aplicativo por menores ou conteúdo inadequado para menores:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`}
+  ]
+},
+
+/* ══════════════════════════ ENGLISH ════════════════════════════════════ */
+en: {
+  pageTitle: 'Legal Documents',
+  pageSub: 'Transparency, privacy and security for our users.',
+  sidebarTitle: 'Documents',
+  footerRights: 'All rights reserved.',
+  updated: 'Last updated:',
+  docs: [
+
+    { id:'terms', icon:'📋', nav:'Terms & Conditions', title:'Terms and Conditions of Use', date:'July 7, 2026', html:`
+<p class="doc-intro">These Terms and Conditions ("Terms") govern the use of the Alpha Prime application and associated services. By creating an account or using Alpha Prime, the user fully accepts these Terms. If you do not agree, you should not use the service.</p>
+
+<div class="doc-section"><h2>1. Subject Matter</h2>
+<p>Alpha Prime is a media player software that allows users to play, organise and manage compatible IPTV lists that they own or are duly authorised to use. Alpha Prime <strong>does not provide, produce, host, distribute, rebroadcast, sell or license any audiovisual content.</strong></p></div>
+
+<div class="doc-section">
+    <h2>2. Trial Period, Registration and User Account</h2>
+    <p>Alpha Prime may be used free of charge during a trial period of <strong>7 (seven) days</strong>, without the need to create an account. After the trial period ends, to continue using the app and manage device subscriptions, the user must register by providing: full name, country, contact phone number, date of birth, valid email address and a password that will be stored in encrypted format.</p>
+    <p>By creating an account, the user declares that:</p>
+    <ul>
+        <li>All information provided is true, complete and up to date;</li>
+        <li>They are responsible for keeping their access credentials confidential;</li>
+        <li>They are solely responsible for all activities carried out on their account;</li>
+        <li>They will immediately notify Alpha Prime of any unauthorised access.</li>
+    </ul>
+</div>
+
+<div class="doc-section">
+    <h2>3. Licence of Use</h2>
+    <p>After the free trial period, purchasing a licence grants the user a <strong>limited, personal, non-transferable, non-exclusive and revocable licence</strong> to use the Alpha Prime application during the contracted period, exclusively for personal use.</p>
+    <p>The licence refers exclusively to the right to use the Alpha Prime software and <strong>does not include IPTV lists, television channels, films, series or any other audiovisual content</strong>.</p>
+</div>
+
+<div class="doc-section"><h2>4. What You Are Purchasing</h2>
+<p>By purchasing an Alpha Prime licence, the user obtains <strong>exclusively the right to use the Alpha Prime software</strong> for the contracted period. The licence grants access to the software features, including when available:</p>
+<ul><li>playback of compatible IPTV lists;</li><li>Electronic Programme Guide (EPG);</li><li>content recording (when supported by the device);</li><li>application updates;</li><li>technical support related to software operation.</li></ul>
+<div class="doc-warning">⚠️ <strong>The licence does not include</strong> any IPTV list, television channels, films, series, sporting events or any other audiovisual content. To use the app, the user must obtain a compatible IPTV list from an authorised provider at their own initiative and responsibility, entering the credentials in the "Manage Lists" section of the app.</div></div>
+
+<div class="doc-section"><h2>5. Third-Party Content</h2>
+<p>Alpha Prime is exclusively a media player application. The app does not provide television channels, films, series, sporting events, radio stations or any copyright-protected content. All content played through Alpha Prime is supplied exclusively by the lists added by the user themselves.</p>
+<p>The user declares sole responsibility for the origin, legality and authorisation for use of the lists, URLs, credentials or servers configured in the app. Alpha Prime does not verify, control, approve or maintain any commercial relationship with the providers of lists used by users.</p></div>
+
+<div class="doc-section"><h2>6. List Providers</h2>
+<p>Alpha Prime may, at its sole discretion, indicate compatible IPTV list providers to facilitate use of the application. Such indication <strong>does not constitute a commercial partnership, representation, quality guarantee, endorsement or liability</strong> for those providers' services. All contracting occurs directly between the user and the respective provider.</p></div>
+
+<div class="doc-section"><h2>7. User Responsibilities</h2>
+<p>Users agree not to:</p>
+<ul><li>reverse engineer, decompile, disassemble or modify the application;</li><li>copy, redistribute, sublicense or resell the application or account;</li><li>assign or transfer the licence to third parties without express authorisation;</li><li>share access credentials without authorisation;</li><li>use the application for illegal purposes;</li><li>attack or compromise servers or infrastructure;</li><li>use unauthorised bots, scripts or automations;</li><li>distribute malware through the application;</li><li>initiate fraudulent chargebacks.</li></ul></div>
+
+<div class="doc-section"><h2>8. Suspension and Termination</h2>
+<p>Alpha Prime reserves the right to suspend or terminate accounts at any time for: fraudulent use; improper chargebacks; unauthorised account sharing; system attacks; repeated violations of these Terms.</p></div>
+
+<div class="doc-section"><h2>9. Limitation of Liability</h2>
+<p>The service is provided "as is" and "as available". Alpha Prime does not guarantee uninterrupted operation, absence of errors or compatibility with all devices. Alpha Prime shall not be liable for indirect, incidental or consequential damages, including unavailability of third-party IPTV lists.</p></div>
+
+<div class="doc-section"><h2>10. Intellectual Property</h2>
+<p>The source code, visual identity, logo, Alpha Prime brand and interface are the exclusive property of Alpha Prime, protected by applicable intellectual property laws.</p></div>
+
+<div class="doc-section"><h2>11. Changes</h2>
+<p>Alpha Prime reserves the right to change these Terms at any time. Continued use after changes are published constitutes acceptance.</p></div>
+
+<div class="doc-section"><h2>12. Governing Law</h2>
+<p>These Terms are governed by Brazilian law, in particular the Consumer Defence Code (Law No. 8,078/1990), the Brazilian Internet Civil Framework (Law No. 12,965/2014) and the General Data Protection Law — LGPD (Law No. 13,709/2018). For dispute resolution, the courts of the user's domicile in Brazil shall have jurisdiction, unless otherwise required by law.</p>
+<div class="doc-contact-box"><strong>Contact:</strong> <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'privacy', icon:'🔒', nav:'Privacy Policy (LGPD)', title:'Privacy Policy', date:'July 7, 2026', html:`
+<p class="doc-intro">This Policy describes how Alpha Prime collects, uses, stores and protects users' personal data, in compliance with the <strong>Brazilian General Data Protection Law (LGPD — Law No. 13,709/2018)</strong> and other applicable Brazilian legislation.</p>
+
+<div class="doc-section"><h2>1. Data Controller</h2>
+<p>Alpha Prime / Velvet App<br><a href="mailto:contato@alphaprimetv.com" style="color:var(--primary-color)">contato@alphaprimetv.com</a></p></div>
+
+<div class="doc-section"><h2>2. Data We Collect</h2>
+<p><strong>Provided by the user:</strong></p>
+<ul><li>Full name</li><li>Date of birth</li><li>Country</li><li>Email address</li><li>Phone number (optional)</li><li>Password (stored in encrypted format)</li><li>Payment data (processed by third parties — we do not store card or bank account data)</li></ul>
+<p><strong>Collected automatically:</strong></p>
+<ul><li>IP address</li><li>User-Agent (browser / app)</li><li>Operating system and device model</li><li>Device identifier (where applicable)</li><li>Date, time and access logs</li></ul></div>
+
+<div class="doc-section"><h2>3. Purposes</h2>
+<ul><li>Authentication and account management</li><li>Service provision and improvement</li><li>Technical support</li><li>Security and fraud prevention</li><li>Compliance with legal obligations</li><li>Essential service communications</li></ul></div>
+
+<div class="doc-section"><h2>4. Legal Basis (LGPD)</h2>
+<ul><li><strong>Contract performance</strong> — Art. 7, V of the LGPD</li><li><strong>Legal obligation</strong> — Art. 7, II of the LGPD</li><li><strong>Legitimate interest</strong> — Art. 7, IX of the LGPD (fraud prevention and security)</li><li><strong>Consent</strong> — Art. 7, I of the LGPD (where applicable, e.g. marketing communications)</li></ul></div>
+
+<div class="doc-section"><h2>5. Data Sharing</h2>
+<p>Data may be shared with: infrastructure and hosting providers; payment processors; communication services (email); legal or regulatory authorities when required by law. <strong>We do not sell personal data to third parties.</strong></p></div>
+
+<div class="doc-section"><h2>6. Security</h2>
+<ul><li>HTTPS communications with TLS</li><li>Password encryption (hash + salt)</li><li>Restricted access control</li><li>Security monitoring and audit logs</li></ul></div>
+
+<div class="doc-section"><h2>7. Data Retention</h2>
+<p>Personal data is retained for the period necessary to provide the service and for the legally required period after account closure, pursuant to Art. 16 of the LGPD.</p></div>
+
+<div class="doc-section"><h2>8. Your Rights</h2>
+<p>Under Art. 18 of the LGPD, users have the right to:</p>
+<ul><li><strong>Access</strong> — confirm the existence of and obtain the data processed</li><li><strong>Correction</strong> — correct incomplete, inaccurate or outdated data</li><li><strong>Anonymisation, blocking or deletion</strong> — of unnecessary or excessive data</li><li><strong>Portability</strong> — receive data in a structured format</li><li><strong>Deletion</strong> — of data processed with consent</li><li><strong>Withdrawal of consent</strong> — at any time</li><li><strong>Objection</strong> — in case of non-compliance with the LGPD</li><li><strong>Petition to the ANPD</strong> — Brazilian National Data Protection Authority</li></ul></div>
+
+<div class="doc-section"><h2>9. International Transfers</h2>
+<p>Where applicable, international data transfers are carried out with the safeguards provided for in Art. 33 of the LGPD, including countries with an adequate level of protection recognised by the ANPD or through specific contractual clauses.</p></div>
+
+<div class="doc-section"><h2>10. Privacy Contact (DPO)</h2>
+<div class="doc-contact-box">To exercise your rights or clarify questions about data processing:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'cookies', icon:'🍪', nav:'Cookie Policy', title:'Cookie Policy', date:'July 7, 2026', html:`
+<p class="doc-intro">This Policy explains how Alpha Prime uses cookies and similar technologies in its digital services.</p>
+
+<div class="doc-section"><h2>1. What Are Cookies</h2>
+<p>Cookies are small text files stored on the user's device that allow the browser to be recognised and certain preferences to be saved between sessions.</p></div>
+
+<div class="doc-section"><h2>2. Types of Cookies We Use</h2>
+<p><strong>Essential Cookies</strong> — necessary for the service to function (authentication, security, session). Cannot be disabled without compromising the service.</p>
+<p><strong>Functional Cookies</strong> — store user preferences (language, light/dark theme, interface settings). Improve experience without analytical purposes.</p>
+<p><strong>Analytical Cookies</strong> — collect usage data in an aggregated and anonymous manner for service improvement (where applicable).</p>
+<p><strong>Third-Party Cookies</strong> — external services such as Cloudflare (security and CDN) and payment processors may set their own cookies, governed by their respective privacy policies.</p></div>
+
+<div class="doc-section"><h2>3. Local Storage</h2>
+<p>In addition to cookies, Alpha Prime may use <em>localStorage</em> to save session preferences (e.g. theme, language). This data remains on the device and is not transmitted to third parties.</p></div>
+
+<div class="doc-section"><h2>4. Managing Cookies</h2>
+<p>Users can manage their cookie preferences through browser settings. Disabling essential cookies may prevent the service from functioning correctly.</p></div>
+
+<div class="doc-section"><h2>5. Changes</h2>
+<p>This Policy may be updated at any time. The last update date is shown at the top of this document.</p>
+<div class="doc-contact-box"><strong>Questions:</strong> <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'refund', icon:'💳', nav:'Refund & Cancellation', title:'Refund and Cancellation Policy', date:'July 7, 2026', html:`
+<p class="doc-intro">This Policy describes the cancellation and refund conditions applicable to the Alpha Prime application licence.</p>
+
+<div class="doc-section"><h2>1. What You Are Paying For</h2>
+<p>The amount paid refers <strong>exclusively to the licence to use the Alpha Prime software</strong>. The licence does not include any IPTV list, channels, films, series or audiovisual content. The inability to use the application due to the absence, expiry, suspension or incompatibility of a third-party IPTV list <strong>does not constitute grounds for a refund</strong> of the application licence.</p></div>
+
+<div class="doc-section"><h2>2. Cancellation and Non-Renewal</h2>
+<p>The Alpha Prime licence is <strong>not automatically renewed</strong>. Users may deactivate the service at any time through their client area. Deactivation takes immediate effect, with no proportional refund for the remaining licence period.</p>
+<p>Alpha Prime offers a <strong>free 7-day trial period</strong> during which users can evaluate all app features with no cost or payment commitment. By purchasing a paid licence, the user declares they have already tested the service and found it suitable for their needs.</p></div>
+
+<div class="doc-section"><h2>3. Refund</h2>
+<p>Since Alpha Prime provides a free 7-day trial before any payment, refunds on paid licences are granted <strong>only in exceptional cases</strong>, namely:</p>
+<ul><li>a proven technical failure attributable to Alpha Prime that completely prevented use of the service;</li><li>a duplicate or erroneous charge duly evidenced.</li></ul>
+<p>Requests must be submitted within <strong>48 (forty-eight) hours</strong> of the payment date and accompanied by proof of payment.</p></div>
+
+<div class="doc-section"><h2>4. Non-Refundable Situations</h2>
+<ul><li>Use of the free trial period prior to purchase;</li><li>Voluntary deactivation of the licence before the end of the contracted period;</li><li>Violation of the Terms and Conditions of Use;</li><li>Unauthorised sharing or transfer of the account;</li><li>Account blocked due to fraud or abusive use;</li><li>Prior chargeback;</li><li>Incompatibility or absence of a third-party IPTV list.</li></ul></div>
+
+<div class="doc-section"><h2>5. Chargebacks</h2>
+<div class="doc-warning">⚠️ Any improper or fraudulent payment dispute (chargeback) may result in: <strong>immediate and permanent account ban</strong>; administrative charges; legal action where applicable.</div></div>
+
+<div class="doc-section"><h2>6. Refund Timeframe</h2>
+<ul><li><strong>PIX / Bank transfer:</strong> up to 5 business days</li><li><strong>Credit card:</strong> as per the card issuer's timeframe (usually 1 to 2 billing cycles)</li></ul></div>
+
+<div class="doc-section"><h2>7. How to Request</h2>
+<div class="doc-contact-box"><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a><br>Subject: <strong>"Refund Request"</strong> — include proof of payment.</div></div>`},
+
+    { id:'disclaimer', icon:'⚖️', nav:'Legal Disclaimer', title:'Legal Disclaimer', date:'July 7, 2026', html:`
+<p class="doc-intro">This Legal Disclaimer clarifies the legal nature of Alpha Prime and limits its responsibilities towards users and third parties.</p>
+
+<div class="doc-section"><h2>1. Nature of the Service</h2>
+<p>Alpha Prime is a <strong>media player software (media player / IPTV player)</strong>. Alpha Prime is not, and should not be confused with:</p>
+<ul><li>a subscription television service;</li><li>a broadcaster;</li><li>an audiovisual content distributor;</li><li>a content-owning streaming platform;</li><li>an aggregator or reseller of television channels or entertainment services.</li></ul></div>
+
+<div class="doc-section"><h2>2. Content Disclaimer</h2>
+<p>Alpha Prime <strong>does not host, store, transmit, distribute, sell, license, produce, approve or control</strong> any audiovisual content played through the application.</p>
+<p>All content accessible through the application is configured exclusively by the user by entering IPTV lists obtained at their own initiative and responsibility. Alpha Prime has no prior knowledge, control or ability to monitor the content of lists inserted by users.</p></div>
+
+<div class="doc-section"><h2>3. User Responsibility</h2>
+<p>The user is <strong>solely responsible</strong> for the legality, origin and authorisation for use of the IPTV lists, URLs, credentials or servers they enter into the application.</p></div>
+
+<div class="doc-section"><h2>4. Liability Exclusion</h2>
+<p>Alpha Prime cannot be held liable for:</p>
+<ul><li>illegal content or content infringing copyrights configured by the user;</li><li>unavailability of third-party lists or servers;</li><li>streaming quality of lists;</li><li>removal of channels by the list provider;</li><li>blockages or service interruptions by the provider;</li><li>damages caused by improper use of the application.</li></ul></div>
+
+<div class="doc-section"><h2>5. Service Availability</h2>
+<p>Alpha Prime may experience planned or unplanned downtime for maintenance, updates or circumstances beyond its control. Alpha Prime does not guarantee uninterrupted operation.</p></div>
+
+<div class="doc-section"><h2>6. Third-Party References</h2>
+<p>Any references to IPTV list providers are <strong>for informational purposes only</strong> and do not constitute endorsement, partnership, representation or quality guarantee. Alpha Prime is not responsible for the services, content or practices of referenced providers.</p>
+<div class="doc-contact-box"><strong>Legal queries:</strong> <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'copyright', icon:'©️', nav:'Copyright (DMCA)', title:'Copyright Policy', date:'July 7, 2026', html:`
+<p class="doc-intro">Alpha Prime respects the intellectual property rights of third parties and expects its users to do the same.</p>
+
+<div class="doc-section"><h2>1. Alpha Prime's Position</h2>
+<p>Alpha Prime is a media player software that <strong>does not host, store, transmit or distribute</strong> any audiovisual content. Alpha Prime has no relationship with the content played by users through their own IPTV lists.</p></div>
+
+<div class="doc-section"><h2>2. Copyright Infringement Notices</h2>
+<p>If you believe that any feature of the application directly facilitates or encourages copyright infringement, you may send a notice to:</p>
+<div class="doc-contact-box"><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a><br>Subject: <strong>"DMCA — Copyright Infringement Notice"</strong></div>
+<p style="margin-top:12px">The notice must include:</p>
+<ul><li>Identification of the rights holder or authorised representative;</li><li>Description of the protected work allegedly infringed;</li><li>Specific indication of the allegedly infringing element;</li><li>Good faith declaration;</li><li>Declaration of accuracy of the information provided.</li></ul></div>
+
+<div class="doc-section"><h2>3. Alpha Prime's Response</h2>
+<p>Upon receiving a valid notice, Alpha Prime will review the request and take the measures it deems appropriate, which may include the suspension of accounts that use the application in ways that infringe third-party rights.</p></div>
+
+<div class="doc-section"><h2>4. User Responsibility</h2>
+<p>The user is <strong>entirely responsible</strong> for the content they play through the application. Playback of copyright-protected content without proper authorisation is the exclusive responsibility of the user.</p></div>
+
+<div class="doc-section"><h2>5. Software Ownership</h2>
+<p>The source code, interface, logo, brand and other elements of the Alpha Prime application are protected by copyright and industrial property rights. Reproduction or use without express authorisation is prohibited.</p></div>`},
+
+    { id:'aup', icon:'✅', nav:'Acceptable Use Policy', title:'Acceptable Use Policy', date:'July 7, 2026', html:`
+<p class="doc-intro">This Policy defines the permitted and prohibited uses of the Alpha Prime application, in order to ensure a safe and legal environment for all users.</p>
+
+<div class="doc-section"><h2>1. Permitted Use</h2>
+<ul><li>Playback of IPTV lists that the user owns or has legal authorisation for;</li><li>Personal management of lists, favourites and settings;</li><li>Use of the features provided by the application under a valid licence.</li></ul></div>
+
+<div class="doc-section"><h2>2. Expressly Prohibited Uses</h2>
+<ul>
+<li><strong>Reverse engineering:</strong> decompiling, disassembling, analysing or attempting to extract the application's source code;</li>
+<li><strong>Modification:</strong> altering, adapting or creating derivative works of the application;</li>
+<li><strong>Unauthorised distribution:</strong> distributing, sublicensing, renting or selling copies of the application;</li>
+<li><strong>Account resale:</strong> sharing, transferring or reselling accounts or licences without express authorisation;</li>
+<li><strong>Automation:</strong> using unauthorised bots, scripts, crawlers or automated access tools;</li>
+<li><strong>Attacks:</strong> brute force attacks, DoS, DDoS, SQL injection or any attempt to compromise systems;</li>
+<li><strong>Fraud:</strong> using the application for fraudulent purposes, including improper chargebacks;</li>
+<li><strong>Malware:</strong> distributing viruses, ransomware or any malicious software through the application;</li>
+<li><strong>Surveillance:</strong> intercepting, monitoring or recording communications without authorisation;</li>
+<li><strong>Law violations:</strong> any illegal use, including distribution of content without authorisation.</li>
+</ul></div>
+
+<div class="doc-section"><h2>3. Consequences of Violation</h2>
+<ul><li>Immediate suspension or termination of the account, without refund;</li><li>Notification to competent authorities;</li><li>Civil and/or criminal legal action.</li></ul></div>
+
+<div class="doc-section"><h2>4. Report Abuse</h2>
+<div class="doc-contact-box">To report abusive uses of the application:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'minors', icon:'👶', nav:"Minors' Policy", title:"Minors' Policy", date:'July 7, 2026', html:`
+<p class="doc-intro">This Policy establishes rules regarding the use of the Alpha Prime application by minors, in compliance with applicable data protection and child protection laws.</p>
+
+<div class="doc-section"><h2>1. Age Requirement</h2>
+<p>Alpha Prime is intended for users aged <strong>18 (eighteen) years or older</strong>. Creating an account constitutes a declaration that the user is at least 18 years of age.</p></div>
+
+<div class="doc-section"><h2>2. Protection of Minors' Data</h2>
+<p>Alpha Prime does not intentionally collect personal data from children under 13. If we become aware that we have collected data from minors without appropriate parental consent, we will proceed with the <strong>immediate deletion</strong> of such data and account closure.</p></div>
+
+<div class="doc-section"><h2>3. Parental Controls</h2>
+<p>Alpha Prime provides parental control features that allow the account holder to configure access restrictions to certain content. The account holder is responsible for activating and managing these features when the application is used in a family environment.</p></div>
+
+<div class="doc-section"><h2>4. Responsibility of Parents and Guardians</h2>
+<ul><li>Supervise minors' use of the application;</li><li>Activate available parental control features;</li><li>Ensure that content accessed is age-appropriate;</li><li>Do not share account credentials with minors under 18.</li></ul></div>
+
+<div class="doc-section"><h2>5. Reports</h2>
+<div class="doc-contact-box">To report use of the application by minors or content inappropriate for minors:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`}
+  ]
+},
+
+/* ══════════════════════════ ESPAÑOL ════════════════════════════════════ */
+es: {
+  pageTitle: 'Documentos Legales',
+  pageSub: 'Transparencia, privacidad y seguridad para nuestros usuarios.',
+  sidebarTitle: 'Documentos',
+  footerRights: 'Todos los derechos reservados.',
+  updated: 'Última actualización:',
+  docs: [
+
+    { id:'terms', icon:'📋', nav:'Términos y Condiciones', title:'Términos y Condiciones de Uso', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Estos Términos y Condiciones ("Términos") regulan el uso de la aplicación Alpha Prime y los servicios asociados. Al crear una cuenta o utilizar Alpha Prime, el usuario acepta íntegramente estos Términos. Si no está de acuerdo, no deberá utilizar el servicio.</p>
+
+<div class="doc-section"><h2>1. Objeto</h2>
+<p>Alpha Prime es un software reproductor de medios (<em>media player</em>) que permite al usuario reproducir, organizar y gestionar listas IPTV compatibles de las que sea propietario o para las que tenga autorización. Alpha Prime <strong>no proporciona, produce, aloja, distribuye, retransmite, comercializa ni licencia ningún contenido audiovisual.</strong></p></div>
+
+<div class="doc-section">
+    <h2>2. Período de Prueba, Registro y Cuenta de Usuario</h2>
+    <p>Alpha Prime puede utilizarse gratuitamente durante un período de prueba de <strong>7 (siete) días</strong>, sin necesidad de crear una cuenta. Al finalizar el período de prueba, para continuar usando la aplicación y gestionar las suscripciones de sus dispositivos, el usuario deberá registrarse proporcionando: nombre completo, país, número de teléfono de contacto, fecha de nacimiento, dirección de email válida y una contraseña que se almacenará en formato cifrado.</p>
+    <p>Al crear una cuenta, el usuario declara que:</p>
+    <ul>
+        <li>Toda la información proporcionada es verdadera, completa y actualizada;</li>
+        <li>Es responsable de mantener la confidencialidad de sus credenciales de acceso;</li>
+        <li>Es el único responsable de todas las actividades realizadas en su cuenta;</li>
+        <li>Notificará inmediatamente a Alpha Prime en caso de acceso no autorizado.</li>
+    </ul>
+</div>
+
+<div class="doc-section">
+    <h2>3. Licencia de Uso</h2>
+    <p>Tras el período de prueba gratuito, la adquisición de una licencia otorga al usuario una licencia <strong>limitada, personal, intransferible, no exclusiva y revocable</strong> para utilizar la aplicación Alpha Prime durante el período contratado, exclusivamente para uso personal.</p>
+    <p>La licencia se refiere exclusivamente al derecho de uso del software Alpha Prime y <strong>no incluye listas IPTV, canales de televisión, películas, series ni ningún otro contenido audiovisual</strong>.</p>
+</div>
+
+<div class="doc-section"><h2>4. Qué Está Adquiriendo</h2>
+<p>Al adquirir una licencia, el usuario obtiene <strong>exclusivamente el derecho de utilizar el software Alpha Prime</strong>. La licencia incluye acceso a las funcionalidades del software, entre ellas:</p>
+<ul><li>reproducción de listas IPTV compatibles;</li><li>guía electrónica de programas (EPG);</li><li>grabación de contenidos (cuando el dispositivo lo soporte);</li><li>actualizaciones de la aplicación;</li><li>soporte técnico relacionado con el funcionamiento del software.</li></ul>
+<div class="doc-warning">⚠️ <strong>La licencia no incluye</strong> ninguna lista IPTV, canales de televisión, películas, series, eventos deportivos ni ningún otro contenido audiovisual. Para utilizar la aplicación, el usuario debe obtener una lista IPTV compatible de un proveedor debidamente autorizado, insertando las credenciales en la sección "Gestionar Listas".</div></div>
+
+<div class="doc-section"><h2>5. Contenido de Terceros</h2>
+<p>Alpha Prime es exclusivamente un reproductor de medios. La aplicación no proporciona canales de televisión, películas, series, eventos deportivos, emisoras de radio ni ningún otro contenido protegido por derechos de autor. Todo el contenido reproducido es suministrado exclusivamente por las listas añadidas por el propio usuario.</p>
+<p>El usuario declara ser el único responsable del origen, legalidad y autorización de uso de las listas, URLs, credenciales o servidores configurados. Alpha Prime no verifica, controla, aprueba ni mantiene ninguna relación comercial con los proveedores de listas.</p></div>
+
+<div class="doc-section"><h2>6. Proveedores de Listas</h2>
+<p>Alpha Prime podrá, a su exclusiva discreción, indicar proveedores de listas IPTV para facilitar el uso de la aplicación. Dicha indicación <strong>no constituye asociación comercial, representación, garantía de calidad, respaldo ni responsabilidad</strong> por los servicios de esos proveedores. Toda contratación se realiza directamente entre el usuario y el proveedor.</p></div>
+
+<div class="doc-section"><h2>7. Responsabilidades del Usuario</h2>
+<p>El usuario se compromete a no:</p>
+<ul><li>realizar ingeniería inversa, descompilar o modificar la aplicación;</li><li>copiar, redistribuir, sublicenciar o revender la aplicación o la cuenta;</li><li>ceder o transferir la licencia a terceros sin autorización;</li><li>compartir credenciales de acceso sin autorización;</li><li>utilizar la aplicación para fines ilícitos;</li><li>atacar o comprometer servidores o infraestructuras;</li><li>usar bots, scripts o automatizaciones no autorizadas;</li><li>distribuir malware a través de la aplicación;</li><li>realizar contracargos (chargebacks) fraudulentos.</li></ul></div>
+
+<div class="doc-section"><h2>8. Suspensión y Rescisión</h2>
+<p>Alpha Prime se reserva el derecho de suspender o cancelar cuentas en cualquier momento por: uso fraudulento; contracargos indebidos; compartición no autorizada; ataques a sistemas; infracciones reiteradas de estos Términos.</p></div>
+
+<div class="doc-section"><h2>9. Limitación de Responsabilidad</h2>
+<p>El servicio se presta "tal cual" y "según disponibilidad". Alpha Prime no garantiza funcionamiento ininterrumpido, ausencia de errores ni compatibilidad con todos los dispositivos. Alpha Prime no será responsable de daños indirectos, incidentales o consecuentes.</p></div>
+
+<div class="doc-section"><h2>10. Propiedad Intelectual</h2>
+<p>El código fuente, identidad visual, logotipo, marca Alpha Prime e interfaz son propiedad exclusiva de Alpha Prime, protegidos por las leyes de propiedad intelectual aplicables.</p></div>
+
+<div class="doc-section"><h2>11. Modificaciones</h2>
+<p>Alpha Prime se reserva el derecho de modificar estos Términos en cualquier momento. El uso continuado tras la publicación de cambios constituye aceptación.</p></div>
+
+<div class="doc-section"><h2>12. Ley Aplicable</h2>
+<p>Estos Términos se rigen por la legislación brasileña, en particular el Código de Defensa del Consumidor (Ley nº 8.078/1990), el Marco Civil de Internet (Ley nº 12.965/2014) y la Ley General de Protección de Datos Personales — LGPD (Ley nº 13.709/2018). Para la resolución de conflictos, se establece la jurisdicción de los tribunales del domicilio del usuario en Brasil, salvo disposición legal en contrario.</p>
+<div class="doc-contact-box"><strong>Contato:</strong> <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'privacy', icon:'🔒', nav:'Privacidad (LGPD)', title:'Política de Privacidad', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Esta Política describe cómo Alpha Prime recopila, utiliza, almacena y protege los datos personales de sus usuarios, en cumplimiento de la <strong>Ley General de Protección de Datos Personales de Brasil (LGPD — Ley nº 13.709/2018)</strong> y demás legislación brasileña aplicable.</p>
+
+<div class="doc-section"><h2>1. Responsable del Tratamiento</h2>
+<p>Alpha Prime / Velvet App<br><a href="mailto:contato@alphaprimetv.com" style="color:var(--primary-color)">contato@alphaprimetv.com</a></p></div>
+
+<div class="doc-section"><h2>2. Datos que Recopilamos</h2>
+<p><strong>Proporcionados por el usuario:</strong></p>
+<ul><li>Nombre completo</li><li>Fecha de nacimiento</li><li>País</li><li>Dirección de email</li><li>Número de teléfono (opcional)</li><li>Contraseña (almacenada en formato cifrado)</li><li>Datos de pago (procesados por terceros — no almacenamos datos de tarjeta ni cuenta)</li></ul>
+<p><strong>Recopilados automáticamente:</strong></p>
+<ul><li>Dirección IP</li><li>User-Agent (navegador / app)</li><li>Sistema operativo y modelo del dispositivo</li><li>Identificador del dispositivo (cuando aplique)</li><li>Fecha, hora y registros de acceso</li></ul></div>
+
+<div class="doc-section"><h2>3. Finalidades</h2>
+<ul><li>Autenticación y gestión de cuenta</li><li>Prestación y mejora del servicio</li><li>Soporte técnico</li><li>Seguridad y prevención del fraude</li><li>Cumplimiento de obligaciones legales</li><li>Comunicaciones esenciales del servicio</li></ul></div>
+
+<div class="doc-section"><h2>4. Base Legal (LGPD)</h2>
+<ul><li><strong>Ejecución de contrato</strong> — Art. 7º, V de la LGPD</li><li><strong>Obligación legal</strong> — Art. 7º, II de la LGPD</li><li><strong>Interés legítimo</strong> — Art. 7º, IX de la LGPD (prevención del fraude y seguridad)</li><li><strong>Consentimiento</strong> — Art. 7º, I de la LGPD (cuando aplique, p. ej. comunicaciones de marketing)</li></ul></div>
+
+<div class="doc-section"><h2>5. Compartición de Datos</h2>
+<p>Los datos podrán compartirse con: proveedores de infraestructura y alojamiento; procesadores de pago; servicios de comunicación; autoridades legales cuando lo exija la ley. <strong>No vendemos datos personales a terceros.</strong></p></div>
+
+<div class="doc-section"><h2>6. Seguridad</h2>
+<ul><li>Comunicaciones HTTPS con TLS</li><li>Cifrado de contraseñas (hash + salt)</li><li>Control de acceso restringido</li><li>Monitorización de seguridad y registros de auditoría</li></ul></div>
+
+<div class="doc-section"><h2>7. Retención de Datos</h2>
+<p>Los datos personales se conservan durante el período necesario para la prestación del servicio y el plazo legalmente exigible tras el cierre de la cuenta, conforme al Art. 16 de la LGPD.</p></div>
+
+<div class="doc-section"><h2>8. Sus Derechos</h2>
+<p>Conforme al Art. 18 de la LGPD, el usuario tiene derecho a:</p>
+<ul><li><strong>Acceso</strong> — confirmar la existencia y obtener los datos tratados</li><li><strong>Corrección</strong> — corregir datos incompletos, inexactos o desactualizados</li><li><strong>Anonimización, bloqueo o eliminación</strong> — de datos innecesarios o excesivos</li><li><strong>Portabilidad</strong> — recibir los datos en formato estructurado</li><li><strong>Eliminación</strong> — de datos tratados con consentimiento</li><li><strong>Revocación del consentimiento</strong> — en cualquier momento</li><li><strong>Oposición al tratamiento</strong> — en caso de incumplimiento de la LGPD</li><li><strong>Petición ante la ANPD</strong> — Autoridade Nacional de Proteção de Dados (Brasil)</li></ul></div>
+
+<div class="doc-section"><h2>9. Transferencias Internacionales</h2>
+<p>Cuando aplique, las transferencias internacionales de datos se realizan con las garantías previstas en el Art. 33 de la LGPD, incluyendo países con nivel de protección adecuado reconocido por la ANPD o mediante cláusulas contractuales específicas.</p></div>
+
+<div class="doc-section"><h2>10. Contacto del Responsable de Privacidad (DPO)</h2>
+<div class="doc-contact-box">Para ejercer sus derechos o aclarar dudas sobre el tratamiento de datos:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'cookies', icon:'🍪', nav:'Política de Cookies', title:'Política de Cookies', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Esta Política explica cómo Alpha Prime utiliza cookies y tecnologías similares en sus servicios digitales.</p>
+
+<div class="doc-section"><h2>1. ¿Qué Son las Cookies?</h2>
+<p>Las cookies son pequeños archivos de texto almacenados en el dispositivo del usuario que permiten reconocer el navegador y guardar ciertas preferencias entre sesiones.</p></div>
+
+<div class="doc-section"><h2>2. Tipos de Cookies que Utilizamos</h2>
+<p><strong>Cookies Esenciales</strong> — necesarias para el funcionamiento del servicio (autenticación, seguridad, sesión). No pueden desactivarse sin comprometer el servicio.</p>
+<p><strong>Cookies Funcionales</strong> — guardan preferencias del usuario (idioma, tema claro/oscuro, configuraciones). Mejoran la experiencia sin fines analíticos.</p>
+<p><strong>Cookies Analíticas</strong> — recopilan datos de uso de forma agregada y anónima para la mejora del servicio (cuando aplique).</p>
+<p><strong>Cookies de Terceros</strong> — servicios externos como Cloudflare y procesadores de pago pueden establecer sus propias cookies, regidas por sus respectivas políticas de privacidad.</p></div>
+
+<div class="doc-section"><h2>3. Almacenamiento Local</h2>
+<p>Además de cookies, Alpha Prime puede usar <em>localStorage</em> para guardar preferencias de sesión (p. ej., tema, idioma). Estos datos permanecen en el dispositivo y no se transmiten a terceros.</p></div>
+
+<div class="doc-section"><h2>4. Gestión de Cookies</h2>
+<p>El usuario puede gestionar sus preferencias de cookies a través de la configuración del navegador. Desactivar cookies esenciales puede impedir el correcto funcionamiento del servicio.</p></div>
+
+<div class="doc-section"><h2>5. Cambios</h2>
+<div class="doc-contact-box">Consultas: <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'refund', icon:'💳', nav:'Reembolso y Cancelación', title:'Política de Reembolso y Cancelación', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Esta Política describe las condiciones de cancelación y reembolso aplicables a la licencia de la aplicación Alpha Prime.</p>
+
+<div class="doc-section"><h2>1. Objeto del Pago</h2>
+<p>El importe pagado corresponde <strong>exclusivamente a la licencia de uso del software Alpha Prime</strong>. La licencia no incluye ninguna lista IPTV, canales, películas, series ni contenido audiovisual. La imposibilidad de usar la aplicación por ausencia, vencimiento o incompatibilidad de una lista IPTV de terceros <strong>no constituye motivo de reembolso</strong>.</p></div>
+
+<div class="doc-section"><h2>2. Cancelación y No Renovación</h2>
+<p>La licencia de Alpha Prime <strong>no se renueva automáticamente</strong>. El usuario puede desactivar el servicio en cualquier momento desde su área de cliente. La desactivación surte efecto de forma inmediata, sin reembolso proporcional por el período restante de la licencia.</p>
+<p>Alpha Prime ofrece un <strong>período de prueba gratuito de 7 (siete) días</strong> durante el cual el usuario puede evaluar todas las funcionalidades de la aplicación sin ningún coste ni compromiso de pago. Al adquirir una licencia de pago, el usuario declara haber probado el servicio y considerarlo adecuado para sus necesidades.</p></div>
+
+<div class="doc-section"><h2>3. Reembolso</h2>
+<p>Dado que Alpha Prime ofrece un período de prueba gratuito de 7 días antes de cualquier pago, los reembolsos de licencias de pago se conceden <strong>únicamente en casos excepcionales</strong>, a saber:</p>
+<ul><li>fallo técnico comprobado, imputable a Alpha Prime, que haya imposibilitado totalmente el uso del servicio;</li><li>cargo duplicado o erróneo debidamente acreditado.</li></ul>
+<p>Las solicitudes deberán presentarse en un plazo de <strong>48 (cuarenta y ocho) horas</strong> desde la fecha de pago, acompañadas del comprobante correspondiente.</p></div>
+
+<div class="doc-section"><h2>4. Situaciones sin Derecho a Reembolso</h2>
+<ul><li>Uso del período de prueba gratuito antes de la compra;</li><li>Desactivación voluntaria de la licencia antes del término del período contratado;</li><li>Incumplimiento de los Términos y Condiciones;</li><li>Compartición o cesión no autorizada de la cuenta;</li><li>Bloqueo por fraude o abuso;</li><li>Contracargo previo;</li><li>Incompatibilidad o ausencia de lista IPTV de terceros.</li></ul></div>
+
+<div class="doc-section"><h2>5. Contracargos (Chargebacks)</h2>
+<div class="doc-warning">⚠️ Todo contracargo indebido o fraudulento podrá resultar en: <strong>bloqueo inmediato y permanente de la cuenta</strong>; cargos administrativos; acciones legales cuando corresponda.</div></div>
+
+<div class="doc-section"><h2>6. Plazo de Reembolso</h2>
+<ul><li><strong>Transferencia bancaria:</strong> hasta 5 días hábiles</li><li><strong>Tarjeta de crédito:</strong> según los plazos del emisor (generalmente 1 a 2 ciclos de facturación)</li></ul></div>
+
+<div class="doc-section"><h2>7. Cómo Solicitarlo</h2>
+<div class="doc-contact-box"><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a><br>Asunto: <strong>"Solicitud de Reembolso"</strong> — incluya el comprobante de pago.</div></div>`},
+
+    { id:'disclaimer', icon:'⚖️', nav:'Aviso Legal', title:'Aviso Legal (Disclaimer)', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Este Aviso Legal aclara la naturaleza jurídica de Alpha Prime y delimita sus responsabilidades frente a los usuarios y terceros.</p>
+
+<div class="doc-section"><h2>1. Naturaleza del Servicio</h2>
+<p>Alpha Prime es un <strong>software reproductor de medios (media player / IPTV player)</strong>. Alpha Prime no es, ni debe confundirse con:</p>
+<ul><li>un servicio de televisión de pago;</li><li>un operador de radiodifusión;</li><li>un distribuidor de contenidos audiovisuales;</li><li>una plataforma de streaming propietaria de contenidos;</li><li>un agregador o revendedor de canales o servicios de entretenimiento.</li></ul></div>
+
+<div class="doc-section"><h2>2. Exención por Contenido</h2>
+<p>Alpha Prime <strong>no aloja, almacena, transmite, distribuye, comercializa, licencia, produce, aprueba ni controla</strong> ningún contenido audiovisual reproducido a través de la aplicación. Todo el contenido accesible es configurado exclusivamente por el usuario mediante la introducción de listas IPTV obtenidas bajo su propia responsabilidad.</p></div>
+
+<div class="doc-section"><h2>3. Responsabilidad del Usuario</h2>
+<p>El usuario es el <strong>único responsable</strong> de la legalidad, origen y autorización de uso de las listas IPTV, URLs, credenciales o servidores que introduce en la aplicación.</p></div>
+
+<div class="doc-section"><h2>4. Exclusión de Responsabilidad</h2>
+<ul><li>Contenido ilegal o que infrinja derechos de autor configurado por el usuario;</li><li>Indisponibilidad de listas o servidores de terceros;</li><li>Calidad de transmisión de las listas;</li><li>Eliminación de canales por el proveedor;</li><li>Bloqueos o interrupciones del servicio del proveedor;</li><li>Daños causados por uso inadecuado de la aplicación.</li></ul></div>
+
+<div class="doc-section"><h2>5. Disponibilidad</h2>
+<p>Alpha Prime puede experimentar interrupciones programadas o no programadas. Alpha Prime no garantiza el funcionamiento ininterrumpido de la aplicación.</p></div>
+
+<div class="doc-section"><h2>6. Referencias a Terceros</h2>
+<p>Las eventuales indicaciones de proveedores de listas son <strong>meramente informativas</strong> y no constituyen respaldo, asociación ni garantía. Alpha Prime no es responsable de los servicios de los proveedores indicados.</p>
+<div class="doc-contact-box">Consultas legales: <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'copyright', icon:'©️', nav:'Derechos de Autor (DMCA)', title:'Política de Derechos de Autor', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Alpha Prime respeta los derechos de propiedad intelectual de terceros y espera que sus usuarios hagan lo mismo.</p>
+
+<div class="doc-section"><h2>1. Posición de Alpha Prime</h2>
+<p>Alpha Prime es un software reproductor de medios que <strong>no aloja, almacena, transmite ni distribuye</strong> ningún contenido audiovisual. Alpha Prime no mantiene ninguna relación con el contenido reproducido por los usuarios a través de sus propias listas IPTV.</p></div>
+
+<div class="doc-section"><h2>2. Notificaciones de Infracción</h2>
+<p>Si considera que alguna funcionalidad de la aplicación facilita directamente la infracción de derechos de autor, puede enviar una notificación a:</p>
+<div class="doc-contact-box"><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a><br>Asunto: <strong>"DMCA — Notificación de Infracción de Derechos de Autor"</strong></div>
+<p style="margin-top:12px">La notificación debe incluir:</p>
+<ul><li>Identificación del titular de derechos o representante autorizado;</li><li>Descripción de la obra protegida supuestamente infringida;</li><li>Indicación específica del elemento presuntamente infractor;</li><li>Declaración de buena fe;</li><li>Declaración de veracidad de la información.</li></ul></div>
+
+<div class="doc-section"><h2>3. Respuesta de Alpha Prime</h2>
+<p>Al recibir una notificación válida, Alpha Prime revisará la solicitud y tomará las medidas que estime oportunas, pudiendo incluir la suspensión de cuentas que infrinjan derechos de terceros.</p></div>
+
+<div class="doc-section"><h2>4. Responsabilidad del Usuario</h2>
+<p>El usuario es <strong>íntegramente responsable</strong> del contenido que reproduce a través de la aplicación. La reproducción de contenido protegido sin la debida autorización es de exclusiva responsabilidad del usuario.</p></div>
+
+<div class="doc-section"><h2>5. Propiedad del Software</h2>
+<p>El código fuente, interfaz, logotipo, marca y demás elementos de Alpha Prime están protegidos por derechos de autor y propiedad industrial. Se prohíbe su reproducción sin autorización expresa.</p></div>`},
+
+    { id:'aup', icon:'✅', nav:'Uso Aceptable', title:'Política de Uso Aceptable', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Esta Política define los usos permitidos y prohibidos de la aplicación Alpha Prime, con el fin de garantizar un entorno seguro y legal para todos los usuarios.</p>
+
+<div class="doc-section"><h2>1. Uso Permitido</h2>
+<ul><li>Reproducción de listas IPTV de las que el usuario sea propietario o tenga autorización legal;</li><li>Gestión personal de listas, favoritos y configuraciones;</li><li>Uso de las funcionalidades de la aplicación bajo una licencia válida.</li></ul></div>
+
+<div class="doc-section"><h2>2. Usos Expresamente Prohibidos</h2>
+<ul>
+<li><strong>Ingeniería inversa:</strong> descompilar, desensamblar o intentar extraer el código fuente;</li>
+<li><strong>Modificación:</strong> alterar, adaptar o crear obras derivadas de la aplicación;</li>
+<li><strong>Distribución no autorizada:</strong> distribuir, sublicenciar, alquilar o vender copias;</li>
+<li><strong>Reventa de cuentas:</strong> compartir, ceder o revender cuentas o licencias sin autorización;</li>
+<li><strong>Automatizaciones:</strong> usar bots, scripts o herramientas automatizadas de acceso no autorizadas;</li>
+<li><strong>Ataques:</strong> ataques de fuerza bruta, DoS, DDoS, inyección SQL o cualquier intento de comprometer sistemas;</li>
+<li><strong>Fraude:</strong> usar la aplicación para fines fraudulentos, incluidos contracargos indebidos;</li>
+<li><strong>Malware:</strong> distribuir virus, ransomware o software malicioso a través de la aplicación;</li>
+<li><strong>Vigilancia:</strong> interceptar, monitorizar o registrar comunicaciones sin autorización;</li>
+<li><strong>Incumplimiento legal:</strong> cualquier uso ilegal, incluida la distribución de contenido sin autorización.</li>
+</ul></div>
+
+<div class="doc-section"><h2>3. Consecuencias del Incumplimiento</h2>
+<ul><li>Suspensión o cancelación inmediata de la cuenta, sin reembolso;</li><li>Comunicación a las autoridades competentes;</li><li>Acciones legales civiles y/o penales.</li></ul></div>
+
+<div class="doc-section"><h2>4. Reportar Abusos</h2>
+<div class="doc-contact-box">Para reportar usos abusivos de la aplicación:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`},
+
+    { id:'minors', icon:'👶', nav:'Política para Menores', title:'Política para Menores de Edad', date:'7 de julio de 2026', html:`
+<p class="doc-intro">Esta Política establece las normas relativas al uso de la aplicación Alpha Prime por menores de edad, en cumplimiento de las leyes aplicables de protección de datos y protección de menores.</p>
+
+<div class="doc-section"><h2>1. Requisito de Edad</h2>
+<p>Alpha Prime está destinado a usuarios de <strong>18 (dieciocho) años o más</strong>. La creación de una cuenta implica la declaración de que el usuario tiene al menos 18 años.</p></div>
+
+<div class="doc-section"><h2>2. Protección de Datos de Menores</h2>
+<p>Alpha Prime no recopila intencionalmente datos personales de menores de 13 años. Si tomamos conocimiento de ello sin el consentimiento parental adecuado, procederemos a la <strong>eliminación inmediata</strong> de dichos datos y al cierre de la cuenta.</p></div>
+
+<div class="doc-section"><h2>3. Control Parental</h2>
+<p>Alpha Prime ofrece funcionalidades de control parental que permiten al titular de la cuenta configurar restricciones de acceso a ciertos contenidos. El titular es responsable de activar y gestionar estas funcionalidades cuando la aplicación se use en un entorno familiar.</p></div>
+
+<div class="doc-section"><h2>4. Responsabilidad de Padres y Tutores</h2>
+<ul><li>Supervisar el uso de la aplicación por parte de menores;</li><li>Activar las funcionalidades de control parental disponibles;</li><li>Garantizar que el contenido al que acceden es adecuado para su edad;</li><li>No compartir las credenciales de la cuenta con menores de 18 años.</li></ul></div>
+
+<div class="doc-section"><h2>5. Denuncias</h2>
+<div class="doc-contact-box">Para denunciar uso de la aplicación por menores o contenido inapropiado:<br><a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a></div></div>`}
+  ]
+}
+
+}; /* end LEGAL */
+
+/* ── Render Logic ────────────────────────────────────────────────────────── */
+var currentLang = 'pt';
+var currentDoc  = 'terms';
+
+function renderSidebar() {
+  var lang = LEGAL[currentLang];
+  document.getElementById('sidebar-title').textContent = lang.sidebarTitle;
+  var nav = document.getElementById('doc-nav');
+  nav.innerHTML = lang.docs.map(function(d) {
+    return '<button class="doc-nav-item' + (d.id === currentDoc ? ' active' : '') +
+      '" onclick="switchDoc(\'' + d.id + '\')">' +
+      '<span class="nav-icon">' + d.icon + '</span><span>' + d.nav + '</span></button>';
+  }).join('');
+}
+
+function renderContent() {
+  var lang = LEGAL[currentLang];
+  var doc  = lang.docs.find(function(d){ return d.id === currentDoc; }) || lang.docs[0];
+  document.getElementById('legal-content').innerHTML =
+    '<div class="doc-badge">' + doc.icon + ' ' + doc.nav + '</div>' +
+    '<h1 class="doc-title">' + doc.title + '</h1>' +
+    '<p class="doc-updated">' + lang.updated + ' ' + doc.date + '</p>' +
+    doc.html;
+}
+
+function renderPage() {
+  var lang = LEGAL[currentLang];
+  document.getElementById('page-heading').textContent  = lang.pageTitle;
+  document.getElementById('page-sub').textContent      = lang.pageSub;
+  document.getElementById('footer-rights').textContent = lang.footerRights;
+  document.title = 'Alpha Prime — ' + lang.pageTitle;
+}
+
+function render() {
+  renderPage();
+  renderSidebar();
+  renderContent();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchLang(lang) {
+  if (!LEGAL[lang]) return;
+  currentLang = lang;
+  render();
+}
+
+function switchDoc(docId) {
+  currentDoc = docId;
+  render();
+}
+
+/* ── Init: read language from the site's i18n system ─────────────────────── */
+function _getSiteLang() {
+  var stored = localStorage.getItem('ap_lang');
+  return (stored && LEGAL[stored]) ? stored : 'pt';
+}
+
+/* Patch window.__i18n.setLang so language changes in the header
+   also update the legal page content in real time */
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.__i18n && window.__i18n.setLang) {
+    var _orig = window.__i18n.setLang;
+    window.__i18n.setLang = function (lang) {
+      _orig(lang);
+      switchLang(lang);
+    };
+  }
+});
+
+currentLang = _getSiteLang();
+render();
+</script>
+
+<script src="auth-header.js"></script>
+</body>
+</html>

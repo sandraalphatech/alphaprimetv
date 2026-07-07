@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark">
+
+    <LinearLayout
+        android:id="@+id/splash_content"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Logo desenhado programaticamente -->
+        <com.alphaprime.tv.AlphaLogoView
+            android:id="@+id/logo_view"
+            android:layout_width="180dp"
+            android:layout_height="180dp" />
+
+        <Space android:layout_width="0dp" android:layout_height="36dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ALPHA"
+            android:textColor="@color/white"
+            android:textSize="40sp"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="0.25"
+            android:gravity="center" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="6dp">
+
+            <View
+                android:layout_width="36dp"
+                android:layout_height="1dp"
+                android:background="@color/gold_dark" />
+
+            <Space android:layout_width="10dp" android:layout_height="0dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PRIME"
+                android:textColor="@color/gold"
+                android:textSize="20sp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.3" />
+
+            <Space android:layout_width="10dp" android:layout_height="0dp" />
+
+            <View
+                android:layout_width="36dp"
+                android:layout_height="1dp"
+                android:background="@color/gold_dark" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="S T R E A M I N G   P L A Y E R"
+            android:textColor="#73FFFFFF"
+            android:textSize="10sp"
+            android:letterSpacing="0.2"
+            android:layout_marginTop="10dp"
+            android:gravity="center" />
+    </LinearLayout>
+</FrameLayout>

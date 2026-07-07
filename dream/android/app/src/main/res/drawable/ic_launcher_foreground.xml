@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Alpha "A" — lado dourado -->
+    <path
+        android:strokeColor="#D4A843"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M22,88 L50,16 L72,50" />
+    <!-- Alpha "A" — lado roxo -->
+    <path
+        android:strokeColor="#7B35C4"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M50,16 L86,54 L50,88" />
+    <!-- Crossbar -->
+    <path
+        android:strokeColor="#D4A843"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M36,62 L72,62" />
+</vector>

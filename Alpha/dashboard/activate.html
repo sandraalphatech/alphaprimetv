@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Prime — Ativação</title>
+<link rel="stylesheet" href="styles.css">
+<script>
+    (function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<style>
+    .page-area { padding-top: 80px; min-height: 100vh; background: var(--bg-dark); }
+    .page-hero { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--secondary-color) 100%); padding: 48px 20px 32px; text-align: center; border-bottom: 1px solid var(--border-color); }
+    .page-hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--text-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-hero p  { color: #9ca3af; margin-top: 8px; }
+
+    .fl { width: 100%; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+    .fl label { font-size: .82rem; color: #9ca3af; }
+    .fl input { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 11px 14px; color: var(--text-light); font-size: .9rem; outline: none; transition: border .2s; width: 100%; }
+    .fl input:focus { border-color: var(--primary-color); }
+    .fl input::placeholder { color: #4b5563; }
+
+    .cbtn { padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: .85rem; font-weight: 700; transition: all .2s; display: inline-block; text-decoration: none; }
+    .cbtn-primary { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; }
+    .cbtn-primary:hover { opacity: .85; }
+    .cbtn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .cbtn-outline { background: transparent; color: var(--text-light); border: 1px solid var(--border-color); }
+    .cbtn-outline:hover { border-color: var(--primary-color); color: var(--primary-color); }
+    .cbtn-outline:disabled { opacity: .5; cursor: not-allowed; }
+    .cbtn-check { width: 100%; padding: 13px; text-align: center; }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .license-wrap { padding: 48px 16px 0; }
+    .license-banner { max-width: 760px; margin: 0 auto 28px; text-align: center; font-weight: 700; font-size: 1.05rem; color: var(--text-light); line-height: 1.5; }
+    .plan-toggle { display: flex; justify-content: center; gap: 10px; margin-bottom: 28px; }
+    .plan-toggle button { padding: 10px 28px; border-radius: 999px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-light); font-weight: 700; font-size: .9rem; cursor: pointer; transition: all .2s; }
+    .plan-toggle button.active { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-color: var(--primary-color); box-shadow: 0 0 16px rgba(124,58,237,.4); }
+
+    .license-warning { max-width: 760px; margin: 0 auto 32px; text-align: center; color: #fca5a5; font-size: .92rem; line-height: 1.6; background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.35); border-radius: 12px; padding: 18px 22px; }
+    .license-sell { max-width: 700px; margin: 0 auto 32px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 24px 28px; }
+    .license-sell h3 { color: var(--primary-color); font-size: 1.05rem; margin-bottom: 10px; }
+    .license-sell p { color: #cbd5e1; font-size: .92rem; line-height: 1.7; margin-bottom: 10px; }
+    .license-sell p:last-child { margin-bottom: 0; }
+    .license-sell strong { color: var(--text-light); }
+
+    .price-card { position: relative; max-width: 280px; margin: 0 auto 32px; background: linear-gradient(160deg, var(--bg-secondary), var(--bg-dark)); border: 1px solid var(--primary-color); border-radius: 16px; padding: 32px 24px; text-align: center; box-shadow: 0 10px 30px rgba(124,58,237,.25); }
+    .price-card .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--primary-color); margin: 0 auto 14px; box-shadow: 0 0 0 6px rgba(124,58,237,.15); }
+    .price-card .plan-discount-badge { position: absolute; top: -12px; right: -12px; background: #66078b; color: #fff; font-size: .78rem; font-weight: 800; padding: 5px 10px; border-radius: 999px; box-shadow: 0 4px 10px rgba(236,72,153,.4); }
+    .price-card .plan-discount-badge:empty { display: none; }
+    .price-card .plan-old-price { color: #9ca3af; font-size: .95rem; text-decoration: line-through; margin-bottom: -4px; }
+    .price-card .plan-old-price:empty { display: none; }
+    .price-card .plan-name { font-size: 1.4rem; font-weight: 800; color: var(--text-light); }
+    .price-card .plan-period { color: #9ca3af; font-size: .9rem; margin-bottom: 16px; }
+    .price-card .plan-price { font-size: 2.2rem; font-weight: 800; color: var(--primary-color); }
+    .price-card .plan-price span { font-size: 1.1rem; color: var(--text-light); margin-right: 4px; }
+
+    .license-confirm { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+    .payment-options { display: flex; gap: 12px; }
+    .payment-options .cbtn { flex: 1; }
+    .license-checkbox { cursor: pointer; font-size: .85rem; color: #cbd5e1; line-height: 1.6; flex-wrap: wrap; align-content: center; text-align: center; }
+    .license-checkbox input { margin-top: 10px; margin-right:10px; width: 20px; height: 20px; accent-color: var(--primary-color); flex-shrink: 0; }
+    .license-divider { max-width: 700px; margin: 48px auto 0; border: none; border-top: 1px solid var(--border-color); }
+
+    .pix-panel { display: none; max-width: 360px; margin: 24px auto 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 28px; text-align: center; }
+    .pix-status { font-weight: 700; color: var(--primary-color); margin-bottom: 16px; }
+    .pix-status.paid { color: #10b981; }
+    .pix-status.error { color: #ef4444; }
+    .pix-qr { width: 220px; height: 220px; border-radius: 10px; background: #fff; padding: 8px; margin: 0 auto 16px; display: block; }
+    .pix-copy { display: flex; gap: 8px; margin-bottom: 14px; }
+    .pix-copy input { flex: 1; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px 12px; color: var(--text-light); font-size: .78rem; }
+    .pix-note { color: #9ca3af; font-size: .8rem; line-height: 1.5; }
+
+    .pix-success { display: none; max-width: 420px; margin: 24px auto 0; background: rgba(16,185,129,.08); border: 1px solid #10b981; border-radius: 14px; padding: 32px; text-align: center; }
+    .pix-success-icon { font-size: 2.6rem; margin-bottom: 8px; }
+    .pix-success h3 { color: #10b981; font-size: 1.2rem; margin-bottom: 8px; }
+    .pix-success p { color: #cbd5e1; font-size: .92rem; line-height: 1.6; }
+
+    .card-panel { display: none; max-width: 360px; margin: 24px auto 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 28px; text-align: center; flex-direction: column; gap: 14px; }
+    .card-row { display: flex; gap: 12px; width: 100%; }
+    .card-row .fl { flex: 1; }
+
+    .support-wrap { padding: 48px 16px 0; }
+    .support-card { max-width: 520px; margin: 0 auto 30px; text-align: center; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 32px; }
+    .support-icon { font-size: 2.2rem; margin-bottom: 8px; }
+    .support-card h3 { color: var(--text-light); font-size: 1.1rem; margin-bottom: 8px; }
+    .support-card p { color: #9ca3af; font-size: .9rem; line-height: 1.6; margin-bottom: 18px; }
+    .nav-links a.active { color: var(--primary-color); }
+    .footer {text-align: center; font-size: 0.8rem;}
+    .footer-links {display: flex; gap: 2rem; align-content: center; flex-wrap: nowrap; justify-content: center;}
+
+    .my-lic-section { padding: 36px 16px 0; }
+    .my-lic-header { max-width: 700px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: space-between; }
+    .my-lic-header h2 { font-size: 1.1rem; font-weight: 800; color: var(--text-light); }
+    .my-lic-list { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+    .my-lic-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .my-lic-card.expired { opacity: .6; }
+    .my-lic-dot { width: 9px; height: 9px; border-radius: 50%; background: #10b981; flex-shrink: 0; position: relative; top: -20px; }
+    .my-lic-card.expired .my-lic-dot { background: #6b7280; }
+    .my-lic-info { flex: 1; min-width: 0; }
+    .my-lic-name { font-weight: 700; font-size: .95rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .my-lic-mac  { font-size: .75rem; color: #9ca3af; font-family: monospace; }
+    .my-lic-badges { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+    .my-lic-badge { font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+    .badge-plan   { background: rgba(124,58,237,.2); color: var(--primary-color); border: 1px solid rgba(124,58,237,.3); }
+    .badge-active { background: rgba(16,185,129,.15); color: #10b981; border: 1px solid rgba(16,185,129,.3); }
+    .badge-expired{ background: rgba(107,114,128,.15); color: #6b7280; border: 1px solid rgba(107,114,128,.3); }
+    .my-lic-dates { font-size: .78rem; color: #9ca3af; text-align: right; flex-shrink: 0; line-height: 1.6; }
+    .my-lic-divider { max-width: 700px; margin: 36px auto 0; border: none; border-top: 1px solid var(--border-color); }
+
+    @media (max-width: 768px) { .page-hero h1 { font-size: 2.2rem; } .license-banner { font-size: .95rem; } .license-sell { padding: 20px; } .plan-toggle button { padding: 9px 20px; font-size: .85rem; } .my-lic-list {margin: 30px 40px; gap: 8px;} .my-lic-card {padding: 14px 16px; gap: 12px;} .my-lic-dates {text-align: left;} }
+    @media (max-width: 480px) { .page-hero { padding: 36px 16px 24px; } .page-hero h1 { font-size: 1.7rem; } .license-banner { font-size: .88rem; } .license-warning { padding: 14px 16px; font-size: .85rem; } .price-card { padding: 24px 18px; } .price-card .plan-price { font-size: 1.8rem; } .payment-options { flex-direction: column; } .card-row { flex-direction: column; gap: 0; } .support-card { padding: 22px; } .my-lic-list {margin: 30px 50px; gap: 8px;} .my-lic-card {padding: 14px 16px; gap: 12px;} .my-lic-dates {text-align: left;} }
+</style>
+</head>
+<body data-page-title="act.pageTitle">
+
+<nav class="navbar">
+    <div class="container">
+        <div class="logo">
+            <img src="icons/logoheader.png" class="logo">
+            <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav.home">Início</a></li>
+            <li><a href="index.html#features" data-i18n="nav.features">Funcionalidades</a></li>
+            <li><a href="index.html#download" data-i18n="nav.download">Download</a></li>
+            <li><a href="index.html#contact" data-i18n="nav.contact">Contato</a></li>
+        </ul>
+        <div class="nav-auth">
+            <button class="btn-nav-login" id="btn-header-login" data-i18n="nav.login">Entrar</button>
+            <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
+                <button class="user-avatar-btn" id="nav-user-toggle">
+                    <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
+                    <span style="font-size:.7rem;color:#9ca3af;">▾</span>
+                </button>
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="activate.html" class="active" data-i18n="nav.activateApp">🎬 Ativar App</a>
+                    <a href="playlists.html" data-i18n="nav.manageLists">📋 Gerir minhas listas</a>
+                    <a href="profile.html" data-i18n="nav.editProfile">👤 Alterar meus dados</a>
+                    <a href="parental.html" data-i18n="nav.parentalCtrl">🔒 Gerir canais bloqueados</a>
+                    <hr style="border:none;border-top:1px solid #2d2d4e;margin:4px 0;">
+                    <button id="dd-logout" style="color:#ef4444;" data-i18n="nav.logout">Deslogar</button>
+                </div>
+            </div>
+        </div>
+        <button class="theme-toggle" title="Modo claro">☀️</button>
+        <button class="menu-toggle">☰</button>
+    </div>
+</nav>
+
+<div class="page-area">
+
+    <div class="page-hero">
+        <h1 data-i18n="act.h1">Ativar o Alpha Prime</h1>
+        <p data-i18n="act.sub">Adquira a licença do aplicativo e libere o player na sua TV ou dispositivo</p>
+    </div>
+
+    <!-- Minhas Licenças -->
+    <div class="my-lic-section" id="my-lic-section" style="display:none">
+        <div class="my-lic-header">
+            <h2 data-i18n="act.myLicenses">Minhas Licenças</h2>
+        </div>
+        <div class="my-lic-list" id="my-lic-list"></div>
+        <hr class="my-lic-divider">
+    </div>
+
+    <!-- Venda da Licença -->
+    <div class="license-wrap">
+        <p class="license-banner" data-i18n="act.attention">📢 ATENÇÃO! LEIA ABAIXO ANTES DE ADQUIRIR A LICENÇA DO APP</p>
+
+        <div class="license-sell">
+            <h3 data-i18n="act.whatBuying">O que você está comprando</h3>
+            <p data-i18n-html="act.sellText1">A <strong>licença do Alpha Prime</strong> é o que libera o funcionamento do aplicativo no seu dispositivo.</p>
+            <p data-i18n-html="act.sellText2"><strong>Importante:</strong> a licença não inclui lista de canais, filmes ou séries.</p>
+        </div>
+
+        <div class="license-warning" data-i18n="act.warning">
+            ⚠️ ATENÇÃO! Não finalize esta compra se você ainda não possui uma lista de canais com um fornecedor autorizado.
+        </div>
+
+        <div class="plan-toggle">
+            <button type="button" id="plan-yearly" class="active" onclick="selectPlan('yearly')" data-i18n="act.planYearly">Anual</button>
+            <button type="button" id="plan-lifetime" onclick="selectPlan('lifetime')" data-i18n="act.planLifetime">Vitalício</button>
+        </div>
+
+        <div class="price-card">
+            <div class="dot"></div>
+            <div class="plan-name" id="price-name">Licença Anual</div>
+            <div class="plan-period" id="price-period">Renovação a cada 12 meses</div>
+            <div class="plan-discount-badge" id="price-badge">-50%</div>
+            <div class="plan-old-price" id="price-old">R$ 50,00</div>
+            <div class="plan-price" id="price-value"><span>R$</span>25,00</div>
+        </div>
+
+        <div class="license-confirm" id="license-confirm">
+            <div class="fl">
+                <label data-i18n="act.macAddress">MAC Address do dispositivo</label>
+                <input type="text" id="buy-mac-input" data-i18n-ph="ph.mac" placeholder="ex: aa:bb:cc:dd:ee:ff">
+            </div>
+            <div class="fl">
+                <label data-i18n="act.deviceKey">Device Key</label>
+                <input type="text" id="buy-key-input" data-i18n-ph="ph.deviceKey" placeholder="ex: 123456">
+            </div>
+            <div class="fl">
+                <label data-i18n="act.deviceName">Nome do dispositivo</label>
+                <input type="text" id="buy-device-name" data-i18n-ph="ph.deviceName" placeholder="ex: TV Quarto, Tablet, Celular…" maxlength="50">
+            </div>
+
+            <label class="license-checkbox">
+                <input type="checkbox" id="license-ack">
+                <strong><b data-i18n="act.ackText">Estou ciente que esta compra refere-se apenas à licença de uso do aplicativo Alpha Prime, e que nenhuma lista de canais, código ou senha será fornecida.</b></strong>
+            </label>
+
+            <div class="payment-options">
+                <button class="cbtn cbtn-primary cbtn-check" id="buy-btn" onclick="startPixPayment()" disabled data-i18n="act.payPix">Pagar com Pix</button>
+                <button class="cbtn cbtn-outline cbtn-check" id="buy-card-btn" onclick="showCardForm()" disabled data-i18n="act.payCard">Pagar com Cartão</button>
+            </div>
+        </div>
+
+        <!-- Painel Pix -->
+        <div class="pix-panel" id="pix-panel">
+            <p class="pix-status" id="pix-status" data-i18n="act.waitingPayment">⏳ Aguardando pagamento...</p>
+            <img class="pix-qr" id="pix-qr" alt="QR Code Pix">
+            <div class="pix-copy">
+                <input type="text" id="pix-copy-input" readonly>
+                <button type="button" class="cbtn cbtn-primary" onclick="copyPixCode()" data-i18n="act.copy">Copiar</button>
+            </div>
+            <p class="pix-note" data-i18n="act.pixNote">Abra o app do seu banco, escolha pagar com Pix e leia o QR Code ou cole o código acima.</p>
+        </div>
+
+        <!-- Painel Cartão -->
+        <div class="card-panel" id="card-panel">
+            <div class="fl">
+                <label data-i18n="act.cardNumber">Número do Cartão</label>
+                <input type="text" id="card-number" data-i18n-ph="ph.cardNumber" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19">
+            </div>
+            <div class="fl">
+                <label data-i18n="act.cardName">Nome impresso no cartão</label>
+                <input type="text" id="card-name" data-i18n-ph="ph.cardName" placeholder="ex: JOAO M SILVA">
+            </div>
+            <div class="card-row">
+                <div class="fl">
+                    <label data-i18n="act.cardExpiry">Validade</label>
+                    <input type="text" id="card-expiry" data-i18n-ph="ph.cardExpiry" placeholder="MM/AA" maxlength="5">
+                </div>
+                <div class="fl">
+                    <label data-i18n="act.cardCVV">CVV</label>
+                    <input type="text" id="card-cvv" data-i18n-ph="ph.cardCVV" placeholder="123" inputmode="numeric" maxlength="4">
+                </div>
+            </div>
+            <button class="cbtn cbtn-primary cbtn-check" id="card-pay-btn" onclick="payWithCard()" data-i18n="act.confirmPay">Confirmar Pagamento</button>
+            <p class="pix-note" data-i18n="act.cardNote">Pagamento processado com segurança. Os dados do cartão não são armazenados.</p>
+        </div>
+
+        <!-- Sucesso -->
+        <div class="pix-success" id="payment-success">
+            <div class="pix-success-icon">✅</div>
+            <h3 data-i18n="act.successTitle">Pagamento confirmado!</h3>
+            <p data-i18n-html="act.successMsg">Volte ao aplicativo Alpha Prime na sua TV e adicione sua lista de canais em <strong>Listas</strong>.</p>
+        </div>
+    </div>
+
+    <!-- Suporte -->
+    <div class="support-wrap">
+        <div class="support-card">
+            <div class="support-icon">🎧</div>
+            <h3 data-i18n="act.supportTitle">Precisa de ajuda para ativar?</h3>
+            <p data-i18n="act.supportDesc">Se tiver qualquer erro ou dúvida durante a ativação, envie-nos uma mensagem e responderemos em breve.</p>
+            <form id="support-form" style="text-align:left;margin-top:8px;display:flex;flex-direction:column;gap:12px;">
+                <div class="fl">
+                    <label data-i18n="contact.name">Nome</label>
+                    <input type="text" id="sup-name" data-i18n-ph="ph.yourName" placeholder="Seu nome" required>
+                </div>
+                <div class="fl">
+                    <label data-i18n="contact.email">Email</label>
+                    <input type="email" id="sup-email" data-i18n-ph="ph.yourEmail" placeholder="Seu email" required>
+                </div>
+                <div class="fl">
+                    <label data-i18n="contact.message">Mensagem</label>
+                    <input type="text" id="sup-message" placeholder="Descreva o problema ou dúvida" required style="height:auto">
+                </div>
+                <button type="submit" class="cbtn cbtn-primary cbtn-check" id="sup-btn" data-i18n="contact.send">Enviar</button>
+                <p id="sup-feedback" style="font-size:.85rem;text-align:center;margin:0;min-height:18px"></p>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <div class="footer">
+        <p data-i18n="footer.rights">&copy; 2026 Alpha Prime. Todos os direitos reservados.</p>
+        <div class="footer-links">
+            <a href="legal.html" data-i18n="footer.terms">Termos de Uso</a>
+        </div>
+    </div>
+</footer>
+
+<script src="i18n.js"></script>
+<script src="script.js"></script>
+<script src="auth-header.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+if (params.get('mac')) document.getElementById('buy-mac-input').value = params.get('mac');
+if (params.get('key')) document.getElementById('buy-key-input').value = params.get('key');
+
+// Minhas Licenças
+(async function loadMyLicenses() {
+    const t = window.__i18n.t;
+    const apUser = JSON.parse(localStorage.getItem('ap_user') || 'null');
+    if (!apUser?.token) return;
+
+    try {
+        const res = await fetch('/api/user/devices', { headers: { Authorization: 'Bearer ' + apUser.token } });
+        if (!res.ok) return;
+        const devices = await res.json();
+        if (!devices || !devices.length) return;
+
+        const list = document.getElementById('my-lic-list');
+        const fmt  = d => d ? new Date(d).toLocaleDateString() : '—';
+        const isVitalicio = v => !v || v === 'vitalicio';
+
+        list.innerHTML = devices.map(d => {
+            const expired   = !isVitalicio(d.validade) && new Date(d.validade) < new Date();
+            const planLabel = d.plano === 'anual' ? t('act.licPlanAnual') : t('act.licPlanVit');
+            const validText = isVitalicio(d.validade) ? t('act.licLifetimeTxt') : fmt(d.validade);
+            return `
+            <div class="my-lic-card ${expired ? 'expired' : ''}">
+                <div class="my-lic-dot"></div>
+                <div class="my-lic-info">
+                    <div class="my-lic-name">${esc(d.nome_dispositivo || t('act.licDevice'))}</div><br>
+                    <div class="my-lic-mac">${esc(d.mac_address)}</div>
+                </div>
+                <div class="my-lic-badges">
+                    <span class="my-lic-badge badge-plan">${planLabel}</span>
+                    <span class="my-lic-badge ${expired ? 'badge-expired' : 'badge-active'}">${expired ? t('act.licExpired') : t('act.licActive')}</span>
+                </div>
+                <div class="my-lic-dates">
+                    ${t('act.licAcquired')} ${fmt(d.criado_em)}<br>
+                    ${t('act.licValidity')} ${validText}
+                </div>
+            </div>`;
+        }).join('');
+
+        document.getElementById('my-lic-section').style.display = 'block';
+    } catch(_) {}
+})();
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+let pixPollTimer = null;
+
+function detectDeviceModel() {
+  const ua = navigator.userAgent;
+  if (/Android/i.test(ua)) {
+    if (/TV|SMART-TV|SmartTV|BRAVIA|Chromecast|AFT/i.test(ua)) return 'Android TV';
+    if (/Tablet|Tab/i.test(ua)) return 'Android Tablet';
+    return 'Android';
+  }
+  if (/iPad/i.test(ua)) return 'iPad';
+  if (/iPhone/i.test(ua)) return 'iPhone';
+  if (/Windows/i.test(ua)) return 'Windows PC';
+  if (/Macintosh|Mac OS/i.test(ua)) return 'Mac';
+  if (/Linux/i.test(ua)) return 'Linux';
+  return 'Outro';
+}
+
+function getPlans() {
+    const t = window.__i18n.t;
+    return {
+        yearly:   { name: t('act.licYearly'),   period: t('act.periodYearly'),   price: 'R$ 25,00', oldPrice: 'R$ 50,00',  discount: '-50%' },
+        lifetime: { name: t('act.licLifetime'),  period: t('act.periodLifetime'), price: 'R$ 65,00', oldPrice: 'R$ 130,00', discount: '-50%' }
+    };
+}
+
+let selectedPlan = 'yearly';
+
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.getElementById('plan-yearly').classList.toggle('active', plan === 'yearly');
+  document.getElementById('plan-lifetime').classList.toggle('active', plan === 'lifetime');
+
+  const p = getPlans()[plan];
+  document.getElementById('price-name').textContent = p.name;
+  document.getElementById('price-period').textContent = p.period;
+  document.getElementById('price-badge').textContent = p.discount;
+  document.getElementById('price-old').textContent = p.oldPrice;
+  document.getElementById('price-value').innerHTML = `<span>${p.price.split(' ')[0]}</span>${p.price.split(' ')[1]}`;
+}
+
+selectPlan('yearly');
+
+document.getElementById('license-ack').addEventListener('change', function() {
+  document.getElementById('buy-btn').disabled = !this.checked;
+  document.getElementById('buy-card-btn').disabled = !this.checked;
+});
+
+function showCardForm() {
+  document.getElementById('license-confirm').style.display = 'none';
+  document.getElementById('card-panel').style.display = 'flex';
+}
+
+async function startPixPayment() {
+  const t = window.__i18n.t;
+  const mac = document.getElementById('buy-mac-input').value.trim().toLowerCase();
+  const key = document.getElementById('buy-key-input').value.trim();
+  const deviceName = document.getElementById('buy-device-name').value.trim();
+  const deviceModel = detectDeviceModel();
+  const apUser = JSON.parse(localStorage.getItem('ap_user') || 'null');
+
+  if (!mac) { document.getElementById('buy-mac-input').focus(); return; }
+
+  const btn = document.getElementById('buy-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> ' + t('act.generating');
+
+  try {
+    const res = await fetch('/api/payments/pix/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel, userToken: apUser?.token || null })
+    });
+    if (!res.ok) throw new Error('create-failed');
+    const data = await res.json();
+
+    document.getElementById('license-confirm').style.display = 'none';
+    document.getElementById('pix-panel').style.display = 'block';
+    document.getElementById('pix-qr').src = data.qrCodeBase64;
+    document.getElementById('pix-copy-input').value = data.qrCodeText;
+    setPixStatus('loading', t('act.waitingPayment'));
+
+    pixPollTimer = setInterval(() => pollPixStatus(data.paymentId, mac, key), 4000);
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = t('act.payPix');
+    alert(t('act.errPix'));
+  }
+}
+
+async function pollPixStatus(paymentId, mac, key) {
+  const t = window.__i18n.t;
+  try {
+    const res = await fetch(`/api/payments/pix/status?id=${encodeURIComponent(paymentId)}`);
+    const data = await res.json();
+
+    if (data.status === 'paid') {
+      clearInterval(pixPollTimer);
+      document.getElementById('pix-panel').style.display = 'none';
+      document.getElementById('payment-success').style.display = 'block';
+    } else if (data.status === 'expired' || data.status === 'failed') {
+      clearInterval(pixPollTimer);
+      setPixStatus('error', '❌ ' + t('act.errPix'));
+    }
+  } catch (e) {}
+}
+
+function setPixStatus(type, text) {
+  const el = document.getElementById('pix-status');
+  el.className = 'pix-status' + (type === 'paid' ? ' paid' : type === 'error' ? ' error' : '');
+  el.textContent = text;
+}
+
+function copyPixCode() {
+  const input = document.getElementById('pix-copy-input');
+  input.select();
+  navigator.clipboard?.writeText(input.value);
+}
+
+async function payWithCard() {
+  const t = window.__i18n.t;
+  const mac = document.getElementById('buy-mac-input').value.trim().toLowerCase();
+  const key = document.getElementById('buy-key-input').value.trim();
+  const deviceName = document.getElementById('buy-device-name').value.trim();
+  const deviceModel = detectDeviceModel();
+  const apUser = JSON.parse(localStorage.getItem('ap_user') || 'null');
+  const number = document.getElementById('card-number').value.trim();
+  const name   = document.getElementById('card-name').value.trim();
+  const expiry = document.getElementById('card-expiry').value.trim();
+  const cvv    = document.getElementById('card-cvv').value.trim();
+
+  if (!number || !name || !expiry || !cvv) { alert(t('act.errCardFields')); return; }
+
+  const btn = document.getElementById('card-pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> ' + t('act.processingCard');
+
+  try {
+    const res = await fetch('/api/payments/card/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel, userToken: apUser?.token || null, card: { number, name, expiry, cvv } })
+    });
+    if (!res.ok) throw new Error('charge-failed');
+    const data = await res.json();
+
+    if (data.status === 'paid') {
+      document.getElementById('card-panel').style.display = 'none';
+      document.getElementById('payment-success').style.display = 'block';
+    } else {
+      throw new Error('not-paid');
+    }
+  } catch (e) {
+    alert(t('act.errCard'));
+    btn.disabled = false;
+    btn.textContent = t('act.confirmPay');
+  }
+}
+
+// Support form
+document.getElementById('support-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const name    = document.getElementById('sup-name').value.trim();
+  const email   = document.getElementById('sup-email').value.trim();
+  const message = document.getElementById('sup-message').value.trim();
+  const btn      = document.getElementById('sup-btn');
+  const feedback = document.getElementById('sup-feedback');
+  const mac      = document.getElementById('buy-mac-input').value.trim();
+
+  btn.disabled = true;
+  btn.textContent = '...';
+  feedback.textContent = '';
+  feedback.style.color = '';
+
+  try {
+    const res  = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone: '', message: '[Ajuda Ativação' + (mac ? ' — MAC: ' + mac : '') + ']\n' + message })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      feedback.textContent = 'Mensagem enviada! Entraremos em contato em breve.';
+      feedback.style.color = '#10b981';
+      this.reset();
+    } else {
+      feedback.textContent = data.error || 'Erro ao enviar. Tente novamente.';
+      feedback.style.color = '#ef4444';
+    }
+  } catch {
+    feedback.textContent = 'Erro de conexão. Tente novamente.';
+    feedback.style.color = '#ef4444';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = window.__i18n.t('contact.send') || 'Enviar';
+  }
+});
+
+// Re-apply plan names when language changes (plans use translated strings)
+const _origSetLang = window.__i18n.setLang;
+window.__i18n.setLang = function(lang) {
+    _origSetLang(lang);
+    selectPlan(selectedPlan);
+};
+</script>
+<script src="theme.js"></script>
+</body>
+</html>

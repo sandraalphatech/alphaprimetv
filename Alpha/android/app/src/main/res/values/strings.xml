@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Alpha Prime</string>
+    <string name="app_tagline">A forma mais inteligente de assistir TV ao Vivo</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Início</string>
+    <string name="nav_epg">Programação</string>
+    <string name="nav_favorites">Favoritos</string>
+    <string name="nav_settings">Configurações</string>
+
+    <!-- Home Screen -->
+    <string name="search_channels">Buscar canais</string>
+    <string name="category_filter">Filtrar por categoria</string>
+    <string name="popular_channels">Canais Populares</string>
+
+    <!-- Player Screen -->
+    <string name="play_button">Reproduzir</string>
+    <string name="pause_button">Pausar</string>
+    <string name="fullscreen">Tela Cheia</string>
+    <string name="quality_selector">Qualidade</string>
+
+    <!-- EPG Screen -->
+    <string name="program_guide">Guia de Programação</string>
+    <string name="live_now">Ao Vivo Agora</string>
+    <string name="coming_soon">Em Breve</string>
+
+    <!-- Settings Screen -->
+    <string name="video_quality">Qualidade de Vídeo</string>
+    <string name="hd_quality">Qualidade HD</string>
+    <string name="full_hd_quality">Qualidade Full HD</string>
+    <string name="ultra_hd_quality">Qualidade 4K Ultra HD</string>
+    <string name="hdr_enabled">HDR Ativado</string>
+    <string name="appearance">Aparência</string>
+    <string name="dark_mode">Modo Escuro</string>
+    <string name="about">Sobre</string>
+    <string name="version">Versão 1.0.0</string>
+    <string name="contact">Contato</string>
+    <string name="email">contato.velvetapp@gmail.com</string>
+
+    <!-- Errors -->
+    <string name="error_network">Erro de conexão de rede</string>
+    <string name="error_stream">Erro ao conectar ao stream</string>
+    <string name="error_loading">Erro ao carregar dados</string>
+
+    <!-- Messages -->
+    <string name="loading">Carregando...</string>
+    <string name="no_channels">Nenhum canal disponível</string>
+    <string name="retry">Tentar Novamente</string>
+</resources>

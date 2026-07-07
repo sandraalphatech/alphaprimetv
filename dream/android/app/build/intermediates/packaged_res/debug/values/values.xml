@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent">#7B35C4</color>
+    <color name="accent_bg">#387B35C4</color>
+    <color name="accent_focus">#18FFFFFF</color>
+    <color name="bg_dark">#080810</color>
+    <color name="bg_dark2">#0d0d1a</color>
+    <color name="black">#000000</color>
+    <color name="divider">#0AFFFFFF</color>
+    <color name="error">#EF4444</color>
+    <color name="gold">#D4A843</color>
+    <color name="gold_dark">#8B6914</color>
+    <color name="success">#10B981</color>
+    <color name="surface">#1E293B</color>
+    <color name="surface2">#111120</color>
+    <color name="text_dim">#529CA3AF</color>
+    <color name="text_primary">#E5E7EB</color>
+    <color name="white">#FFFFFF</color>
+    <string name="app_name">Alpha Prime</string>
+    <string name="back">Voltar</string>
+    <string name="enter_url">Introduza uma URL válida</string>
+    <string name="error_loading">Erro ao carregar canais</string>
+    <string name="fill_all">Preencha todos os campos</string>
+    <string name="loading">A carregar canais…</string>
+    <string name="m3u_url_hint">URL da lista M3U (ex: http://…/lista.m3u)</string>
+    <string name="no_config">Configure uma lista M3U ou Xtream Codes nas Configurações</string>
+    <string name="retry">Tentar novamente</string>
+    <string name="save">Guardar</string>
+    <string name="saved_ok">Guardado com sucesso!</string>
+    <string name="search_hint">Pesquisar canais…</string>
+    <string name="settings_title">Configurações</string>
+    <string name="tv_live">TV ao Vivo</string>
+    <string name="xtream_pass_hint">Senha</string>
+    <string name="xtream_server_hint">Servidor (ex: http://servidor.com:8080)</string>
+    <string name="xtream_user_hint">Utilizador</string>
+    <style name="Theme.AlphaPrime" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorPrimaryVariant">@color/surface</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/gold</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+        <item name="android:statusBarColor">@color/bg_dark</item>
+        <item name="android:navigationBarColor">@color/bg_dark</item>
+    </style>
+    <style name="Theme.AlphaPrime.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@color/bg_dark</item>
+    </style>
+    <style name="Theme.AlphaPrime.Splash" parent="Theme.AlphaPrime.NoActionBar">
+        <item name="android:windowBackground">@color/bg_dark</item>
+    </style>
+</resources>

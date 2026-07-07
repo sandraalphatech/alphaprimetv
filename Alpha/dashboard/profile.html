@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Prime — Meu Perfil</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        (function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+    </script>
+    <style>
+        .page-area { padding-top: 80px; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, var(--secondary-color), var(--bg-dark) 70%); }
+        .page-hero { padding: 48px 20px 8px; text-align: center; }
+        .page-hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--text-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-hero p  { color: #9ca3af; margin-top: 8px; }
+        .pl-wrap { padding: 32px 16px 64px; }
+
+        .fl { width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 22px; }
+        .fl label { font-size: .82rem; color: #9ca3af; }
+        .fl label span { color: #ef4444; }
+        .fl-row { display: flex; align-items: center; gap: 8px; }
+        .fl input { background: transparent; border: none; border-bottom: 1px solid var(--border-color); border-radius: 0; padding: 8px 0; color: var(--text-light); font-size: .92rem; outline: none; transition: border-color .2s; width: 100%; }
+        .fl input:focus { border-color: var(--primary-color); }
+        .fl input::placeholder { color: #4b5563; }
+        .eye-toggle { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 1rem; padding: 4px; }
+        .eye-toggle:hover { color: var(--text-light); }
+
+        .user-dropdown hr { border: none; border-top: 1px solid var(--border-color); margin: 4px 0; }
+
+        .not-logged-in { max-width: 460px; margin: 0 auto; text-align: center; padding: 56px 20px; }
+        .not-logged-in .icon { font-size: 3.5rem; margin-bottom: 16px; }
+        .not-logged-in h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+        .not-logged-in p { color: #9ca3af; font-size: .9rem; margin-bottom: 28px; line-height: 1.6; }
+        .btn-big-login { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+        .btn-big-login:hover { opacity: .88; }
+
+        .pl-card { max-width: 560px; margin: 20px auto 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 28px 32px; }
+        .pl-card h3 { font-size: 1rem; font-weight: 800; color: var(--text-light); margin-bottom: 4px; }
+        .pl-card .card-sub { font-size: .82rem; color: #9ca3af; margin-bottom: 2px; }
+        .section-divider { border: none; border-top: 1px solid var(--border-color); margin: 24px 0; }
+
+        .btn-save { display: block; width: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 8px; padding: 13px; font-size: .95rem; font-weight: 800; letter-spacing: .5px; cursor: pointer; transition: opacity .2s; }
+        .btn-save:hover { opacity: .88; }
+        .btn-save:disabled { opacity: .5; cursor: not-allowed; }
+
+        .cbtn-link { background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: .85rem; font-weight: 700; padding: 0; text-decoration: none; }
+
+        .feedback { text-align: center; font-size: .85rem; margin-top: 14px; min-height: 1.2em; }
+        .feedback.ok  { color: #10b981; }
+        .feedback.err { color: #ef4444; }
+
+        .pw-section { display: none; margin-top: 16px; }
+
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 20px; font-size: .88rem; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all .3s; max-width: 300px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.ok  { border-color: #10b981; color: #10b981; }
+        .toast.err { border-color: #ef4444; color: #ef4444; }
+
+        @media(max-width:768px) { .page-hero h1 { font-size: 1.8rem; } .pl-card { padding: 20px; } }
+        @media(max-width:480px) { .page-hero { padding: 32px 16px 8px; } .pl-card { padding: 16px; } }
+    </style>
+</head>
+<body data-page-title="prof.pageTitle">
+
+<nav class="navbar">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <img src="icons/logoheader.png" class="logo">
+            <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav.home">Início</a></li>
+            <li><a href="index.html#features" data-i18n="nav.features">Funcionalidades</a></li>
+            <li><a href="index.html#download" data-i18n="nav.download">Download</a></li>
+            <li><a href="index.html#contact" data-i18n="nav.contact">Contato</a></li>
+        </ul>
+        <div class="nav-auth">
+            <button class="btn-nav-login" id="btn-header-login" onclick="window.location.href='login.html'" data-i18n="nav.login">Entrar</button>
+            <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
+                <button class="user-avatar-btn" id="nav-user-toggle">
+                    <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
+                    <span id="nav-username" data-i18n="nav.user"></span>
+                    <span style="font-size:.7rem;color:#9ca3af;">▾</span>
+                </button>
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="activate.html" data-i18n="nav.activateApp">🎬 Ativar App</a>
+                    <a href="playlists.html" data-i18n="nav.manageLists">📋 Gerir minhas listas</a>
+                    <a href="profile.html" class="active" data-i18n="nav.editProfile">👤 Alterar meus dados</a>
+                    <a href="parental.html" data-i18n="nav.parentalCtrl">🔒 Gerir canais bloqueados</a>
+                    <hr style="border:none;border-top:1px solid #2d2d4e;margin:4px 0;">
+                    <button id="dd-logout" style="color:#ef4444;" data-i18n="nav.logout">🚪 Deslogar</button>
+                </div>
+            </div>
+        </div>
+        <button class="theme-toggle" title="Modo claro">☀️</button>
+        <button class="menu-toggle">☰</button>
+    </div>
+</nav>
+
+<div class="page-area">
+    <div class="page-hero">
+        <h1 data-i18n="prof.h1">👤 Meu Perfil</h1>
+        <p data-i18n="prof.sub">Atualize os seus dados pessoais</p>
+    </div>
+
+    <div class="pl-wrap">
+
+        <div id="section-login" style="display:none">
+            <div class="not-logged-in">
+                <div class="icon">👤</div>
+                <h2 data-i18n="prof.restricted">Acesso restrito</h2>
+                <p data-i18n="prof.loginRequired">Faça login para editar o seu perfil.</p>
+                <button class="btn-big-login" onclick="window.location.href='login.html'" data-i18n="prof.loginBtn">Entrar na minha conta</button>
+            </div>
+        </div>
+
+        <div id="section-app" style="display:none">
+
+            <!-- Dados pessoais -->
+            <div class="pl-card">
+                <h3 data-i18n="prof.personalData">Dados pessoais</h3>
+                <p class="card-sub" data-i18n="prof.cardSub">As alterações são guardadas no banco de dados</p>
+
+                <div class="fl">
+                    <label><span data-i18n="prof.fullName">Nome completo</span> <span>*</span></label>
+                    <input type="text" id="p-nome" data-i18n-ph="ph.fullNameEx" placeholder="O seu nome completo">
+                </div>
+                <div class="fl">
+                    <label data-i18n="prof.phone">Telefone (com DDI)</label>
+                    <input type="tel" id="p-telefone" data-i18n-ph="ph.phoneEx" placeholder="ex: +55 11 99999-9999">
+                </div>
+                <div class="fl">
+                    <label data-i18n="prof.birthdate">Data de nascimento</label>
+                    <input type="date" id="p-nascimento">
+                </div>
+                <div class="fl">
+                    <label data-i18n="prof.country">País</label>
+                    <input type="text" id="p-pais" data-i18n-ph="ph.countryEx" placeholder="ex: Brasil">
+                </div>
+                <div class="fl">
+                    <label data-i18n="prof.emailSecondary">E-mail secundário</label>
+                    <input type="email" id="p-email2" data-i18n-ph="ph.email2Ex" placeholder="outro@email.com">
+                </div>
+
+                <p class="feedback" id="profile-feedback"></p>
+                <button class="btn-save" id="profile-save-btn" onclick="saveProfile()" data-i18n="prof.saveBtn">GUARDAR DADOS</button>
+            </div>
+
+            <!-- Alterar senha -->
+            <div class="pl-card" style="margin-top:16px;">
+                <h3 data-i18n="prof.security">Segurança</h3>
+                <p class="card-sub" data-i18n="prof.secSub">Altere a senha da sua conta</p>
+
+                <button type="button" class="cbtn-link" id="toggle-pw-btn" onclick="togglePwSection()" data-i18n="prof.changePw">Alterar senha</button>
+
+                <div class="pw-section" id="pw-section">
+                    <div class="fl" style="margin-top:18px;">
+                        <label><span data-i18n="prof.currentPw">Senha atual</span> <span>*</span></label>
+                        <div class="fl-row"><input type="password" id="pw-current" data-i18n-ph="ph.currentPw" placeholder="Senha atual" maxlength="64"><button type="button" class="eye-toggle" onclick="toggleEye('pw-current',this)">👁</button></div>
+                    </div>
+                    <div class="fl">
+                        <label><span data-i18n="prof.newPw">Nova senha</span> <span>*</span></label>
+                        <div class="fl-row"><input type="password" id="pw-new" data-i18n-ph="ph.newPw" placeholder="Mínimo 6 caracteres" maxlength="64"><button type="button" class="eye-toggle" onclick="toggleEye('pw-new',this)">👁</button></div>
+                    </div>
+                    <div class="fl">
+                        <label><span data-i18n="prof.confirmPw">Confirmar nova senha</span> <span>*</span></label>
+                        <div class="fl-row"><input type="password" id="pw-confirm" data-i18n-ph="ph.confirmPw" placeholder="Repita a nova senha" maxlength="64"><button type="button" class="eye-toggle" onclick="toggleEye('pw-confirm',this)">👁</button></div>
+                    </div>
+                    <p class="feedback" id="pw-feedback"></p>
+                    <button class="btn-save" id="pw-save-btn" onclick="changePassword()" data-i18n="prof.changePwBtn">ALTERAR SENHA</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer">
+        <p data-i18n="footer.rights">&copy; 2026 Alpha Prime. Todos os direitos reservados.</p>
+        <div class="footer-links">
+            <a href="legal.html" data-i18n="footer.terms">Termos de Uso</a>
+        </div>
+    </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="i18n.js"></script>
+<script src="script.js"></script>
+<script>
+const user    = JSON.parse(localStorage.getItem('ap_user')    || 'null');
+const account = JSON.parse(localStorage.getItem('ap_account') || 'null');
+
+if (user || account) {
+    updateHeaderAuth();
+    document.getElementById('section-app').style.display = 'block';
+    loadProfile();
+} else {
+    document.getElementById('section-login').style.display = 'block';
+    updateHeaderAuth();
+}
+
+function updateHeaderAuth() {
+    const nick = (user?.nome || account?.nickname || '').split(' ')[0] || null;
+    if (nick) {
+        document.getElementById('btn-header-login').style.display = 'none';
+        document.getElementById('nav-user-wrap').style.display    = 'flex';
+        document.getElementById('nav-username').textContent       = nick;
+        document.getElementById('nav-avatar-letter').textContent  = nick[0].toUpperCase();
+    } else {
+        document.getElementById('btn-header-login').style.display = 'block';
+        document.getElementById('nav-user-wrap').style.display    = 'none';
+    }
+}
+
+document.getElementById('nav-user-toggle').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('user-dropdown').classList.toggle('open');
+});
+document.addEventListener('click', e => {
+    const wrap = document.getElementById('nav-user-wrap');
+    if (wrap && !wrap.contains(e.target)) document.getElementById('user-dropdown').classList.remove('open');
+});
+document.getElementById('dd-logout').addEventListener('click', async () => {
+    if (user?.token) {
+        try { await fetch('/api/auth/logout', { method:'POST', headers:{ Authorization:'Bearer '+user.token } }); } catch(_){}
+    }
+    localStorage.removeItem('ap_user');
+    localStorage.removeItem('ap_account');
+    window.location.href = 'login.html';
+});
+
+async function loadProfile() {
+    if (!user?.token) {
+        document.getElementById('p-nome').value = account?.nickname || '';
+        return;
+    }
+    try {
+        const res = await fetch('/api/auth/profile', { headers: { Authorization: 'Bearer ' + user.token } });
+        if (!res.ok) return;
+        const p = await res.json();
+        document.getElementById('p-nome').value       = p.nome             || '';
+        document.getElementById('p-telefone').value   = p.telefone         || '';
+        document.getElementById('p-nascimento').value = p.data_nascimento  || '';
+        document.getElementById('p-pais').value       = p.pais             || '';
+        document.getElementById('p-email2').value     = p.email_secundario || '';
+    } catch(_) {}
+}
+
+async function saveProfile() {
+    const t = window.__i18n.t;
+    const nome     = document.getElementById('p-nome').value.trim();
+    const telefone = document.getElementById('p-telefone').value.trim();
+    const nasc     = document.getElementById('p-nascimento').value;
+    const pais     = document.getElementById('p-pais').value.trim();
+    const email2   = document.getElementById('p-email2').value.trim();
+    const feedback = document.getElementById('profile-feedback');
+    const btn      = document.getElementById('profile-save-btn');
+
+    if (!nome) { setFeedback(feedback, t('prof.errName'), 'err'); return; }
+
+    if (user?.token) {
+        btn.disabled = true; btn.textContent = t('prof.saving');
+        try {
+            const res  = await fetch('/api/auth/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + user.token },
+                body: JSON.stringify({ nome, telefone, data_nascimento: nasc || null, pais, email_secundario: email2 })
+            });
+            const data = await res.json();
+            if (!res.ok) { setFeedback(feedback, data.error || t('prof.errSave'), 'err'); return; }
+            user.nome = data.nome;
+            localStorage.setItem('ap_user', JSON.stringify(user));
+            updateHeaderAuth();
+            setFeedback(feedback, t('prof.saved'), 'ok');
+        } catch(_) { setFeedback(feedback, t('prof.errNetName'), 'err'); }
+        finally { btn.disabled = false; btn.textContent = t('prof.saveBtn'); }
+    } else if (account) {
+        account.nickname = nome;
+        localStorage.setItem('ap_account', JSON.stringify(account));
+        updateHeaderAuth();
+        setFeedback(feedback, t('prof.nameUpdated'), 'ok');
+    }
+}
+
+function togglePwSection() {
+    const t   = window.__i18n.t;
+    const sec  = document.getElementById('pw-section');
+    const open = sec.style.display === 'none' || sec.style.display === '';
+    sec.style.display = open ? 'block' : 'none';
+    document.getElementById('toggle-pw-btn').textContent = open ? t('prof.closePw') : t('prof.changePw');
+    if (open) {
+        document.getElementById('pw-current').value  = '';
+        document.getElementById('pw-new').value      = '';
+        document.getElementById('pw-confirm').value  = '';
+        document.getElementById('pw-feedback').textContent = '';
+    }
+}
+
+async function changePassword() {
+    if (!user?.token) return;
+    const t = window.__i18n.t;
+    const current  = document.getElementById('pw-current').value;
+    const newPw    = document.getElementById('pw-new').value;
+    const confirm  = document.getElementById('pw-confirm').value;
+    const feedback = document.getElementById('pw-feedback');
+    const btn      = document.getElementById('pw-save-btn');
+
+    if (!current)          { setFeedback(feedback, t('prof.errCurrentPw'), 'err'); return; }
+    if (newPw.length < 6)  { setFeedback(feedback, t('prof.errNewPwLen'), 'err'); return; }
+    if (newPw !== confirm) { setFeedback(feedback, t('prof.errPwMatch'), 'err'); return; }
+
+    btn.disabled = true; btn.textContent = t('prof.changing');
+    try {
+        const res  = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + user.token },
+            body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+        });
+        const data = await res.json();
+        if (!res.ok) { setFeedback(feedback, data.error || 'Erro', 'err'); return; }
+        setFeedback(feedback, t('prof.pwChanged'), 'ok');
+        setTimeout(togglePwSection, 1500);
+    } catch(_) { setFeedback(feedback, t('prof.errNetPw'), 'err'); }
+    finally { btn.disabled = false; btn.textContent = t('prof.changePwBtn'); }
+}
+
+function setFeedback(el, msg, type) {
+    el.textContent = msg; el.className = 'feedback ' + type;
+}
+function toggleEye(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    btn.textContent = hidden ? '***' : '👁';
+}
+function toast(msg, type = 'ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'toast ' + type + ' show';
+    setTimeout(() => el.classList.remove('show'), 3200);
+}
+</script>
+<script src="theme.js"></script>
+</body>
+</html>

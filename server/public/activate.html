@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Prime — Ativação</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080810;color:#e5e7eb;font-family:'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 30%,#12082a,#080810 70%)}
+.card{background:#12121f;border:1px solid #2d2d4e;border-radius:20px;padding:40px;width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center}
+.logo{font-size:1.8rem;font-weight:900;letter-spacing:8px}
+.logo span{color:#D4A843}
+.logo-sub{font-size:.7rem;color:#9ca3af;letter-spacing:3px;margin-top:-18px}
+hr{width:100%;border:none;border-top:1px solid #2d2d4e}
+h2{font-size:1.1rem;font-weight:600;color:#e5e7eb}
+p{color:#9ca3af;font-size:.9rem;line-height:1.6}
+.form-group{width:100%;display:flex;flex-direction:column;gap:8px;text-align:left}
+label{font-size:.82rem;color:#9ca3af}
+input{width:100%;background:#1a1a2e;border:1px solid #2d2d4e;border-radius:8px;padding:11px 14px;color:#e5e7eb;font-size:.95rem;outline:none;transition:border .2s}
+input:focus{border-color:#7B35C4}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary{background:#7B35C4;color:#fff}
+.btn-primary:hover{background:#6a28b0}
+.btn-primary:disabled{background:#2d2d4e;cursor:not-allowed}
+.status-box{width:100%;padding:16px;border-radius:10px;font-size:.9rem;display:none}
+.status-box.ok{background:rgba(16,185,129,.1);border:1px solid #10b981;color:#10b981}
+.status-box.err{background:rgba(239,68,68,.1);border:1px solid #ef4444;color:#ef4444}
+.status-box.loading{background:rgba(124,53,196,.1);border:1px solid #7B35C4;color:#9B59B6}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.already-active{background:rgba(16,185,129,.08);border:1px solid #10b981;border-radius:12px;padding:20px;width:100%}
+.already-active .big{font-size:2.5rem;margin-bottom:8px}
+.already-active strong{color:#10b981;font-size:1.1rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">ALPHA <span>PRIME</span></div>
+  <div class="logo-sub">STREAMING PLAYER</div>
+
+  <hr>
+
+  <div id="check-section">
+    <h2>Verificar Ativação do Dispositivo</h2>
+    <p style="margin-top:8px">Introduza o MAC Address e o Device Key que aparecem no seu dispositivo.</p>
+  </div>
+
+  <div class="form-group">
+    <label>MAC Address</label>
+    <input type="text" id="mac-input" placeholder="ex: aa:bb:cc:dd:ee:ff" oninput="clearStatus()">
+  </div>
+
+  <div class="form-group">
+    <label>Device Key</label>
+    <input type="text" id="key-input" placeholder="ex: 123456" oninput="clearStatus()">
+  </div>
+
+  <div class="status-box" id="status-box"></div>
+
+  <button class="btn btn-primary" id="check-btn" onclick="checkActivation()">Verificar Ativação</button>
+
+  <hr>
+  <p style="font-size:.8rem">Para ativar o seu dispositivo, contacte o administrador e forneça o MAC Address e Device Key apresentados no app.</p>
+</div>
+
+<script>
+// Preencher automaticamente se URL tem parâmetros
+const params = new URLSearchParams(location.search);
+if (params.get('mac')) document.getElementById('mac-input').value = params.get('mac');
+if (params.get('key')) document.getElementById('key-input').value = params.get('key');
+
+function clearStatus() {
+  const el = document.getElementById('status-box');
+  el.style.display = 'none';
+}
+
+function setStatus(type, html) {
+  const el = document.getElementById('status-box');
+  el.className = 'status-box ' + type;
+  el.innerHTML = html;
+  el.style.display = 'block';
+}
+
+async function checkActivation() {
+  const mac = document.getElementById('mac-input').value.trim().toLowerCase();
+  const key = document.getElementById('key-input').value.trim();
+
+  if (!mac) { setStatus('err', '❌ Introduza o MAC Address'); return; }
+
+  const btn = document.getElementById('check-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> A verificar...';
+  setStatus('loading', '⏳ A verificar o estado do dispositivo...');
+
+  try {
+    const res = await fetch('/api/device/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mac, deviceKey: key })
+    });
+    const data = await res.json();
+
+    if (data.activated) {
+      const exp = data.expiresAt ? new Date(data.expiresAt).toLocaleDateString('pt-PT') : 'Sem data';
+      setStatus('ok', `
+        <div style="font-size:1.8rem;margin-bottom:8px">✅</div>
+        <strong style="font-size:1.1rem;display:block;margin-bottom:6px">Dispositivo Ativado!</strong>
+        Plano: <strong>${data.plan?.toUpperCase() || 'BASIC'}</strong><br>
+        Válido até: <strong>${exp}</strong>
+      `);
+    } else if (data.reason === 'expired') {
+      setStatus('err', '⌛ A sua assinatura expirou. Contacte o administrador para renovar.');
+    } else {
+      setStatus('err', '⏳ Este dispositivo ainda não foi ativado.<br><br>Contacte o administrador e forneça o seu MAC Address e Device Key.');
+    }
+  } catch(e) {
+    setStatus('err', '❌ Não foi possível contactar o servidor. Verifique a ligação à internet.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Verificar Ativação';
+  }
+}
+</script>
+</body>
+</html>

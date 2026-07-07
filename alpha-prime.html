@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Prime</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #2d3748;
+    --accent: #7c3aed;
+    --accent2: #ec4899;
+    --text: #e5e7eb;
+    --text2: #9ca3af;
+    --success: #10b981;
+    --error: #ef4444;
+    --border: #334155;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+
+  /* HEADER */
+  header { background: var(--surface); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 56px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  header h1 { font-size: 1.2rem; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  header h1 span { color: var(--accent); }
+  #search-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; color: var(--text); font-size: 0.9rem; width: 220px; outline: none; transition: border-color 0.2s; }
+  #search-box:focus { border-color: var(--accent); }
+
+  /* NAV */
+  nav { background: var(--surface); display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  nav button { flex: 1; padding: 14px; background: none; border: none; color: var(--text2); font-size: 0.9rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  nav button:hover { color: var(--text); background: var(--surface2); }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* MAIN */
+  main { flex: 1; overflow: hidden; display: flex; }
+
+  /* CONTENT */
+  .tab-content { display: none; flex: 1; overflow-y: auto; padding: 16px; }
+  .tab-content.active { display: flex; flex-direction: column; gap: 16px; }
+
+  /* CHANNEL GRID */
+  .category-title { font-size: 1rem; color: var(--text2); padding: 8px 0 4px; border-bottom: 1px solid var(--border); }
+  .channel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .channel-card { background: var(--surface); border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid var(--border); transition: all 0.2s; }
+  .channel-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(124,58,237,0.3); }
+  .channel-logo { width: 100%; height: 90px; object-fit: contain; background: var(--surface2); padding: 8px; }
+  .channel-logo-placeholder { width: 100%; height: 90px; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+  .channel-name { padding: 8px 10px; font-size: 0.8rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* EMPTY STATE */
+  .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--text2); text-align: center; }
+  .empty-state .icon { font-size: 4rem; opacity: 0.4; }
+  .empty-state p { font-size: 0.95rem; }
+  .empty-state a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+  /* PLAYER */
+  #player-overlay { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; flex-direction: column; }
+  #player-overlay.visible { display: flex; }
+  #player-top { background: rgba(0,0,0,0.7); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  #player-top button { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+  #player-top button:hover { background: rgba(255,255,255,0.2); }
+  #player-title { color: #fff; font-size: 1rem; flex: 1; }
+  #player-status { font-size: 0.8rem; color: var(--text2); }
+  video { flex: 1; width: 100%; background: #000; }
+
+  /* SETTINGS */
+  .settings-section { background: var(--surface); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .settings-section h3 { font-size: 1rem; color: var(--text); }
+  .tab-switch { display: flex; background: var(--surface2); border-radius: 8px; padding: 4px; gap: 4px; }
+  .tab-switch button { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; background: none; color: var(--text2); transition: all 0.2s; }
+  .tab-switch button.active { background: var(--accent); color: #fff; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 0.85rem; color: var(--text2); }
+  .form-group input { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+  .form-group input:focus { border-color: var(--accent); }
+  .form-group input::placeholder { color: var(--text2); opacity: 0.5; }
+  .btn { padding: 11px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-primary:disabled { background: var(--border); cursor: not-allowed; }
+  .btn-danger { background: none; color: var(--accent2); border: 1px solid var(--accent2); }
+  .btn-danger:hover { background: rgba(236,72,153,0.1); }
+  .status-badge { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 8px; font-size: 0.88rem; }
+  .status-badge.ok { background: rgba(16,185,129,0.15); color: var(--success); }
+  .status-badge.error { background: rgba(239,68,68,0.15); color: var(--error); }
+  .status-badge.loading { background: rgba(124,58,237,0.15); color: var(--accent); }
+  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .stat-card { background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; }
+  .stat-card .num { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+  .stat-card .lbl { font-size: 0.78rem; color: var(--text2); margin-top: 2px; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-bar-inner { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; border-radius: 2px; }
+
+  /* FILTER */
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📺 <span>Alpha</span> Prime</h1>
+  <input type="text" id="search-box" placeholder="🔍  Pesquisar canais..." oninput="filterChannels(this.value)">
+</header>
+
+<nav>
+  <button class="active" onclick="switchTab('tv', this)">📺 TV</button>
+  <button onclick="switchTab('movies', this)">🎬 Filmes</button>
+  <button onclick="switchTab('series', this)">📼 Séries</button>
+  <button onclick="switchTab('settings', this)" id="settings-nav-btn">⚙️ Configurações</button>
+</nav>
+
+<main>
+  <!-- TV -->
+  <div id="tab-tv" class="tab-content active">
+    <div class="empty-state" id="tv-empty">
+      <div class="icon">📡</div>
+      <strong>Nenhuma lista configurada</strong>
+      <p>Vá a <a onclick="goSettings()">Configurações</a> e adicione uma lista M3U ou Xtream Codes</p>
+    </div>
+    <div id="tv-channels" style="display:none; display: flex; flex-direction: column; gap: 20px;"></div>
+  </div>
+
+  <!-- Filmes -->
+  <div id="tab-movies" class="tab-content">
+    <div class="empty-state" id="movies-empty">
+      <div class="icon">🎬</div>
+      <strong>Nenhuma lista configurada</strong>
+      <p>Vá a <a onclick="goSettings()">Configurações</a> e adicione uma lista</p>
+    </div>
+    <div id="movies-channels" style="display:none;"></div>
+  </div>
+
+  <!-- Séries -->
+  <div id="tab-series" class="tab-content">
+    <div class="empty-state" id="series-empty">
+      <div class="icon">📼</div>
+      <strong>Nenhuma lista configurada</strong>
+      <p>Vá a <a onclick="goSettings()">Configurações</a> e adicione uma lista</p>
+    </div>
+    <div id="series-channels" style="display:none;"></div>
+  </div>
+
+  <!-- Configurações -->
+  <div id="tab-settings" class="tab-content">
+    <div class="settings-section">
+      <h3>Estado da Ligação</h3>
+      <div id="conn-status" class="status-badge" style="display:none;"></div>
+      <div id="conn-stats" class="stats" style="display:none;">
+        <div class="stat-card"><div class="num" id="stat-tv">0</div><div class="lbl">Canais TV</div></div>
+        <div class="stat-card"><div class="num" id="stat-movies">0</div><div class="lbl">Filmes</div></div>
+        <div class="stat-card"><div class="num" id="stat-series">0</div><div class="lbl">Séries</div></div>
+      </div>
+      <div id="no-config-msg" class="status-badge error">Nenhuma lista configurada</div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Adicionar Lista IPTV</h3>
+      <div class="tab-switch">
+        <button class="active" id="mode-m3u" onclick="switchMode('m3u')">URL M3U</button>
+        <button id="mode-xtream" onclick="switchMode('xtream')">Xtream Codes</button>
+      </div>
+
+      <!-- M3U -->
+      <div id="form-m3u">
+        <div class="form-group">
+          <label>URL da lista M3U</label>
+          <input type="url" id="m3u-url" placeholder="http://exemplo.com/lista.m3u ou lista.m3u8">
+        </div>
+        <div class="progress-bar" id="m3u-progress" style="display:none;"><div class="progress-bar-inner" id="m3u-progress-bar"></div></div>
+        <button class="btn btn-primary" onclick="loadM3U()" id="btn-load-m3u">Carregar Lista</button>
+      </div>
+
+      <!-- Xtream -->
+      <div id="form-xtream" style="display:none;">
+        <div class="form-group">
+          <label>Servidor</label>
+          <input type="url" id="xtream-server" placeholder="http://servidor.com:8080">
+        </div>
+        <div class="form-group">
+          <label>Utilizador</label>
+          <input type="text" id="xtream-user" placeholder="username">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="xtream-pass" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" onclick="loadXtream()" id="btn-load-xtream">Ligar ao Servidor</button>
+      </div>
+    </div>
+
+    <div class="settings-section" id="section-remove" style="display:none;">
+      <h3>Gerir Lista</h3>
+      <button class="btn btn-danger" onclick="clearConfig()">🗑️ Remover lista e limpar dados</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>Sobre</h3>
+      <div style="display:flex; justify-content:space-between; color:var(--text2); font-size:0.9rem;">
+        <span>Versão</span><span>1.0.0</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; color:var(--text2); font-size:0.9rem;">
+        <span>Contacto</span><span>contato.velvetapp@gmail.com</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- PLAYER -->
+<div id="player-overlay">
+  <div id="player-top">
+    <button onclick="closePlayer()">✕ Fechar</button>
+    <span id="player-title">-</span>
+    <span id="player-status"></span>
+  </div>
+  <video id="video" controls autoplay></video>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let allChannels = [];    // { name, url, logo, group, type: 'tv'|'movie'|'series' }
+let hls = null;
+let currentSearch = '';
+let currentFilter = 'all';
+
+// ─── TAB NAVIGATION ──────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name !== 'settings') filterChannels(currentSearch);
+}
+
+function goSettings() {
+  document.getElementById('settings-nav-btn').click();
+}
+
+// ─── MODE SWITCH (M3U / XTREAM) ───────────────────────────────────────────────
+function switchMode(mode) {
+  document.getElementById('form-m3u').style.display = mode === 'm3u' ? '' : 'none';
+  document.getElementById('form-xtream').style.display = mode === 'xtream' ? '' : 'none';
+  document.getElementById('mode-m3u').classList.toggle('active', mode === 'm3u');
+  document.getElementById('mode-xtream').classList.toggle('active', mode === 'xtream');
+}
+
+// ─── M3U PARSER ──────────────────────────────────────────────────────────────
+function parseM3U(text) {
+  const lines = text.split('\n');
+  const channels = [];
+  let current = {};
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith('#EXTINF:')) {
+      current = {};
+      // name
+      const nameMatch = line.match(/,(.+)$/);
+      current.name = nameMatch ? nameMatch[1].trim() : 'Canal';
+      // logo
+      const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+      current.logo = logoMatch ? logoMatch[1] : '';
+      // group
+      const groupMatch = line.match(/group-title="([^"]+)"/);
+      current.group = groupMatch ? groupMatch[1] : 'Outros';
+    } else if (line && !line.startsWith('#') && current.name) {
+      current.url = line;
+      current.type = classifyChannel(current.name, current.group);
+      channels.push({ ...current });
+      current = {};
+    }
+  }
+  return channels;
+}
+
+function classifyChannel(name, group) {
+  const g = (group || '').toLowerCase();
+  const n = (name || '').toLowerCase();
+  if (g.includes('movie') || g.includes('filme') || g.includes('vod') || g.includes('cinema')) return 'movie';
+  if (g.includes('serie') || g.includes('series') || g.includes('novela') || g.includes('episode')) return 'series';
+  return 'tv';
+}
+
+// ─── CORS PROXIES ────────────────────────────────────────────────────────────
+const PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+];
+
+async function fetchWithProxy(url) {
+  // 1. Tentativa direta
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (res.ok) return await res.text();
+  } catch(_) {}
+
+  // 2. Tentar cada proxy em sequência
+  for (const makeProxy of PROXIES) {
+    try {
+      setStatus('loading', `⏳ A tentar proxy alternativo...`);
+      const res = await fetch(makeProxy(url), { signal: AbortSignal.timeout(12000) });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 50) return text;
+      }
+    } catch(_) {}
+  }
+
+  throw new Error(
+    'Não foi possível aceder à lista.\n\n' +
+    'Causas possíveis:\n' +
+    '• O servidor IPTV bloqueia pedidos do browser (CORS)\n' +
+    '• A URL ou as credenciais estão incorretas\n' +
+    '• O servidor está offline\n\n' +
+    'Solução: use a lista diretamente no app Android.'
+  );
+}
+
+// ─── LOAD M3U ────────────────────────────────────────────────────────────────
+async function loadM3U() {
+  const url = document.getElementById('m3u-url').value.trim();
+  if (!url) return alert('Introduza uma URL válida');
+
+  setLoading('btn-load-m3u', true);
+  setStatus('loading', '⏳ A carregar lista...');
+  showProgress(true);
+
+  try {
+    updateProgress(20);
+    const text = await fetchWithProxy(url);
+    updateProgress(70);
+
+    allChannels = parseM3U(text);
+    updateProgress(100);
+
+    if (allChannels.length === 0) throw new Error('Lista vazia ou formato inválido. Verifique se a URL aponta para um ficheiro M3U.');
+
+    save({ type: 'm3u', url });
+    renderAll();
+    setStatus('ok', `✅ ${allChannels.length} canais carregados`);
+    showStats();
+
+  } catch(e) {
+    setStatus('error', '❌ ' + e.message);
+  } finally {
+    setLoading('btn-load-m3u', false);
+    showProgress(false);
+  }
+}
+
+// ─── LOAD XTREAM ─────────────────────────────────────────────────────────────
+async function loadXtream() {
+  const server = document.getElementById('xtream-server').value.trim().replace(/\/$/, '');
+  const user = document.getElementById('xtream-user').value.trim();
+  const pass = document.getElementById('xtream-pass').value.trim();
+  if (!server || !user || !pass) return alert('Preencha todos os campos');
+
+  setLoading('btn-load-xtream', true);
+  setStatus('loading', '⏳ A ligar ao servidor...');
+
+  try {
+    // Use M3U Plus endpoint (easier to parse)
+    const m3uUrl = `${server}/get.php?username=${user}&password=${pass}&type=m3u_plus&output=ts`;
+
+    let text = null;
+    try {
+      const res = await fetch(m3uUrl);
+      if (!res.ok) throw new Error('Credenciais inválidas ou servidor inacessível');
+      text = await res.text();
+    } catch(e) {
+      const proxy = 'https://corsproxy.io/?' + encodeURIComponent(m3uUrl);
+      const res = await fetch(proxy);
+      if (!res.ok) throw new Error('Servidor inacessível. Verifique o endereço e as credenciais.');
+      text = await res.text();
+    }
+
+    allChannels = parseM3U(text);
+    if (allChannels.length === 0) throw new Error('Sem canais ou credenciais inválidas');
+
+    save({ type: 'xtream', server, user, pass });
+    renderAll();
+    setStatus('ok', `✅ Ligado! ${allChannels.length} canais carregados`);
+    showStats();
+
+  } catch(e) {
+    setStatus('error', '❌ ' + e.message);
+  } finally {
+    setLoading('btn-load-xtream', false);
+  }
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderTab('tv', allChannels.filter(c => c.type === 'tv'));
+  renderTab('movies', allChannels.filter(c => c.type === 'movie'));
+  renderTab('series', allChannels.filter(c => c.type === 'series'));
+  document.getElementById('section-remove').style.display = '';
+  document.getElementById('no-config-msg').style.display = 'none';
+}
+
+function renderTab(tab, channels) {
+  const emptyEl = document.getElementById(tab + '-empty');
+  const gridEl = document.getElementById(tab + '-channels');
+
+  if (channels.length === 0) {
+    emptyEl.style.display = '';
+    gridEl.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  gridEl.style.display = 'flex';
+  gridEl.style.flexDirection = 'column';
+  gridEl.style.gap = '20px';
+
+  // Group by group-title
+  const groups = {};
+  channels.forEach(ch => {
+    const g = ch.group || 'Outros';
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(ch);
+  });
+
+  gridEl.innerHTML = '';
+
+  // Sort groups alphabetically
+  Object.keys(groups).sort().forEach(groupName => {
+    const section = document.createElement('div');
+    section.innerHTML = `<div class="category-title">${esc(groupName)} <span style="color:var(--accent);font-size:0.8rem">(${groups[groupName].length})</span></div>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'channel-grid';
+    grid.style.marginTop = '10px';
+
+    groups[groupName].forEach(ch => {
+      const card = document.createElement('div');
+      card.className = 'channel-card';
+      card.dataset.name = ch.name.toLowerCase();
+      card.dataset.group = groupName.toLowerCase();
+      card.onclick = () => playChannel(ch);
+      card.innerHTML = ch.logo
+        ? `<img class="channel-logo" src="${esc(ch.logo)}" alt="${esc(ch.name)}" onerror="this.parentElement.querySelector('.channel-logo-placeholder')?.style && (this.style.display='none')">`
+        : `<div class="channel-logo-placeholder">📺</div>`;
+      card.innerHTML += `<div class="channel-name">${esc(ch.name)}</div>`;
+      grid.appendChild(card);
+    });
+
+    section.appendChild(grid);
+    gridEl.appendChild(section);
+  });
+}
+
+function filterChannels(query) {
+  currentSearch = (query || '').toLowerCase();
+  document.querySelectorAll('.channel-card').forEach(card => {
+    const matches = !currentSearch || card.dataset.name.includes(currentSearch) || card.dataset.group.includes(currentSearch);
+    card.style.display = matches ? '' : 'none';
+  });
+}
+
+// ─── PLAYER ───────────────────────────────────────────────────────────────────
+function playChannel(ch) {
+  const overlay = document.getElementById('player-overlay');
+  const video = document.getElementById('video');
+  const title = document.getElementById('player-title');
+  const status = document.getElementById('player-status');
+
+  title.textContent = ch.name;
+  status.textContent = '⏳ A ligar...';
+  overlay.classList.add('visible');
+
+  if (hls) { hls.destroy(); hls = null; }
+  video.src = '';
+
+  const url = ch.url;
+
+  if (Hls.isSupported() && (url.includes('.m3u8') || url.includes('/hls/') || !url.includes('.mp4'))) {
+    hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+      status.textContent = '🟢 Em reprodução';
+    });
+    hls.on(Hls.Events.ERROR, (e, data) => {
+      if (data.fatal) status.textContent = '❌ Erro no stream';
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+    video.play();
+    status.textContent = '🟢 Em reprodução';
+  } else {
+    video.src = url;
+    video.play().catch(() => status.textContent = '❌ Formato não suportado');
+    status.textContent = '🟢 Em reprodução';
+  }
+}
+
+function closePlayer() {
+  const overlay = document.getElementById('player-overlay');
+  const video = document.getElementById('video');
+  overlay.classList.remove('visible');
+  video.pause();
+  video.src = '';
+  if (hls) { hls.destroy(); hls = null; }
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  if (loading) btn.innerHTML = '<span class="spinner"></span> A carregar...';
+  else btn.textContent = btnId.includes('m3u') ? 'Carregar Lista' : 'Ligar ao Servidor';
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('conn-status');
+  el.className = 'status-badge ' + type;
+  el.textContent = msg;
+  el.style.display = '';
+}
+
+function showStats() {
+  const tv = allChannels.filter(c => c.type === 'tv').length;
+  const movies = allChannels.filter(c => c.type === 'movie').length;
+  const series = allChannels.filter(c => c.type === 'series').length;
+  document.getElementById('stat-tv').textContent = tv;
+  document.getElementById('stat-movies').textContent = movies;
+  document.getElementById('stat-series').textContent = series;
+  document.getElementById('conn-stats').style.display = '';
+}
+
+function showProgress(show) {
+  document.getElementById('m3u-progress').style.display = show ? '' : 'none';
+  if (show) updateProgress(20);
+}
+
+function updateProgress(pct) {
+  document.getElementById('m3u-progress-bar').style.width = pct + '%';
+}
+
+// ─── PERSIST ─────────────────────────────────────────────────────────────────
+function save(config) {
+  localStorage.setItem('velvet_config', JSON.stringify(config));
+}
+
+function clearConfig() {
+  if (!confirm('Remover a lista configurada?')) return;
+  localStorage.removeItem('velvet_config');
+  allChannels = [];
+  ['tv','movies','series'].forEach(tab => {
+    document.getElementById(tab + '-empty').style.display = '';
+    document.getElementById(tab + '-channels').style.display = 'none';
+  });
+  document.getElementById('conn-status').style.display = 'none';
+  document.getElementById('conn-stats').style.display = 'none';
+  document.getElementById('no-config-msg').style.display = '';
+  document.getElementById('section-remove').style.display = 'none';
+  document.getElementById('m3u-url').value = '';
+  document.getElementById('xtream-server').value = '';
+  document.getElementById('xtream-user').value = '';
+  document.getElementById('xtream-pass').value = '';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(function init() {
+  const saved = localStorage.getItem('velvet_config');
+  if (!saved) return;
+  const config = JSON.parse(saved);
+
+  if (config.type === 'm3u') {
+    document.getElementById('m3u-url').value = config.url;
+    switchMode('m3u');
+    loadM3U();
+  } else if (config.type === 'xtream') {
+    document.getElementById('xtream-server').value = config.server;
+    document.getElementById('xtream-user').value = config.user;
+    document.getElementById('xtream-pass').value = config.pass;
+    switchMode('xtream');
+    loadXtream();
+  }
+})();
+
+// Fechar player com ESC
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
+</script>
+</body>
+</html>

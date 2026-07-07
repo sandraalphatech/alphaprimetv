@@ -1,0 +1,3484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta characaet="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Prime — Painel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080810;--surface:#12121f;--surface2:#1a1a2e;--accent:#7B35C4;--purple:#7B35C4;--gold:#D4A843;--text:#e5e7eb;--text2:#9ca3af;--success:#10b981;--error:#ef4444;--warning:#f59e0b;--border:#2d2d4e;--sidebar-w:220px}
+html[data-theme="light"]{--bg:#f1f5f9;--surface:#ffffff;--surface2:#f8fafc;--text:#1e293b;--text2:#64748b;--border:#e2e8f0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
+
+/* ── LOGIN ── */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at center,#12082a 0%,#080810 70%)}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:360px;display:flex;flex-direction:column;gap:30px;align-items:center; text-align:center}
+.login-logo{font-size:1.5rem;font-weight:900;letter-spacing:5px;color:#fff}
+.login-logo span{color:var(--gold)}
+.login-sub{font-size:.72rem;color:var(--text2);letter-spacing:3px;margin-top:-12px}
+.login-box input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:.95rem;outline:none;transition:border .2s}
+.login-box input:focus{border-color:var(--accent)}
+#login-error{color:var(--error);font-size:.83rem;display:none}
+
+  .logo img { max-width: 50px; border-radius: 8px;}
+  .logo2 img { max-width: 150px; border-radius: 8px; margin-top: 10px;}
+
+/* ── BUTTONS ── */
+.btn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6a28b0}
+.btn-primary.full{width:100%}
+.btn-sm{padding:6px 14px;font-size:.8rem}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--error);color:#fff}
+.btn-warning{background:var(--warning);color:#000}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--text)}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:hover{opacity:.9}
+
+/* ── LAYOUT ── */
+#app{display:none;min-height:100vh}
+header{position:fixed;top:0;left:0;right:0;z-index:200;background:var(--surface);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.logo-text{font-weight:900;letter-spacing:4px;font-size:1rem}
+.logo-text span{color:var(--gold)}
+.logo3 img { max-width: 35px; border-radius: 8px;}
+.logo4 img { max-width: 100px; border-radius: 8px; margin-top: 10px; margin-right: 20px;}
+.header-right{display:flex;align-items:center;gap:16px}
+.credit-badge{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:.85rem;font-weight:700;cursor:pointer;transition:border .2s}
+.credit-badge:hover{border-color:var(--accent)}
+.credit-badge .lbl{color:var(--text2);font-weight:400}
+.user-pill{display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;position:relative}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff}
+.user-menu{position:absolute;top:42px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 0;min-width:180px;z-index:500;display:none}
+.user-menu.open{display:block}
+.user-menu-item{padding:10px 16px;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--text2);transition:background .15s}
+.user-menu-item:hover{background:var(--surface2);color:var(--text)}
+.user-menu-item.danger{color:var(--error)}
+
+.sidebar{position:fixed;left:0;top:56px;bottom:0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;z-index:100}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;color:var(--text2);font-size:.88rem;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface2);color:var(--accent);border-left-color:var(--accent)}
+.nav-item .icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);margin-top:auto}
+.sidebar-version{font-size:.72rem;color:var(--text2)}
+
+main{margin-left:var(--sidebar-w);padding:80px 28px 28px;min-height:100vh}
+.page{display:none}
+.page.active{display:grid; grid-template-rows:auto 1fr;gap:20px; justify-content: center;}
+.page-title{font-size:1.4rem;font-weight:800;margin-bottom:24px}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(800px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px}
+.stat-card h3{font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;font-weight:600}
+.stat-row{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.stat-num{font-size:1.8rem;font-weight:800;color:var(--text)}
+.stat-sub{display:flex;justify-content:space-between;font-size:.78rem;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)}
+.stat-sub span b{color:var(--text)}
+.stat-card.c-activations{border-top:3px solid var(--accent)}
+.stat-card.c-credits{border-top:3px solid var(--gold)}
+.stat-card.c-subreseller{border-top:3px solid #3b82f6}
+.stat-card.c-links{border-top:3px solid var(--success)}
+.stat-card.c-earnings{border-top:3px solid #f97316}
+.stat-card.c-listas-ativas{border-top:3px solid var(--success)}
+.stat-card.c-listas-vencendo{border-top:3px solid #f59e0b}
+
+/* ── TABLE ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.section-title{font-size:1rem;font-weight:700}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--surface2);padding:11px 16px;text-align:left;font-size:.75rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+tbody tr{border-top:1px solid var(--border);transition:background .15s}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:11px 16px;font-size:.86rem;white-space:nowrap}
+.expired-row{background:rgba(239,68,68,.06)!important}
+.expired-row:hover{background:rgba(239,68,68,.1)!important}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.72rem;font-weight:700}
+.badge-ok{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-expired{background:rgba(239,68,68,.15);color:var(--error)}
+.badge-pending{background:rgba(245,158,11,.15);color:var(--warning)}
+.mac-text{font-family:monospace;font-size:.82rem;color:var(--gold)}
+.copy-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:.85rem;padding:2px 4px;border-radius:4px;transition:color .2s}
+.copy-btn:hover{color:var(--text)}
+
+/* ── Adicionar Lista — tabs ── */
+.pl-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.pl-tab{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:.82rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.pl-tab.active{background:var(--purple);border-color:var(--purple);color:#fff}
+.pl-tab:hover:not(.active){border-color:var(--purple);color:var(--text)}
+.pin-fields{display:none;margin-top:12px}
+.pin-fields.show{display:block}
+
+/* ── Lista de Clientes — cards ── */
+.lc-device-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.lc-card-header{display:flex;align-items:center;justify-content:space-between;background:rgba(123,53,196,.1);border-bottom:1px solid var(--border);padding:14px 18px;gap:10px;flex-wrap:wrap}
+.lc-card-meta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.lc-card-mac{font-size:.76rem;color:var(--text2);font-family:monospace}
+.lc-card-client{font-weight:700;font-size:.95rem;color:var(--text)}
+.lc-card-device{font-size:.8rem;color:var(--text2)}
+.lc-playlists{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.lc-pl-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg, #080810);border:1px solid var(--border);border-radius:10px;padding:11px 14px;transition:border-color .2s}
+.lc-pl-item:hover{border-color:var(--accent)}
+.lc-pl-item.is-active{border-color:var(--success);background:rgba(16,185,129,.05)}
+.lc-pl-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--border);flex-shrink:0}
+.lc-pl-item.is-active .lc-pl-dot{border-color:var(--success);background:var(--success)}
+.lc-pl-body{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.lc-pl-info{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.lc-pl-name{font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lc-pl-url{color:var(--text2);font-size:.74rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px}
+.lc-pl-expiry{color:var(--text2);font-size:.72rem}
+.lc-type-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.66rem;font-weight:700;background:rgba(123,53,196,.2);color:#a78bfa}
+.lc-active-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.66rem;font-weight:700;background:rgba(16,185,129,.2);color:var(--success)}
+.lc-expired-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:.66rem;font-weight:700;background:rgba(239,68,68,.2);color:var(--error)}
+.lc-pl-actions{display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.action-menu-wrap{position:relative}
+.dot-btn{background:none;border:1px solid transparent;padding:4px 8px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:1rem;transition:all .2s}
+.dot-btn:hover{background:var(--surface2);border-color:var(--border);color:var(--text)}
+.drop-menu{position:fixed;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 0;min-width:160px;z-index:9999;display:none}
+.drop-menu.open{display:block}
+.drop-item{padding:8px 14px;font-size:.84rem;cursor:pointer;color:var(--text2);transition:background .15s}
+.drop-item:hover{background:var(--surface2);color:var(--text)}
+.drop-item.danger{color:var(--error)}
+.empty-row td{text-align:center;color:var(--text2);padding:32px!important}
+.model-icon{font-size:1.2rem}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 20px;cursor:pointer;font-size:.88rem;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.search-bar input{flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:.88rem;outline:none}
+.search-bar input:focus{border-color:var(--accent)}
+/* ── PAGE STATS BAR ── */
+.page-stats-bar{display:flex;gap:20px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 16px;margin-bottom:14px;font-size:.82rem;color:var(--text2)}
+.page-stats-bar b{color:var(--text);font-weight:700}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:16px;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:1.05rem;font-weight:700}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding-top:4px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:.8rem;color:var(--text2)}
+.form-group input,.form-group select,.form-group textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:.88rem;outline:none;transition:border .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group select option{background:var(--surface2)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ── PACKAGES ── */
+.packages-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.pkg-card{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;text-align:center}
+.pkg-card:hover{border-color:var(--accent)}
+.pkg-card.selected{border-color:var(--accent);background:rgba(123,53,196,.12)}
+.pkg-name{font-size:1.05rem;font-weight:800;margin-bottom:6px}
+.pkg-activations{font-size:2rem;font-weight:900;color:var(--accent);line-height:1}
+.pkg-act-lbl{font-size:.72rem;color:var(--text2);margin-bottom:10px}
+.pkg-price{font-size:1.1rem;font-weight:700;color:var(--gold)}
+.pkg-per{font-size:.72rem;color:var(--text2)}
+
+/* ── LINK CARD ── */
+.link-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.link-url{font-size:.82rem;color:var(--accent);font-family:monospace;word-break:break-all}
+.link-stats{display:flex;gap:16px;font-size:.8rem;color:var(--text2)}
+.link-stats span b{color:var(--text)}
+.links-list{display:flex;flex-direction:column;gap:10px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 20px;font-size:.88rem;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--success);color:var(--success)}
+.toast.err{border-color:var(--error);color:var(--error)}
+
+/* ── INFO BOX ── */
+.info-box{background:rgba(123,53,196,.1);border:1px solid rgba(123,53,196,.3);border-radius:10px;padding:12px 16px;font-size:.83rem;color:var(--text2)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  :root{--sidebar-w:0px}
+  .sidebar{transform:translateX(-220px);transition:transform .25s}
+  .sidebar.open{transform:translateX(0);width:220px;--sidebar-w:220px}
+  main{margin-left:0;padding:72px 16px 20px}
+  .hamburger{display:flex!important}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .packages-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .stats-grid{grid-template-columns:1fr}
+  .packages-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .modal{padding:20px}
+  header{padding:0 14px}
+  .logo-text{font-size:.88rem;letter-spacing:3px}
+}
+.hamburger{display:none;align-items:center;justify-content:center;background:none;border:none;color:var(--text);font-size:1.3rem;cursor:pointer;padding:4px 8px}
+.sidebar-overlay{display:none;position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.5)}
+.sidebar-overlay.open{display:block}
+
+/* ── Language Switcher ── */
+.i18n-switcher{position:relative;display:flex;align-items:center;margin-left:10px}
+.i18n-btn{display:flex;align-items:center;gap:5px;background:rgba(123,53,196,.15);border:1px solid rgba(123,53,196,.35);border-radius:8px;padding:6px 10px;color:var(--text);cursor:pointer;font-size:.82rem;font-weight:700;transition:background .2s,border-color .2s;white-space:nowrap}
+.i18n-btn:hover{background:rgba(123,53,196,.28);border-color:var(--accent)}
+.i18n-chevron{font-size:.65rem;color:var(--text2);margin-left:2px}
+.i18n-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:150px;z-index:2000}
+.i18n-dropdown.open{display:block}
+.i18n-option{display:block;width:100%;text-align:left;background:none;border:none;padding:10px 16px;color:var(--text);font-size:.88rem;cursor:pointer;transition:background .15s}
+.i18n-option:hover{background:rgba(123,53,196,.15)}
+.i18n-option.active{color:var(--accent);font-weight:700;background:rgba(123,53,196,.1)}
+html[data-theme="light"] #login-page{background:radial-gradient(ellipse at center,#ede9fe 0%,#f1f5f9 70%)}
+html[data-theme="light"] .login-box{box-shadow:0 8px 32px rgba(0,0,0,.1)}
+html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
+.theme-toggle-res{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;cursor:pointer;padding:5px 9px;line-height:1;transition:border-color .2s,background .2s}
+.theme-toggle-res:hover{border-color:var(--accent);background:rgba(123,53,196,.1)}
+</style>
+<script>(function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+</head>
+<body data-page-title="res.pageTitle">
+
+<!-- ── LOGIN / REGISTER / FORGOT ── -->
+<div id="login-page">
+
+  <!-- VIEW: LOGIN -->
+  <div class="login-box" id="view-login">
+    <div class="logo">
+      <img src="icons/logoheader.png" class="logo">
+      <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+    </div>
+    <div class="login-sub" data-i18n="res.panelSub">PAINEL</div>
+    <input type="text" id="inp-user" placeholder="Email" autocomplete="username">
+    <input type="password" id="inp-pass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <div id="login-error" style="color:var(--error);font-size:.83rem;display:none"></div>
+    <button class="btn btn-primary full" onclick="login()" data-i18n="res.loginBtn">Entrar</button>
+    <div style="display:content;justify-content:space-between;font-size:.8rem;margin-top:0px;">
+      <a href="#" onclick="showView('forgot');return false" style="color:var(--text2);text-decoration:none" data-i18n="res.forgotLink">Esqueci minha senha</a><br><br>
+      <a href="#" onclick="showView('register');return false" style="color:var(--accent);font-weight:700;text-decoration:none" data-i18n="res.createAccount">Criar conta</a>
+    </div>
+  </div>
+
+  <!-- VIEW: REGISTER -->
+  <div class="login-box" id="view-register" style="display:none;max-width:440px;gap:30px;">
+    <div class="logo">
+      <img src="icons/logoheader.png" class="logo">
+      <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+    </div>
+    <div class="login-sub" data-i18n="res.registerSub">CADASTRO REVENDEDOR</div>
+    <input type="text" id="reg-nome" data-i18n-ph="res.regFullName" placeholder="Nome completo *" autocomplete="name">
+    <input type="email" id="reg-email" placeholder="Email *" autocomplete="email">
+    <input type="tel" id="reg-tel" data-i18n-ph="res.regPhone" placeholder="Telefone (com DDD)">
+    <input type="text" id="reg-pais" data-i18n-ph="res.regCountry" placeholder="País">
+    <div style="display:flex;flex-direction:column;gap:4px;width:100%;text-align:left">
+      <label style="font-size:.75rem;color:var(--text2)" data-i18n="res.regBirthdate">Data de nascimento</label>
+      <input type="date" id="reg-nascimento" style="color-scheme:dark">
+    </div>
+    <input type="password" id="reg-senha" data-i18n-ph="res.regPw" placeholder="Senha (mín. 6 caracteres) *" autocomplete="new-password">
+    <input type="password" id="reg-confirmar" data-i18n-ph="res.regConfirmPw" placeholder="Confirmar senha *" autocomplete="new-password" onkeydown="if(event.key==='Enter')register()">
+    <div id="reg-error" style="color:var(--error);font-size:.83rem;display:none"></div>
+    <div id="reg-success" style="color:var(--success);font-size:.83rem;display:none;text-align:center"></div>
+    <button class="btn btn-primary full" onclick="register()" data-i18n="res.regBtn"> Criar conta</button>
+    <div style="text-align:center;font-size:.8rem">
+      <a href="#" onclick="showView('login');return false" style="text-decoration:none; color:var(--accent);font-weight:700; text-decoration:none" data-i18n="res.backToLogin">Voltar ao login</a>
+    </div>
+  </div>
+
+  <!-- VIEW: FORGOT PASSWORD -->
+  <div class="login-box" id="view-forgot" style="display:none">
+    <div class="logo">
+      <img src="icons/logoheader.png" class="logo">
+      <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+    </div>
+    <div class="login-sub" data-i18n="res.forgotSub">RECUPERAR ACESSO</div>
+
+    <!-- estado: formulário -->
+    <div id="forgot-state-form">
+      <p style="font-size:.83rem;color:var(--text2);text-align:center;margin-top:-6px" data-i18n="res.forgotDesc">Informe o email cadastrado. Enviaremos um link para redefinir sua senha.</p>
+      <input type="email" id="forgot-email" placeholder="Email cadastrado" onkeydown="if(event.key==='Enter')forgotPassword()">
+      <div id="forgot-error" style="color:var(--error);font-size:.83rem;display:none"></div>
+      <button class="btn btn-primary full" id="btn-forgot-res" onclick="forgotPassword()">Enviar link</button>
+    </div>
+
+    <!-- estado: sucesso -->
+    <div id="forgot-state-success" style="display:none;text-align:center">
+      <div style="font-size:2rem;margin-bottom:12px">✉️</div>
+      <p style="font-size:.95rem;font-weight:700;margin-bottom:8px">Email enviado!</p>
+      <p style="font-size:.83rem;color:var(--text2);line-height:1.6">O link de redefinição foi enviado.<br>Verifique também a caixa de spam.</p>
+    </div>
+
+    <div style="text-align:center;font-size:.8rem;margin-top:8px">
+      <a href="#" onclick="showView('login');return false" style="color:var(--text2);text-decoration:none" data-i18n="res.forgotBackLink">Voltar ao login</a>
+    </div>
+  </div>
+
+  <!-- VIEW: RESET PASSWORD (via link no email) -->
+  <div class="login-box" id="view-reset" style="display:none">
+    <div class="logo">
+      <img src="icons/logoheader.png" class="logo">
+      <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+    </div>
+    <div class="login-sub">NOVA SENHA</div>
+
+    <!-- estado: formulário -->
+    <div id="reset-state-form">
+      <p style="font-size:.83rem;color:var(--text2);text-align:center;margin-top:-6px">Digite e confirme a sua nova senha.</p>
+      <input type="password" id="reset-pw1" placeholder="Nova senha (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitResellerReset()">
+      <input type="password" id="reset-pw2" placeholder="Confirmar nova senha" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitResellerReset()">
+      <div id="reset-error" style="color:var(--error);font-size:.83rem;display:none"></div>
+      <button class="btn btn-primary full" id="btn-reset-res" onclick="submitResellerReset()">Salvar nova senha</button>
+    </div>
+
+    <!-- estado: sucesso -->
+    <div id="reset-state-success" style="display:none;text-align:center">
+      <div style="font-size:2rem;margin-bottom:12px">✅</div>
+      <p style="font-size:.95rem;font-weight:700;margin-bottom:8px">Senha alterada!</p>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:16px">Sua nova senha foi definida com sucesso.</p>
+      <button class="btn btn-primary full" onclick="showView('login')">Entrar agora</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <header>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="logo3">
+      <img src="icons/logoheader.png" class="logo">
+      <span class="logo4"><img src = "icons/logoheader2.png" alt="Alpha Prime"></span>
+      </div>
+      <span style="color:var(--text2);font-size:.65rem;letter-spacing:2px;font-weight:400; display: inline-flex; flex-wrap: initial; justify-content: center;" data-i18n="res.panelSub">PAINEL</span>
+    </div>
+    <div class="header-right">
+      <button class="theme-toggle theme-toggle-res" title="Modo claro">☀️</button>
+      <div class="credit-badge" onclick="openBuyModal()">
+        <span class="lbl" data-i18n="res.credits">Créditos</span>
+        <span id="hdr-credits">—</span>
+        <span style="font-size:.8rem">⚡</span>
+      </div>
+      <div class="user-pill" onclick="toggleUserMenu()">
+        <div class="avatar" id="user-avatar">?</div>
+        <span id="user-name" style="color:var(--text2)">—</span>
+        <span style="color:var(--text2);font-size:.7rem">▾</span>
+        <div class="user-menu" id="user-menu">
+          <div class="user-menu-item" onclick="openBuyModal()" data-i18n="res.buyCredits">Comprar Créditos</div>
+          <div class="user-menu-item" id="menu-faturamento" onclick="showPage('withdrawals')" data-i18n="res.billing">Faturamento</div>
+          <div class="user-menu-item" onclick="showPage('profile')" data-i18n="res.myProfile">👤 Meu Perfil</div>
+          <div class="user-menu-item danger" onclick="logout()" data-i18n="res.logout">Sair</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">
+      <span class="icon">📊</span> <span data-i18n="res.navDashboard">Dashboard</span>
+    </div>
+    <div class="nav-item" data-page="devices" onclick="showPage('devices',this)">
+      <span class="icon">📱</span> <span data-i18n="res.navDevices">Dispositivos</span>
+    </div>
+    <div class="nav-item" data-page="lists" onclick="showPage('lists',this)">
+      <span class="icon">📺</span> <span data-i18n="res.navLists">Lista de Clientes</span>
+    </div>
+    <div class="nav-item" data-page="parental" onclick="showPage('parental',this)">
+      <span class="icon">🔒</span> <span>Controle Parental</span>
+    </div>
+    <div class="nav-item" data-page="credits" onclick="showPage('credits',this)">
+      <span class="icon">📋</span> <span data-i18n="res.navCredits">Histórico de Créditos</span>
+    </div>
+    <div class="nav-item" data-page="referral" onclick="showPage('referral',this)">
+      <span class="icon">🔗</span> <span data-i18n="res.navReferral">Links de Indicação</span>
+    </div>
+    <div class="nav-item" data-page="withdrawals" onclick="showPage('withdrawals',this)">
+      <span class="icon">💰</span> <span data-i18n="res.navBilling">Faturamento</span>
+    </div>
+    <div class="nav-item" data-page="subresellers" onclick="showPage('subresellers',this)">
+      <span class="icon">👥</span> <span data-i18n="res.navSubresellers">Meus Revendedores</span>
+    </div>
+    <div class="nav-item" data-page="packages-admin" onclick="showPage('packages-admin',this)">
+      <span class="icon">📦</span> <span data-i18n="res.navPackages">Pacotes</span>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="stats-grid">
+        <div class="stat-card c-activations">
+          <h3 data-i18n="res.dashActivations">Ativações</h3>
+          <div class="stat-num" id="dash-act-total">—</div>
+          <div class="stat-sub">
+            <span><span data-i18n="res.thisMonth">Este mês</span>: <b id="dash-act-month">—</b></span>
+            <span><span data-i18n="res.today">Hoje</span>: <b id="dash-act-today">—</b></span>
+          </div>
+        </div>
+        <div class="stat-card c-credits">
+          <h3 data-i18n="res.dashCredit">Crédito</h3>
+          <div class="stat-num" id="dash-cr-total">—</div>
+          <div class="stat-sub">
+            <span><span data-i18n="res.thisMonth">Este mês</span>: <b id="dash-cr-month">—</b></span>
+            <span><span data-i18n="res.today">Hoje</span>: <b id="dash-cr-today">—</b></span>
+          </div>
+        </div>
+        <div class="stat-card c-subreseller" id="card-subresellers">
+          <h3 data-i18n="res.dashSubresellers">Revendedores Afiliados</h3>
+          <div class="stat-num" id="dash-sub-total">—</div>
+          <div class="stat-sub">
+            <span><span data-i18n="res.thisMonth">Este mês</span>: <b id="dash-sub-month">—</b></span>
+            <span><span data-i18n="res.today">Hoje</span>: <b id="dash-sub-today">—</b></span>
+          </div>
+        </div>
+        <div class="stat-card c-links">
+          <h3 data-i18n="res.dashLinks">Links</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:4px;font-size:.83rem">
+            <span style="color:var(--text2)" data-i18n="res.totalLinks">Total links</span><b id="dash-links-total">—</b>
+            <span style="color:var(--text2)" data-i18n="res.linksToday">Links hoje</span><b id="dash-links-today">—</b>
+            <span style="color:var(--text2)" data-i18n="res.totalActivated">Total ativados</span><b id="dash-links-act">—</b>
+            <span style="color:var(--text2)" data-i18n="res.activatedToday">Ativados hoje</span><b id="dash-links-act-today">—</b>
+          </div>
+        </div>
+        <div class="stat-card c-earnings" id="card-earnings">
+          <h3 data-i18n="res.dashEarnings">Ganhos</h3>
+          <div class="stat-num" id="dash-earn-total">—</div>
+          <div class="stat-sub">
+            <span><span data-i18n="res.prevMonth">Mês anterior</span>: <b id="dash-earn-month">—</b></span>
+            <span><span data-i18n="res.today">Hoje</span>: <b id="dash-earn-today">—</b></span>
+          </div>
+        </div>
+        <div class="stat-card c-listas-ativas">
+          <h3>Listas</h3>
+          <div class="stat-num" id="dash-lst-ativas">—</div>
+          <div class="stat-sub">
+            <span>Ativas</span>
+            <span>A vencer hoje: <b id="dash-lst-vencendo">—</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEVICES -->
+    <div class="page" id="page-devices">
+      <div class="section-header">
+        <div class="page-title" style="margin:0" data-i18n="res.devicesTitle">Dispositivos</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="openAddExistingModal()" data-i18n="res.addDeviceBtn">+ Adicionar dispositivo</button>
+          <button class="btn btn-primary btn-sm" onclick="openActivateModal()" data-i18n="res.activateDeviceBtn">⚡ Ativar dispositivo</button>
+        </div>
+      </div>
+      <div id="dev-admin-filter" style="display:none;margin-bottom:12px;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="dev-filtro" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);font-size:.85rem" onchange="loadDevices()">
+          <option value="todos" data-i18n="res.filterAll">Todos</option>
+          <option value="autonomo" data-i18n="res.filterAutonomous">Autônomo (App direto)</option>
+          <option value="revendedor" data-i18n="res.filterByReseller">Por revendedor</option>
+        </select>
+        <select id="dev-revendedor-sel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);font-size:.85rem" onchange="loadDevices()">
+          <option value="" data-i18n="res.allResellers">Todos os revendedores</option>
+        </select>
+      </div>
+      <div class="search-bar"><input type="text" id="dev-search" data-i18n-ph="res.searchDevices" placeholder="🔍  Pesquisar por MAC, cliente ou dispositivo..." oninput="filterDevices(this.value)"></div>
+      <div class="page-stats-bar" id="dev-stats-bar" style="display:none">
+        <span>Ativos: <b id="dev-count-ativo">0</b></span>
+        <span style="color:var(--border)">|</span>
+        <span>Licença expirada: <b id="dev-count-exp" style="color:var(--error)">0</b></span>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>#</th><th data-i18n="res.colClient">Cliente</th><th>MAC Address</th><th data-i18n="res.colDevice">Dispositivo</th><th data-i18n="res.colModel">Modelo</th>
+            <th data-i18n="res.colValidity">Validade</th><th data-i18n="res.colCreatedAt">Criado em</th><th data-i18n="res.colStatus">Status</th><th></th>
+          </tr></thead>
+          <tbody id="devices-body">
+            <tr class="empty-row"><td colspan="9" data-i18n="res.loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- LISTA DE CLIENTES -->
+    <div class="page" id="page-lists">
+      <div class="section-header">
+        <div class="page-title" style="margin:0" data-i18n="res.listsTitle">📺 Lista de Clientes</div>
+      </div>
+      <div id="lists-admin-filter" style="display:none;margin-bottom:12px;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="lists-filtro" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);font-size:.85rem" onchange="loadListas()">
+          <option value="todos" data-i18n="res.allResellers">Todos os revendedores</option>
+          <option value="revendedor" data-i18n="res.filterByReseller">Por revendedor</option>
+        </select>
+        <select id="lists-revendedor-sel" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);font-size:.85rem" onchange="loadListas()">
+          <option value="" data-i18n="res.selectOne">Selecione...</option>
+        </select>
+      </div>
+      <div class="search-bar"><input type="text" id="lists-search" data-i18n-ph="res.searchLists" placeholder="🔍  Pesquisar por MAC, cliente ou dispositivo..." oninput="filterListas(this.value)"></div>
+      <div class="page-stats-bar" id="lst-stats-bar" style="display:none">
+        <span>MACs com lista ativa: <b id="lst-count-ativa">0</b></span>
+        <span style="color:var(--border)">|</span>
+        <span>Expirados ou sem lista: <b id="lst-count-exp" style="color:var(--error)">0</b></span>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>#</th><th data-i18n="res.colClient">Cliente</th><th>MAC Address</th><th data-i18n="res.colDevice">Dispositivo</th>
+            <th>Lista</th><th>Tipo</th><th data-i18n="res.colValidity">Validade</th><th data-i18n="res.colStatus">Status</th><th></th>
+          </tr></thead>
+          <tbody id="lists-body">
+            <tr class="empty-row"><td colspan="9" data-i18n="res.loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- CONTROLE PARENTAL -->
+    <div class="page" id="page-parental">
+      <div class="section-header">
+        <div class="page-title" style="margin:0">🔒 Controle Parental</div>
+      </div>
+      <div class="search-bar"><input type="text" id="parental-search" placeholder="🔍  Pesquisar por MAC, cliente ou dispositivo..." oninput="filterParental(this.value)"></div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Cliente</th><th>MAC Address</th><th>Dispositivo</th><th>Canais Bloqueados</th><th>PIN</th><th></th>
+          </tr></thead>
+          <tbody id="parental-body">
+            <tr class="empty-row"><td colspan="7">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- CREDITS HISTORY -->
+    <div class="page" id="page-credits">
+      <div class="section-header">
+        <div class="page-title" style="margin:0" data-i18n="res.creditsTitle">Histórico de Créditos</div>
+        <button class="btn btn-primary btn-sm" onclick="openBuyModal()" data-i18n="res.buyCreditsBtnSm">⚡ Comprar Créditos</button>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('transactions',this)" data-i18n="res.tabTransactions">Transações</div>
+        <div class="tab" onclick="switchTab('activations-log',this)" data-i18n="res.tabActivations">Ativações</div>
+        <div class="tab" id="tab-geral-btn" onclick="switchTab('credits-geral',this)" style="display:none" data-i18n="res.tabGeral">Geral</div>
+      </div>
+
+      <div class="tab-content active" id="tab-transactions">
+        <div class="table-wrap"><div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th><th data-i18n="res.colDate">Data</th><th data-i18n="res.colDescription">Descrição</th>
+              <th data-i18n="res.colCredits">Créditos</th><th data-i18n="res.colBalanceBefore">Saldo Inicial</th><th data-i18n="res.colBalanceAfter">Saldo Final</th>
+            </tr></thead>
+            <tbody id="transactions-body">
+              <tr class="empty-row"><td colspan="6" data-i18n="res.loading">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div></div>
+      </div>
+
+      <div class="tab-content" id="tab-activations-log">
+        <div class="table-wrap"><div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th><th data-i18n="res.colDate">Data</th><th data-i18n="res.colDescription">Descrição</th>
+              <th data-i18n="res.colBalanceBefore">Saldo Inicial</th><th data-i18n="res.colBalanceAfter">Saldo Final</th><th>MAC</th><th data-i18n="res.colClient">Nome do cliente</th>
+            </tr></thead>
+            <tbody id="activations-log-body">
+              <tr class="empty-row"><td colspan="7" data-i18n="res.loading">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div></div>
+      </div>
+
+      <div class="tab-content" id="tab-credits-geral">
+        <div class="table-wrap"><div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th><th data-i18n="res.colReseller">Revendedor</th><th>Email</th><th>Role</th><th data-i18n="res.colCreditBalance">Saldo de Créditos</th><th data-i18n="res.colLastMove">Último movimento</th>
+            </tr></thead>
+            <tbody id="credits-geral-body">
+              <tr class="empty-row"><td colspan="6" data-i18n="res.loading">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- REFERRAL LINKS -->
+    <div class="page" id="page-referral">
+      <div class="section-header">
+        <div class="page-title" style="margin:0" data-i18n="res.referralTitle">Links de Indicação</div>
+        <button class="btn btn-primary btn-sm" onclick="openNewLinkModal()" data-i18n="res.newLinkBtn">+ Novo Link</button>
+      </div>
+      <div class="info-box" style="margin-bottom:16px" data-i18n="res.referralInfo">
+        Links de indicação permitem que clientes ativem seus próprios dispositivos usando seus créditos. A cada ativação bem-sucedida, 1 crédito é debitado da sua conta.
+      </div>
+      <div class="links-list" id="links-list">
+        <div style="text-align:center;color:var(--text2);padding:32px">Carregando...</div>
+      </div>
+    </div>
+
+    <!-- FATURAMENTO -->
+    <div class="page" id="page-withdrawals">
+      <div class="section-header" style="flex-wrap:wrap;gap:12px">
+        <div class="page-title" style="margin:0" data-i18n="res.billingTitle">💰 Faturamento</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="month" id="fat-mes" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:.85rem">
+          <select id="fat-filtro" onchange="toggleRevSelector()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:.85rem">
+            <option value="geral" data-i18n="res.fatFilterGeral">Geral</option>
+            <option value="revendedor" data-i18n="res.fatFilterReseller">Por Revendedor</option>
+            <option value="autonomo" data-i18n="res.fatFilterAutonomous">Autônomo (App)</option>
+          </select>
+          <div id="fat-rev-wrap" style="display:none">
+            <select id="fat-revendedor" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:.85rem">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="loadFaturamento()" data-i18n="res.filterBtn">🔍 Filtrar</button>
+        </div>
+      </div>
+
+      <!-- Cards resumo -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
+        <div class="stat-card"><div class="stat-label" data-i18n="res.fatCardActivations">Ativações do mês</div><div class="stat-value" id="fat-val-ativ" style="font-size:1.3rem">R$ 0,00</div><div class="stat-sub" id="fat-qtd-ativ">0 ativações</div></div>
+        <div class="stat-card"><div class="stat-label" data-i18n="res.fatCardCredits">Créditos do mês</div><div class="stat-value" id="fat-val-cred" style="font-size:1.3rem">R$ 0,00</div><div class="stat-sub" id="fat-qtd-cred">0 vendas</div></div>
+        <div class="stat-card" style="border-color:var(--gold)"><div class="stat-label" data-i18n="res.fatCardTotal">Total faturado</div><div class="stat-value" id="fat-val-total" style="color:var(--gold);font-size:1.4rem;font-weight:800">R$ 0,00</div></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" onclick="switchFatTab('diario',this)" data-i18n="res.fatTabDaily">📅 Por Dia</div>
+        <div class="tab" onclick="switchFatTab('grafico',this)" data-i18n="res.fatTabChart">📊 Gráfico Mensal</div>
+        <div class="tab" onclick="switchFatTab('transacoes',this)" data-i18n="res.fatTabTransactions">🧾 Transações</div>
+        <div class="tab" onclick="switchFatTab('fechamento',this)" data-i18n="res.fatTabClosure">📋 Fechamento</div>
+      </div>
+
+      <!-- Tab Diário -->
+      <div class="tab-content active" id="fat-tab-diario">
+        <div class="table-wrap"><div class="table-scroll">
+          <table>
+            <thead><tr><th data-i18n="res.colDay">Dia</th><th data-i18n="res.colActivations">Ativações</th><th data-i18n="res.colCredits">Créditos</th><th data-i18n="res.colTotal">Total</th></tr></thead>
+            <tbody id="fat-diario-body"><tr class="empty-row"><td colspan="4" data-i18n="res.loading">Carregando...</td></tr></tbody>
+          </table>
+        </div></div>
+      </div>
+
+      <!-- Tab Gráfico -->
+      <div class="tab-content" id="fat-tab-grafico">
+        <div style="padding:8px 0 0;overflow-x:auto">
+          <canvas id="fat-chart" style="width:100%;min-width:500px;display:block"></canvas>
+        </div>
+        <div style="display:flex;gap:20px;justify-content:center;margin-top:10px;font-size:.82rem;color:var(--text2)">
+          <span><span style="display:inline-block;width:12px;height:12px;background:#7c3aed;border-radius:2px;margin-right:5px"></span>Ativações</span>
+          <span><span style="display:inline-block;width:12px;height:12px;background:var(--gold);border-radius:2px;margin-right:5px"></span>Créditos</span>
+        </div>
+
+        <!-- Ranking de revendedores -->
+        <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px">
+          <div style="font-weight:700;font-size:.95rem;margin-bottom:12px">🏆 Ativações por Revendedor — Mês Atual</div>
+          <div style="overflow-x:auto">
+            <canvas id="fat-chart-rev" style="width:100%;display:block"></canvas>
+          </div>
+          <div id="fat-chart-rev-empty" style="display:none;text-align:center;color:var(--text2);padding:24px;font-size:.85rem">Sem dados de ativações no mês</div>
+        </div>
+      </div>
+
+      <!-- Tab Transações -->
+      <div class="tab-content" id="fat-tab-transacoes">
+        <div class="table-wrap"><div class="table-scroll">
+          <table>
+            <thead><tr>
+              <th>#</th><th data-i18n="res.colPaymentId">Pagamento ID</th><th data-i18n="res.colOrigin">Origem</th><th data-i18n="res.colDate">Data</th>
+              <th data-i18n="res.colStatus">Status</th><th data-i18n="res.colType">Tipo</th><th data-i18n="res.colIdentifier">Identificador</th>
+              <th data-i18n="res.colName">Nome</th><th data-i18n="res.colAmountPaid">Valor Pago</th><th data-i18n="res.colResellerId">Revendedor ID</th><th data-i18n="res.colCreatedAt">Criado em</th>
+            </tr></thead>
+            <tbody id="fat-transacoes-body">
+              <tr class="empty-row"><td colspan="11" data-i18n="res.selectTabToLoad">Selecione uma aba para carregar.</td></tr>
+            </tbody>
+          </table>
+        </div></div>
+      </div>
+
+      <!-- Tab Fechamento -->
+      <div class="tab-content" id="fat-tab-fechamento">
+        <div id="fat-fechamento-content" style="padding-top:8px">
+          <div style="text-align:center;color:var(--text2);padding:32px" data-i18n="res.selectMonthFilter">Selecione um mês e clique em Filtrar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-RESELLERS -->
+    <div class="page" id="page-subresellers">
+      <div class="section-header">
+        <div class="page-title" style="margin:0" data-i18n="res.subresellersTitle">Meus Revendedores</div>
+        <button class="btn btn-primary btn-sm" onclick="openNewSubresellerModal()" data-i18n="res.newResellerBtn">+ Novo Revendedor</button>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>#</th><th data-i18n="res.colReseller">Revendedor</th><th data-i18n="res.colCredits">Créditos</th><th data-i18n="res.colTotalAct">Ativ. Total</th><th data-i18n="res.colActivMonth">Ativ. Mês</th><th data-i18n="res.colStatus">Status</th><th data-i18n="res.colRegisteredAt">Cadastrado em</th><th></th>
+          </tr></thead>
+          <tbody id="subresellers-body">
+            <tr class="empty-row"><td colspan="8" data-i18n="res.loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- PACOTES -->
+    <div class="page" id="page-packages-admin">
+      <div class="section-header">
+        <div class="page-title" style="margin:0" data-i18n="res.packagesTitle">Pacotes de Créditos</div>
+        <button class="btn btn-primary btn-sm" onclick="openPkgModal()" data-i18n="res.newPackageBtn">+ Novo Pacote</button>
+      </div>
+      <div class="table-wrap"><div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th data-i18n="res.colOrder">Ordem</th><th data-i18n="res.colName">Nome</th><th data-i18n="res.colActivations">Ativações</th><th data-i18n="res.colTotalValue">Valor Total</th><th data-i18n="res.colPerActivation">Por Ativação</th><th data-i18n="res.colStatus">Status</th><th></th>
+          </tr></thead>
+          <tbody id="pkg-admin-body">
+            <tr class="empty-row"><td colspan="7" data-i18n="res.loading">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="page-title" data-i18n="res.profileTitle">Meu Perfil</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:860px">
+        <!-- Dados pessoais -->
+        <div class="table-wrap" style="padding:24px">
+          <div style="font-weight:700;font-size:1rem;margin-bottom:16px" data-i18n="res.profileSectionPersonal">Dados Pessoais</div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label data-i18n="res.labelFullName">Nome completo</label>
+            <input type="text" id="profile-nome" data-i18n-ph="res.profileNamePh" placeholder="Seu nome">
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label data-i18n="res.labelCountry">País</label>
+            <input type="text" id="profile-pais" data-i18n-ph="res.profileCountryPh" placeholder="Brasil">
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label data-i18n="res.labelPhone">Telefone</label>
+            <input type="tel" id="profile-telefone" placeholder="+55 11 99999-0000">
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label data-i18n="res.labelBirthdate">Data de nascimento</label>
+            <input type="date" id="profile-nascimento">
+          </div>
+          <div class="form-group" style="margin-bottom:20px">
+            <label data-i18n="res.labelEmail">E-mail</label>
+            <input type="email" id="profile-email" placeholder="email@exemplo.com">
+            <div style="font-size:.72rem;color:var(--text2);margin-top:4px" data-i18n="res.emailChangeNote">Alterar e-mail requer confirmação de senha</div>
+          </div>
+          <button class="btn btn-primary" onclick="saveProfileData()" data-i18n="res.saveDataBtn">Salvar dados</button>
+        </div>
+        <!-- Senha + zona de perigo -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div class="table-wrap" style="padding:24px">
+            <div style="font-weight:700;font-size:1rem;margin-bottom:16px" data-i18n="res.profileSectionPassword">Alterar Senha</div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label data-i18n="res.labelCurrentPw">Senha atual</label>
+              <input type="password" id="profile-senha-atual" data-i18n-ph="res.currentPwPh" placeholder="Digite sua senha atual">
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label data-i18n="res.labelNewPw">Nova senha</label>
+              <input type="password" id="profile-nova-senha" data-i18n-ph="res.min6Ph" placeholder="Mínimo 6 caracteres">
+            </div>
+            <div class="form-group" style="margin-bottom:20px">
+              <label data-i18n="res.labelConfirmNewPw">Confirmar nova senha</label>
+              <input type="password" id="profile-confirmar-senha" data-i18n-ph="res.repeatPwPh" placeholder="Repita a nova senha">
+            </div>
+            <button class="btn btn-primary" onclick="saveProfilePassword()" data-i18n="res.changePwBtn">Alterar senha</button>
+          </div>
+          <div class="table-wrap" style="padding:24px;border:1px solid rgba(239,68,68,.35)">
+            <div style="font-weight:700;font-size:1rem;margin-bottom:8px;color:var(--error)" data-i18n="res.dangerZone">Zona de Perigo</div>
+            <div style="font-size:.82rem;color:var(--text2);margin-bottom:16px" data-i18n="res.dangerZoneDesc">
+              Ao excluir sua conta você perderá acesso permanentemente à plataforma. Esta ação não pode ser desfeita.
+            </div>
+            <button class="btn btn-danger" onclick="openModal('modal-delete-account')" data-i18n="res.deleteAccountBtn">Excluir conta permanentemente</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── MODAL: ACTIVATE DEVICE ── -->
+<div class="overlay" id="modal-activate">
+  <div class="modal">
+    <h3 id="act-modal-title">⚡ Ativar Dispositivo</h3>
+    <input type="hidden" id="act-mode" value="new">
+    <div class="info-box" id="act-modal-info" data-i18n="res.actModalInfo">1 crédito será debitado da sua conta por ativação.</div>
+    <div class="form-group">
+      <label>MAC Address</label>
+      <input type="text" id="act-mac" placeholder="ex: AA:BB:CC:DD:EE:FF" oninput="this.value=this.value.toUpperCase();detectMacModel()">
+    </div>
+    <div class="form-group" id="act-modelo-group" style="display:none">
+      <label data-i18n="res.labelDetectedModel">Modelo detectado</label>
+      <input type="text" id="act-modelo-detected" readonly style="color:var(--gold);font-style:italic">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelClientName">Nome do cliente</label>
+      <input type="text" id="act-comment" data-i18n-ph="res.clientNamePh" placeholder="ex: João da Silva">
+    </div>
+    <div class="form-group">
+      <label>Device Key</label>
+      <input type="text" id="act-devicekey" data-i18n-ph="res.deviceKeyPh" placeholder="Chave do dispositivo">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelDeviceName">Nome do dispositivo</label>
+      <input type="text" id="act-devicename" data-i18n-ph="res.deviceNamePh" placeholder="ex: Fire Stick Sala">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelPlan">Plano</label>
+      <select id="act-plan">
+        <option value="yearly" selected data-i18n="res.planYearly">Anual (365 dias)</option>
+        <option value="lifetime" data-i18n="res.lifetime">Vitalício</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-activate')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" id="act-submit-btn" onclick="activateDevice()" data-i18n="res.actActivateBtn">Ativar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: ADD EXISTING DEVICE ── -->
+<div class="overlay" id="modal-add-existing">
+  <div class="modal">
+    <h3 data-i18n="res.addExistingTitle">Adicionar Dispositivo Existente</h3>
+    <p style="font-size:.84rem;color:var(--text2)" data-i18n="res.addExistingDesc">Busque pelo MAC para vincular um dispositivo já ativado à sua conta.</p>
+    <div class="form-group">
+      <label>MAC Address</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="add-mac" placeholder="ex: AA:BB:CC:DD:EE:FF" oninput="this.value=this.value.toUpperCase()" style="flex:1">
+        <button class="btn btn-outline btn-sm" onclick="lookupDeviceMac()" style="white-space:nowrap" data-i18n="res.searchBtn">🔍 Buscar</button>
+      </div>
+    </div>
+    <div id="add-lookup-result" style="display:none;padding:8px 12px;background:var(--bg3);border-radius:8px;font-size:.84rem;color:var(--text2);margin-bottom:4px"></div>
+    <div class="form-group">
+      <label data-i18n="res.labelClientName">Nome do cliente</label>
+      <input type="text" id="add-comment" data-i18n-ph="res.clientNamePh2" placeholder="ex: João Silva">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelDeviceName">Nome do dispositivo</label>
+      <input type="text" id="add-devicename" data-i18n-ph="res.deviceNamePh2" placeholder="ex: Smart TV Sala">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelDetectedModel">Modelo detectado</label>
+      <input type="text" id="add-modelo" readonly style="color:var(--text2);background:var(--bg3)">
+    </div>
+    <div class="form-group">
+      <label>Device Key</label>
+      <input type="text" id="add-devicekey" data-i18n-ph="res.deviceKeyPh" placeholder="Chave do dispositivo">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-existing')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="addExistingDevice()" data-i18n="res.addBtn">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: BUY CREDITS ── -->
+<div class="overlay" id="modal-buy">
+  <div class="modal" style="max-width:600px">
+    <h3 data-i18n="res.buyCreditsTitle">⚡ Comprar Créditos</h3>
+    <div class="packages-grid" id="packages-grid"></div>
+    <div id="buy-payment-section" style="display:none">
+      <hr style="border-color:var(--border)">
+      <div class="form-group">
+        <label data-i18n="res.labelPaymentMethod">Método de Pagamento</label>
+        <select id="buy-method">
+          <option value="pix" data-i18n="res.methodPix">PIX</option>
+          <option value="stripe" data-i18n="res.methodCard">Cartão de Crédito</option>
+        </select>
+      </div>
+      <div id="buy-pix-section" style="display:none;text-align:center">
+        <img id="buy-qr" src="" alt="QR Code PIX" style="width:200px;border-radius:12px;margin:12px auto;display:block">
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:8px" data-i18n="res.copyCodeBelow">Copie o código abaixo:</div>
+        <div style="background:var(--surface2);border-radius:8px;padding:10px;font-family:monospace;font-size:.72rem;word-break:break-all;color:var(--text2)" id="buy-pix-code"></div>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="copyPix()" data-i18n="res.copyPixBtn">📋 Copiar código PIX</button>
+        <div style="margin-top:12px;font-size:.8rem;color:var(--text2)" id="buy-status-msg" data-i18n="res.awaitingPayment">Aguardando pagamento...</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-buy')" data-i18n="res.closeBtn">Fechar</button>
+      <button class="btn btn-primary" id="buy-confirm-btn" onclick="confirmBuy()" style="display:none" data-i18n="res.confirmBuyBtn">Confirmar Compra</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NEW LINK ── -->
+<div class="overlay" id="modal-new-link">
+  <div class="modal">
+    <h3 data-i18n="res.newLinkTitle">🔗 Novo Link de Indicação</h3>
+    <div class="form-group">
+      <label data-i18n="res.labelLinkName">Nome / Descrição do link</label>
+      <input type="text" id="link-name" data-i18n-ph="res.linkNamePh" placeholder="ex: Grupo WhatsApp Clientes">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelDefaultPlan">Plano padrão para ativação</label>
+      <select id="link-plan">
+        <option value="yearly" selected data-i18n="res.planYearly">Anual (365 dias)</option>
+        <option value="lifetime" data-i18n="res.lifetime">Vitalício</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-link')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="createLink()" data-i18n="res.createLinkBtn">Criar Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: WITHDRAW ── -->
+<div class="overlay" id="modal-withdraw">
+  <div class="modal">
+    <h3 data-i18n="res.withdrawTitle">💸 Solicitar Saque</h3>
+    <div class="form-group">
+      <label data-i18n="res.labelWithdrawAmount">Valor (BRL)</label>
+      <input type="number" id="withdraw-amount" min="50" step="1" data-i18n-ph="res.withdrawAmountPh" placeholder="Mínimo R$ 50,00">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelMethod">Método</label>
+      <select id="withdraw-method">
+        <option value="pix">PIX</option>
+        <option value="bank" data-i18n="res.methodBank">Transferência Bancária</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelWithdrawKey">Chave / Dados</label>
+      <input type="text" id="withdraw-key" data-i18n-ph="res.withdrawKeyPh" placeholder="Chave PIX ou dados bancários">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-withdraw')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-gold" onclick="requestWithdraw()" data-i18n="res.requestBtn">Solicitar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: CONFIRM EMAIL CHANGE ── -->
+<div class="overlay" id="modal-confirm-email">
+  <div class="modal" style="max-width:380px">
+    <h3 data-i18n="res.confirmEmailTitle">🔐 Confirmar Alteração de E-mail</h3>
+    <p style="font-size:.84rem;color:var(--text2);margin-bottom:16px" data-i18n="res.confirmEmailDesc">Digite sua senha para confirmar a troca de e-mail.</p>
+    <div class="form-group">
+      <label data-i18n="res.labelCurrentPw">Senha atual</label>
+      <input type="password" id="confirm-email-senha" data-i18n-ph="res.yourPasswordPh" placeholder="Sua senha">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-confirm-email')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmEmailChange()" data-i18n="res.confirmBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: DELETE ACCOUNT ── -->
+<div class="overlay" id="modal-delete-account">
+  <div class="modal" style="max-width:400px">
+    <h3 style="color:var(--error)" data-i18n="res.deleteAccountTitle">⚠️ Excluir Conta</h3>
+    <p style="font-size:.84rem;color:var(--text2);margin-bottom:16px" data-i18n-html="res.deleteAccountDesc">Esta ação é <b>permanente e irreversível</b>. Você perderá acesso imediatamente e não poderá fazer login novamente.</p>
+    <div class="form-group">
+      <label data-i18n="res.labelTypePwToConfirm">Digite sua senha para confirmar</label>
+      <input type="password" id="delete-account-senha" data-i18n-ph="res.yourPasswordPh" placeholder="Sua senha">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-delete-account')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-danger" onclick="deleteAccount()" data-i18n="res.deletePermanentlyBtn">Excluir permanentemente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NEW SUBRESELLER ── -->
+<div class="overlay" id="modal-new-sub">
+  <div class="modal" style="max-width:520px">
+    <h3 data-i18n="res.newResellerTitle">👥 Novo Revendedor</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="res.labelFullNameReq">Nome completo *</label>
+        <input type="text" id="sub-nome" data-i18n-ph="res.resellerNamePh" placeholder="Nome do revendedor">
+      </div>
+      <div class="form-group">
+        <label data-i18n="res.labelCountry">País</label>
+        <input type="text" id="sub-pais" data-i18n-ph="res.profileCountryPh" placeholder="Brasil">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="res.labelPhone">Telefone</label>
+        <input type="tel" id="sub-telefone" placeholder="+55 11 99999-0000">
+      </div>
+      <div class="form-group">
+        <label data-i18n="res.labelBirthdate">Data de nascimento</label>
+        <input type="date" id="sub-nascimento">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="res.labelEmailReq">E-mail *</label>
+        <input type="email" id="sub-email" placeholder="email@exemplo.com">
+      </div>
+      <div class="form-group">
+        <label data-i18n="res.labelPasswordReq">Senha *</label>
+        <input type="password" id="sub-pass" data-i18n-ph="res.min6Ph" placeholder="Mínimo 6 caracteres">
+      </div>
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelInitialCredits">Créditos iniciais (PROMO CADASTRO)</label>
+      <input type="number" id="sub-credits" min="0" value="0" placeholder="0">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-new-sub')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="createSubreseller()" data-i18n="res.createResellerBtn">Criar Revendedor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: PACKAGE ── -->
+<div class="overlay" id="modal-pkg">
+  <div class="modal" style="max-width:520px">
+    <h3 id="pkg-modal-title" data-i18n="res.pkgModalNewTitle">📦 Novo Pacote</h3>
+    <input type="hidden" id="pkg-edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="res.labelNameReq">Nome *</label>
+        <input type="text" id="pkg-nome" data-i18n-ph="res.pkgNamePh" placeholder="ex: Profissional">
+      </div>
+      <div class="form-group">
+        <label data-i18n="res.labelOrder">Ordem (exibição)</label>
+        <input type="number" id="pkg-ordem" min="1" value="1" placeholder="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label data-i18n="res.labelActivationsReq">Ativações *</label>
+        <input type="number" id="pkg-ativacoes" min="1" placeholder="ex: 100" oninput="calcPkgUnit()">
+      </div>
+      <div class="form-group">
+        <label data-i18n="res.labelTotalValueReq">Valor total (R$) *</label>
+        <input type="number" id="pkg-valor" min="0.01" step="0.01" placeholder="ex: 900.00" oninput="calcPkgUnit()">
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:10px 14px;font-size:.82rem;color:var(--text2);margin-bottom:12px">
+      <span data-i18n="res.perActivationLabel">Valor por ativação:</span> <b id="pkg-unit-preview" style="color:var(--gold)">—</b>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-pkg')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePkg()" data-i18n="res.saveBtn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: EDIT DEVICE ── -->
+<div class="overlay" id="modal-edit-device">
+  <div class="modal">
+    <h3 data-i18n="res.editDeviceTitle">✏️ Editar Dispositivo</h3>
+    <input type="hidden" id="edit-dev-mac">
+    <div class="form-group">
+      <label data-i18n="res.labelCurrentMac">MAC Address atual</label>
+      <input type="text" id="edit-dev-mac-show" readonly style="color:var(--gold);font-family:monospace">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelNewMac">Novo MAC Address <span style="font-size:.78rem;color:var(--text2)" data-i18n="res.newMacHint">(preencha só se for trocar)</span></label>
+      <input type="text" id="edit-dev-new-mac" data-i18n-ph="res.newMacPh" placeholder="Deixe vazio para manter o atual" oninput="this.value=this.value.toUpperCase();detectEditMacModel()">
+    </div>
+    <div class="form-group" id="edit-modelo-group" style="display:none">
+      <label data-i18n="res.labelDetectedModelNewMac">Modelo detectado (novo MAC)</label>
+      <input type="text" id="edit-dev-modelo" readonly style="color:var(--gold);font-style:italic">
+    </div>
+    <div class="form-group">
+      <label>Device Key</label>
+      <input type="text" id="edit-dev-devicekey" data-i18n-ph="res.deviceKeyPh" placeholder="Chave do dispositivo">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelDeviceName">Nome do dispositivo</label>
+      <input type="text" id="edit-dev-devicename" data-i18n-ph="res.deviceNamePh" placeholder="ex: Fire Stick Sala">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelClientName">Nome do cliente</label>
+      <input type="text" id="edit-dev-comment" data-i18n-ph="res.clientNamePh2" placeholder="ex: João Silva">
+    </div>
+    <div class="form-group" id="edit-password-group" style="display:none">
+      <label style="color:var(--error)" data-i18n="res.labelResellerPw">🔐 Senha do revendedor <span style="font-size:.78rem" data-i18n="res.resellerPwHint">(obrigatória ao trocar MAC)</span></label>
+      <input type="password" id="edit-dev-password" data-i18n-ph="res.accessPasswordPh" placeholder="Sua senha de acesso">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-device')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDeviceEdit()" data-i18n="res.saveBtn">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: RENOVAR LISTA ── -->
+<div class="overlay" id="modal-lista-renovar">
+  <div class="modal" style="max-width:500px">
+    <h3 data-i18n="res.renewListTitle">🔄 Renovar / Editar Lista</h3>
+    <input type="hidden" id="lista-ren-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group" style="margin:0">
+        <label>MAC Address</label>
+        <input type="text" id="lista-ren-mac" readonly style="color:var(--gold);font-family:monospace">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label data-i18n="res.labelClientName">Nome do cliente</label>
+        <input type="text" id="lista-ren-cliente" readonly style="color:var(--text2)">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+      <div class="form-group" style="margin:0">
+        <label data-i18n="res.labelListName">Nome da lista</label>
+        <input type="text" id="lista-ren-nome" data-i18n-ph="res.listNamePh" placeholder="ex: Sandra Premium">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label data-i18n="res.labelDeviceName">Nome do dispositivo</label>
+        <input type="text" id="lista-ren-dispositivo" data-i18n-ph="res.deviceNamePh" placeholder="ex: Fire Stick Sala">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Device Key</label>
+      <input type="text" id="lista-ren-devicekey" data-i18n-ph="res.deviceKeyPh" placeholder="Chave do dispositivo">
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelListType">Tipo de lista</label>
+      <select id="lista-ren-tipo" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%" onchange="toggleRenTipoFields()">
+        <option value="url">URL (M3U/M3U8)</option>
+        <option value="file">File</option>
+        <option value="xtream" data-i18n="res.xtreamAccount">Conta Xtream</option>
+        <option value="m3u8">M3u8</option>
+      </select>
+    </div>
+    <div id="lista-ren-url-group" class="form-group">
+      <label data-i18n="res.labelListUrl">URL da lista</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="lista-ren-url" placeholder="http://servidor.com/lista.m3u" style="font-size:.82rem;font-family:monospace;flex:1">
+        <button class="btn btn-outline btn-sm" onclick="copyText(document.getElementById('lista-ren-url').value)">📋</button>
+      </div>
+    </div>
+    <div id="lista-ren-file-group" class="form-group" style="display:none">
+      <label data-i18n="res.labelFileName">Nome do ficheiro</label>
+      <input type="text" id="lista-ren-ficheiro" placeholder="lista.m3u">
+    </div>
+    <div id="lista-ren-url-epg-group" class="form-group">
+      <label data-i18n="res.labelEpgUrl">URL EPG <span style="color:var(--text2);font-size:.75rem" data-i18n="res.epgOptional">(opcional)</span></label>
+      <input type="text" id="lista-ren-url-epg" placeholder="http://...epg.xml">
+    </div>
+    <div id="lista-ren-xtream-group" style="display:none">
+      <div class="form-group">
+        <label data-i18n="res.labelServer">Servidor</label>
+        <input type="text" id="lista-ren-servidor" placeholder="http://servidor.com:8080">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin:0">
+          <label data-i18n="res.labelUser">Utilizador</label>
+          <input type="text" id="lista-ren-user" placeholder="username">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label data-i18n="res.labelNewPwKeep">Nova senha <span style="color:var(--text2);font-size:.75rem" data-i18n="res.emptyKeepHint">(vazio = manter)</span></label>
+          <input type="password" id="lista-ren-pass" placeholder="••••••">
+        </div>
+      </div>
+    </div>
+    <!-- Protect Playlist -->
+    <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+      <input type="checkbox" id="lista-ren-protect" style="width:auto;margin:0" onchange="document.getElementById('lista-ren-pin-fields').classList.toggle('show',this.checked)">
+      <label for="lista-ren-protect" style="margin:0;cursor:pointer;font-size:.9rem" data-i18n="res.protectPlaylist">Protect Playlist</label>
+    </div>
+    <div class="pin-fields" id="lista-ren-pin-fields">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin:0">
+          <label data-i18n="res.labelPinKeep">PIN <span style="color:var(--text2);font-size:.75rem" data-i18n="res.emptyKeepHint">(vazio = manter)</span></label>
+          <input type="password" id="lista-ren-pin" placeholder="••••••" maxlength="6">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label data-i18n="res.labelConfirmPin">Confirmar PIN</label>
+          <input type="password" id="lista-ren-pin-confirm" placeholder="••••••" maxlength="6">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelRenewalPeriod">Período de renovação</label>
+      <select id="lista-ren-meses" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%">
+        <option value="1" data-i18n="res.month1">1 mês</option>
+        <option value="2" data-i18n="res.month2">2 meses</option>
+        <option value="3" data-i18n="res.month3">3 meses</option>
+        <option value="4" data-i18n="res.month4">4 meses</option>
+        <option value="5" data-i18n="res.month5">5 meses</option>
+        <option value="6" data-i18n="res.month6">6 meses</option>
+      </select>
+    </div>
+    <div class="info-box" style="font-size:.8rem" data-i18n="res.renewalInfo">Validade conta a partir de hoje. Esta lista será definida como ativa.</div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-lista-renovar')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="renovarLista()" data-i18n="res.saveAndRenewBtn">💾 Salvar e Renovar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: ADICIONAR LISTA ── -->
+<div class="overlay" id="modal-lista-add">
+  <div class="modal" style="max-width:500px">
+    <h3 data-i18n="res.addListTitle">➕ Adicionar Lista</h3>
+    <input type="hidden" id="lista-add-mac">
+    <input type="hidden" id="lista-add-tipo" value="url">
+    <div class="form-group">
+      <label>MAC Address</label>
+      <input type="text" id="lista-add-mac-show" readonly style="color:var(--gold);font-family:monospace">
+    </div>
+    <!-- Tabs -->
+    <div class="pl-tabs" style="margin-bottom:16px">
+      <button class="pl-tab active" id="la-tab-url"    onclick="laSwitchType('url')">URL</button>
+      <button class="pl-tab"        id="la-tab-file"   onclick="laSwitchType('file')">File</button>
+      <button class="pl-tab"        id="la-tab-xtream" onclick="laSwitchType('xtream')" data-i18n="res.xtreamAccount">Conta Xtream</button>
+      <button class="pl-tab"        id="la-tab-m3u8"   onclick="laSwitchType('m3u8')">M3u8</button>
+    </div>
+    <div class="form-group">
+      <label data-i18n="res.labelListName">Nome da lista</label>
+      <input type="text" id="lista-add-nome" data-i18n-ph="res.listNamePh" placeholder="ex: Sandra Premium">
+    </div>
+    <!-- URL -->
+    <div id="la-fields-url">
+      <div class="form-group">
+        <label data-i18n="res.labelListUrl">URL da lista</label>
+        <input type="text" id="lista-add-url" placeholder="http://servidor.com/lista.m3u">
+      </div>
+    </div>
+    <!-- File -->
+    <div id="la-fields-file" style="display:none">
+      <div class="form-group">
+        <label data-i18n="res.labelFile">Ficheiro (.m3u/.m3u8)</label>
+        <input type="file" id="lista-add-file" accept=".m3u,.m3u8">
+      </div>
+    </div>
+    <!-- Xtream -->
+    <div id="la-fields-xtream" style="display:none">
+      <div class="form-group">
+        <label data-i18n="res.labelServer">Servidor</label>
+        <input type="text" id="lista-add-servidor" placeholder="http://servidor.com:8080">
+      </div>
+      <div class="form-group">
+        <label data-i18n="res.labelUser">Utilizador</label>
+        <input type="text" id="lista-add-user" placeholder="username">
+      </div>
+      <div class="form-group">
+        <label data-i18n="res.labelPassword">Senha</label>
+        <input type="password" id="lista-add-pass" placeholder="password">
+      </div>
+    </div>
+    <!-- M3u8 -->
+    <div id="la-fields-m3u8" style="display:none">
+      <div class="form-group">
+        <label data-i18n="res.labelListUrlM3u8">URL da lista (M3u8)</label>
+        <input type="text" id="lista-add-url-m3u8" placeholder="http://servidor.com/lista.m3u8">
+      </div>
+    </div>
+    <!-- EPG + Protect (comuns) -->
+    <div class="form-group">
+      <label data-i18n="res.labelEpgUrl">URL do EPG <span style="color:var(--text2);font-size:.78rem" data-i18n="res.epgOptional">(opcional)</span></label>
+      <input type="text" id="lista-add-epg" placeholder="http://...epg.xml">
+    </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+      <input type="checkbox" id="lista-add-protect" style="width:auto;margin:0" onchange="document.getElementById('lista-add-pin-fields').classList.toggle('show',this.checked)">
+      <label for="lista-add-protect" style="margin:0;cursor:pointer;font-size:.9rem" data-i18n="res.protectPlaylist">Protect Playlist</label>
+    </div>
+    <div class="pin-fields" id="lista-add-pin-fields">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin:0">
+          <label>PIN</label>
+          <input type="password" id="lista-add-pin" placeholder="••••••" maxlength="6">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label data-i18n="res.labelConfirmPin">Confirmar PIN</label>
+          <input type="password" id="lista-add-pin-confirm" placeholder="••••••" maxlength="6">
+        </div>
+      </div>
+    </div>
+    <!-- Validade -->
+    <div class="form-group">
+      <label data-i18n="res.listValidity">Validade</label>
+      <select id="lista-add-meses" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);width:100%">
+        <option value="1" data-i18n="res.month1">1 mês</option>
+        <option value="2" data-i18n="res.month2">2 meses</option>
+        <option value="3" selected data-i18n="res.month3">3 meses</option>
+        <option value="4" data-i18n="res.month4">4 meses</option>
+        <option value="5" data-i18n="res.month5">5 meses</option>
+        <option value="6" data-i18n="res.month6">6 meses</option>
+      </select>
+    </div>
+    <div class="info-box" style="font-size:.8rem" data-i18n="res.addListInfo">A lista será criada como inativa. Use "▶ Ativar" para definir qual fica ativa no aparelho.</div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-lista-add')" data-i18n="res.cancelBtn">Cancelar</button>
+      <button class="btn btn-primary" onclick="addLista()" data-i18n="res.addBtn">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: DETALHE DA LISTA ── -->
+<div class="overlay" id="modal-lista-detail">
+  <div class="modal" style="max-width:520px">
+    <h3>✏️ Editar Lista</h3>
+    <input type="hidden" id="lista-detail-id">
+    <input type="hidden" id="lista-detail-tipo">
+
+    <!-- Sempre visível -->
+    <div class="form-group">
+      <label>MAC Address</label>
+      <input type="text" id="lista-detail-mac-show" readonly style="color:var(--gold);font-family:monospace">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group" style="margin:0">
+        <label>Nome da lista</label>
+        <input type="text" id="lista-detail-nome" placeholder="ex: Sala Premium">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Nome do dispositivo</label>
+        <input type="text" id="lista-detail-dispositivo" placeholder="ex: Fire Stick Sala">
+      </div>
+    </div>
+
+    <!-- URL / M3U8 -->
+    <div id="ld-url-group" style="display:none">
+      <div class="form-group">
+        <label>URL da lista</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="lista-detail-url" style="font-size:.78rem;font-family:monospace;flex:1" placeholder="http://servidor.com/lista.m3u">
+          <button class="btn btn-outline btn-sm" onclick="copyText(document.getElementById('lista-detail-url').value)">📋</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>URL EPG <span style="color:var(--text2);font-size:.74rem">(opcional)</span></label>
+        <input type="text" id="ld-epg-url" placeholder="http://...epg.xml">
+      </div>
+    </div>
+
+    <!-- File -->
+    <div id="ld-file-group" style="display:none">
+      <div class="form-group">
+        <label>Ficheiro</label>
+        <input type="text" id="lista-detail-ficheiro" placeholder="lista.m3u">
+      </div>
+      <div class="form-group">
+        <label>URL EPG <span style="color:var(--text2);font-size:.74rem">(opcional)</span></label>
+        <input type="text" id="ld-epg-file" placeholder="http://...epg.xml">
+      </div>
+    </div>
+
+    <!-- Xtream -->
+    <div id="ld-xtream-group" style="display:none">
+      <div class="form-group">
+        <label>Servidor</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="lista-detail-servidor" style="font-size:.78rem;font-family:monospace;flex:1" placeholder="http://servidor.com:8080">
+          <button class="btn btn-outline btn-sm" onclick="copyText(document.getElementById('lista-detail-servidor').value)">📋</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin:0">
+          <label>Utilizador</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="lista-detail-user" style="font-family:monospace;flex:1">
+            <button class="btn btn-outline btn-sm" onclick="copyText(document.getElementById('lista-detail-user').value)">📋</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Senha <span style="color:var(--text2);font-size:.74rem">(vazio = manter)</span></label>
+          <input type="password" id="lista-detail-senha" placeholder="••••••">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>URL EPG <span style="color:var(--text2);font-size:.74rem">(opcional)</span></label>
+        <input type="text" id="ld-epg-xtream" placeholder="http://...epg.xml">
+      </div>
+    </div>
+
+    <!-- Protect Playlist (todos os tipos) -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+      <input type="checkbox" id="lista-detail-protect" style="width:auto;margin:0" onchange="document.getElementById('ld-pin-fields').classList.toggle('show',this.checked)">
+      <label for="lista-detail-protect" style="margin:0;cursor:pointer;font-size:.9rem">Protect Playlist</label>
+    </div>
+    <div class="pin-fields" id="ld-pin-fields">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin:0">
+          <label>PIN <span style="color:var(--text2);font-size:.74rem">(vazio = manter)</span></label>
+          <input type="password" id="lista-detail-pin" placeholder="••••••" maxlength="6">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Confirmar PIN</label>
+          <input type="password" id="lista-detail-pin-confirm" placeholder="••••••" maxlength="6">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-lista-detail')">Fechar</button>
+      <button class="btn btn-primary" onclick="saveListaDetail()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: DESBLOQUEAR CANAL PARENTAL ── -->
+<div class="overlay" id="modal-parental-unlock">
+  <div class="modal" style="max-width:460px">
+    <h3>🔓 Desbloquear Canal</h3>
+    <input type="hidden" id="pu-mac">
+    <div class="form-group">
+      <label>Dispositivo</label>
+      <input type="text" id="pu-dispositivo" readonly style="opacity:.7">
+    </div>
+    <div class="form-group">
+      <label>Canal a desbloquear</label>
+      <div id="pu-canais" style="display:flex;flex-wrap:wrap;gap:8px;min-height:36px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px"></div>
+    </div>
+    <input type="hidden" id="pu-canal-sel">
+    <div class="form-group">
+      <label>Senha Parental</label>
+      <input type="password" id="pu-pin" placeholder="Digite a senha" maxlength="6">
+    </div>
+    <p style="font-size:.78rem;color:var(--text2);margin-top:4px">Em caso de senha esquecida, entre em contacto com o suporte.</p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-parental-unlock')">Fechar</button>
+      <button class="btn btn-primary" onclick="confirmarDesbloqueioCanal()">🔓 Desbloquear</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: GERENCIAR SENHA PARENTAL ── -->
+<div class="overlay" id="modal-parental-pin">
+  <div class="modal" style="max-width:460px">
+    <h3>🔑 Gerenciar Senha Parental</h3>
+    <input type="hidden" id="pp-mac">
+    <input type="hidden" id="pp-has-pin">
+    <div class="form-group">
+      <label>Dispositivo</label>
+      <input type="text" id="pp-dispositivo" readonly style="opacity:.7">
+    </div>
+
+    <!-- Criar senha (sem PIN) -->
+    <div id="pp-criar-section">
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:12px">Este dispositivo ainda não tem senha parental configurada.</p>
+      <div class="form-group">
+        <label>Nova senha (mín. 4 dígitos)</label>
+        <input type="password" id="pp-new-pin" placeholder="••••••" maxlength="6">
+      </div>
+      <div class="form-group">
+        <label>Confirmar nova senha</label>
+        <input type="password" id="pp-new-pin-confirm" placeholder="••••••" maxlength="6">
+      </div>
+    </div>
+
+    <!-- Redefinir senha (com PIN) -->
+    <div id="pp-reset-section" style="display:none">
+      <div class="form-group">
+        <label>Senha atual</label>
+        <input type="password" id="pp-current-pin" placeholder="••••••" maxlength="6">
+      </div>
+      <div class="form-group">
+        <label>Nova senha (mín. 4 dígitos)</label>
+        <input type="password" id="pp-reset-new" placeholder="••••••" maxlength="6">
+      </div>
+      <div class="form-group">
+        <label>Confirmar nova senha</label>
+        <input type="password" id="pp-reset-confirm" placeholder="••••••" maxlength="6">
+      </div>
+    </div>
+
+    <p style="font-size:.78rem;color:var(--text2);margin-top:4px">Em caso de senha esquecida, entre em contacto com o suporte.</p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-parental-pin')">Fechar</button>
+      <button class="btn btn-primary" onclick="salvarSenhaParental()">💾 Salvar Senha</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="i18n.js"></script>
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let SESSION = null; // { resellerId, username, token, role }
+const isAdmin = () => SESSION?.role === 'administrador';
+let PACKAGES = [];
+let selectedPkg = null;
+let buyPaymentId = null;
+let buyStatusInterval = null;
+let allDevices = [];
+let allListas = [];
+let allDispositivosSemLista = [];
+let allParental = [];
+let listaMap = {};
+let openDropId = null;
+
+const t = k => (window.__i18n?.t || (x => x))(k);
+
+const PLAN_LABELS = () => ({
+  monthly:   t('res.monthly'),
+  quarterly: t('res.quarterly'),
+  semiannual:t('res.semiannual'),
+  yearly:    t('res.yearly'),
+  lifetime:  t('res.lifetime')
+});
+
+// ── VIEW SWITCHER ──────────────────────────────────────────────────────────────
+function showView(name) {
+  ['login','register','forgot','reset'].forEach(v => {
+    document.getElementById('view-' + v).style.display = v === name ? 'flex' : 'none';
+  });
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('reg-error').style.display = 'none';
+  document.getElementById('reg-success').style.display = 'none';
+  // Reset forgot states
+  document.getElementById('forgot-error').style.display = 'none';
+  document.getElementById('forgot-state-form').style.display = '';
+  document.getElementById('forgot-state-success').style.display = 'none';
+  document.getElementById('forgot-email').value = '';
+  const btnForgot = document.getElementById('btn-forgot-res');
+  if (btnForgot) { btnForgot.disabled = false; btnForgot.textContent = 'Enviar link'; }
+}
+
+// Detecta token de redefinição na URL
+(function checkResetToken() {
+  const token = new URLSearchParams(window.location.search).get('reset');
+  if (!token) return;
+  window._resellerResetToken = token;
+  history.replaceState(null, '', 'reseller.html');
+  // Aguarda DOM estar pronto
+  document.addEventListener('DOMContentLoaded', () => showView('reset'), { once: true });
+  if (document.readyState !== 'loading') showView('reset');
+})();
+
+async function register() {
+  const nome      = document.getElementById('reg-nome').value.trim();
+  const email     = document.getElementById('reg-email').value.trim();
+  const tel       = document.getElementById('reg-tel').value.trim();
+  const pais      = document.getElementById('reg-pais').value.trim();
+  const nascimento = document.getElementById('reg-nascimento').value;
+  const senha     = document.getElementById('reg-senha').value;
+  const confirmar = document.getElementById('reg-confirmar').value;
+  const errEl     = document.getElementById('reg-error');
+  const okEl      = document.getElementById('reg-success');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/reseller/register', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ nome, email, senha, confirmar_senha: confirmar, telefone: tel, pais, data_nascimento: nascimento || null })
+    });
+    const data = await r.json();
+    if (!r.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+    okEl.textContent = data.message || t('res.regSuccess');
+    okEl.style.display = 'block';
+    document.getElementById('reg-nome').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-tel').value = '';
+    document.getElementById('reg-pais').value = '';
+    document.getElementById('reg-nascimento').value = '';
+    document.getElementById('reg-senha').value = '';
+    document.getElementById('reg-confirmar').value = '';
+  } catch(e) {
+    errEl.textContent = t('res.errConnection'); errEl.style.display = 'block';
+  }
+}
+
+async function forgotPassword() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const errEl = document.getElementById('forgot-error');
+  errEl.style.display = 'none';
+  if (!email) { errEl.textContent = 'Informe o seu email.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('btn-forgot-res');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try {
+    const r = await fetch('/api/reseller/forgot-password', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const data = await r.json();
+    if (!r.ok) { errEl.textContent = data.error || 'Erro ao enviar. Tente novamente.'; errEl.style.display = 'block'; return; }
+    document.getElementById('forgot-state-form').style.display = 'none';
+    document.getElementById('forgot-state-success').style.display = '';
+  } catch(e) {
+    errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enviar link';
+  }
+}
+
+async function submitResellerReset() {
+  const pw1   = document.getElementById('reset-pw1').value;
+  const pw2   = document.getElementById('reset-pw2').value;
+  const errEl = document.getElementById('reset-error');
+  errEl.style.display = 'none';
+
+  if (!pw1 || !pw2) { errEl.textContent = 'Preencha os dois campos.'; errEl.style.display = 'block'; return; }
+  if (pw1.length < 6) { errEl.textContent = 'A senha deve ter pelo menos 6 caracteres.'; errEl.style.display = 'block'; return; }
+  if (pw1 !== pw2) { errEl.textContent = 'As senhas não coincidem.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('btn-reset-res');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  try {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token: window._resellerResetToken, newPassword: pw1 })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Erro ao redefinir senha.'; errEl.style.display = 'block'; return; }
+    document.getElementById('reset-state-form').style.display = 'none';
+    document.getElementById('reset-state-success').style.display = '';
+  } catch(e) {
+    errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Salvar nova senha';
+  }
+}
+
+// ── AUTH ───────────────────────────────────────────────────────────────────────
+async function login() {
+  const username = document.getElementById('inp-user').value.trim();
+  const password = document.getElementById('inp-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  try {
+    const r = await fetch('/api/reseller/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const data = await r.json();
+    if (!r.ok) { errEl.textContent = data.error || t('res.errInvalidCreds'); errEl.style.display='block'; return; }
+
+    SESSION = { resellerId: data.resellerId, username: data.username, token: data.token, role: data.role || 'revendedor' };
+    localStorage.setItem('reseller_session', JSON.stringify(SESSION));
+    startApp();
+  } catch(e) {
+    errEl.textContent = t('res.errConnection'); errEl.style.display='block';
+  }
+}
+
+function logout() {
+  SESSION = null;
+  localStorage.removeItem('reseller_session');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+function startApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-name').textContent = SESSION.username;
+  document.getElementById('user-avatar').textContent = SESSION.username[0].toUpperCase();
+  const profUser = document.getElementById('profile-username');
+  if (profUser) profUser.value = SESSION.username;
+  applyRoleVisibility();
+  loadPackages();
+  loadDashboard();
+  loadDevices();
+}
+
+function applyRoleVisibility() {
+  const admin = isAdmin();
+
+  // Nav items visíveis apenas ao administrador
+  ['withdrawals','subresellers','packages-admin'].forEach(page => {
+    const el = document.querySelector(`.nav-item[data-page="${page}"]`);
+    if (el) el.style.display = admin ? '' : 'none';
+  });
+
+  // User menu: Faturamento só admin
+  const menuFat = document.getElementById('menu-faturamento');
+  if (menuFat) menuFat.style.display = admin ? '' : 'none';
+
+  // Dashboard cards: Revendedores Afiliados e Ganhos só admin
+  ['card-subresellers','card-earnings'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = admin ? '' : 'none';
+  });
+
+  // Filtro de dispositivos por revendedor só para admin
+  const devFilter = document.getElementById('dev-admin-filter');
+  if (devFilter) devFilter.style.display = admin ? 'flex' : 'none';
+
+  // Filtro de listas por revendedor só para admin
+  const listsFilter = document.getElementById('lists-admin-filter');
+  if (listsFilter) listsFilter.style.display = admin ? 'flex' : 'none';
+
+  // Tab "Geral" em créditos só admin
+  const tabGeral = document.getElementById('tab-geral-btn');
+  if (tabGeral) tabGeral.style.display = admin ? '' : 'none';
+}
+
+async function api(path, opts={}) {
+  const headers = {'Content-Type':'application/json', 'x-reseller-token': SESSION?.token || '', ...opts.headers};
+  const r = await fetch('/api/reseller' + path, {...opts, headers});
+  const data = await r.json().catch(() => ({}));
+  if (r.status === 401) { logout(); return null; }
+  return { ok: r.ok, status: r.status, data };
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────────
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
+  if (pg) pg.classList.add('active');
+  if (el) el.classList.add('active');
+  else { const nav = document.querySelector(`[data-page="${name}"]`); if(nav) nav.classList.add('active'); }
+  closeSidebar();
+  if (name === 'devices') loadDevices();
+  if (name === 'lists') loadListas();
+  if (name === 'parental') loadParental();
+  if (name === 'credits') { loadTransactions(); loadActivationsLog(); }
+  if (name === 'referral') loadLinks();
+  if (name === 'withdrawals') initFaturamento();
+  if (name === 'subresellers') loadSubresellers();
+  if (name === 'packages-admin') loadPkgAdmin();
+  if (name === 'profile') loadProfile();
+  if (name === 'dashboard') loadDashboard();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+function toggleUserMenu() {
+  document.getElementById('user-menu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.user-pill')) document.getElementById('user-menu').classList.remove('open');
+  if (!e.target.closest('.action-menu-wrap')) { document.querySelectorAll('.drop-menu.open').forEach(d => d.classList.remove('open')); openDropId = null; }
+});
+
+// ── TABS ───────────────────────────────────────────────────────────────────────
+function switchTab(id, el) {
+  const parent = el.closest('.page');
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  parent.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'credits-geral') loadCreditsGeral();
+}
+
+// ── MODAL HELPERS ──────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+}
+function fmtBRL(cents) { return 'R$ ' + (cents/100).toLocaleString('pt-BR', {minimumFractionDigits:2}); }
+function copyText(txt) { navigator.clipboard.writeText(txt).then(() => toast(t('res.copied'))); }
+
+function modelIcon(model) {
+  if (!model) return '📱';
+  const m = model.toLowerCase();
+  if (m.includes('fire') || m.includes('amazon')) return '🔥';
+  if (m.includes('android') || m.includes('tv box')) return '📦';
+  if (m.includes('smart') || m.includes('samsung') || m.includes('lg')) return '📺';
+  if (m.includes('iphone') || m.includes('ios') || m.includes('apple')) return '🍎';
+  if (m.includes('formuler') || m.includes('mag')) return '📡';
+  return '📱';
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const r = await api('/dashboard');
+  if (!r?.ok) return;
+  const d = r.data;
+  document.getElementById('hdr-credits').textContent = d.credits ?? '—';
+  document.getElementById('dash-act-total').textContent = d.activations?.total ?? 0;
+  document.getElementById('dash-act-month').textContent = d.activations?.month ?? 0;
+  document.getElementById('dash-act-today').textContent = d.activations?.today ?? 0;
+  document.getElementById('dash-cr-total').textContent = d.creditsSpent?.total ?? 0;
+  document.getElementById('dash-cr-month').textContent = d.creditsSpent?.month ?? 0;
+  document.getElementById('dash-cr-today').textContent = d.creditsSpent?.today ?? 0;
+  document.getElementById('dash-sub-total').textContent = d.subresellers?.total ?? 0;
+  document.getElementById('dash-sub-month').textContent = d.subresellers?.month ?? 0;
+  document.getElementById('dash-sub-today').textContent = d.subresellers?.today ?? 0;
+  document.getElementById('dash-links-total').textContent = d.links?.total ?? 0;
+  document.getElementById('dash-links-today').textContent = d.links?.today ?? 0;
+  document.getElementById('dash-links-act').textContent = d.links?.totalActivated ?? 0;
+  document.getElementById('dash-links-act-today').textContent = d.links?.activatedToday ?? 0;
+  document.getElementById('dash-earn-total').textContent = fmtBRL((d.earnings?.mes      ?? 0) * 100);
+  document.getElementById('dash-earn-month').textContent = fmtBRL((d.earnings?.anterior  ?? 0) * 100);
+  document.getElementById('dash-earn-today').textContent = fmtBRL((d.earnings?.hoje      ?? 0) * 100);
+  document.getElementById('dash-lst-ativas').textContent   = d.listas?.ativas        ?? 0;
+  document.getElementById('dash-lst-vencendo').textContent = d.listas?.vencendoHoje  ?? 0;
+}
+
+// ── DEVICES ───────────────────────────────────────────────────────────────────
+async function loadDevices() {
+  let qs = '';
+  if (isAdmin()) {
+    const filtro = document.getElementById('dev-filtro')?.value || 'todos';
+    const revSel = document.getElementById('dev-revendedor-sel');
+    // Mostrar/ocultar select de revendedor
+    if (revSel) revSel.style.display = filtro === 'revendedor' ? '' : 'none';
+    const revId = filtro === 'revendedor' ? (revSel?.value || '') : '';
+    const params = new URLSearchParams({ filtro });
+    if (revId) params.set('revendedor_id', revId);
+    qs = '?' + params.toString();
+    // Popular select de revendedores se ainda vazio
+    if (revSel && revSel.options.length <= 1) loadDevRevendedores();
+  }
+  const r = await api('/devices' + qs);
+  if (!r?.ok) return;
+  allDevices = r.data;
+  renderDevices(allDevices);
+}
+
+async function loadDevRevendedores() {
+  const r = await api('/sub-resellers');
+  if (!r?.ok) return;
+  const sel = document.getElementById('dev-revendedor-sel');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `<option value="">${t('res.allResellers')}</option>` +
+    r.data.map(s => `<option value="${s.id}">${esc(s.nome || s.email)}</option>`).join('');
+  if (current) sel.value = current;
+}
+
+async function loadCreditsGeral() {
+  const tbody = document.getElementById('credits-geral-body');
+  tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${t('res.loading')}</td></tr>`;
+  const r = await api('/credits/geral');
+  if (!r?.ok) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Acesso negado ou erro.</td></tr>';
+    return;
+  }
+  const fmt = iso => iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
+  tbody.innerHTML = r.data.map((u, i) => `<tr>
+    <td>${i+1}</td>
+    <td style="font-weight:600">${esc(u.nome)}</td>
+    <td style="font-size:.78rem;color:var(--text2)">${esc(u.email)}</td>
+    <td><span class="badge ${u.role==='administrador'?'badge-ok':'badge-pending'}">${u.role}</span></td>
+    <td style="font-weight:700;color:var(--accent)">${u.saldo}</td>
+    <td style="font-size:.78rem;color:var(--text2)">${fmt(u.ultimo_movimento)}</td>
+  </tr>`).join('') || `<tr class="empty-row"><td colspan="6">${t('res.noUsers')}</td></tr>`;
+}
+
+let deviceMap = {};
+
+function renderDevices(list) {
+  const tbody = document.getElementById('devices-body');
+  deviceMap = {};
+  const now = new Date();
+
+  // Contadores
+  let countAtivo = 0, countExp = 0;
+  list.forEach(d => {
+    const val = d.validade || d.activationExpires || null;
+    const plan = d.plano || d.plan || 'yearly';
+    const isLifetime = plan === 'vitalicio' || plan === 'lifetime' || val === 'lifetime';
+    const ativo = d.ativo !== undefined ? d.ativo : true;
+    const expired = !isLifetime && val && new Date(val) < now;
+    if (ativo && !expired) countAtivo++;
+    else if (expired) countExp++;
+  });
+  const bar = document.getElementById('dev-stats-bar');
+  if (bar) {
+    bar.style.display = list.length ? '' : 'none';
+    document.getElementById('dev-count-ativo').textContent = countAtivo;
+    document.getElementById('dev-count-exp').textContent   = countExp;
+  }
+
+  if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${t('res.noDevices')}</td></tr>`; return; }
+  tbody.innerHTML = list.map((d, i) => {
+    const mac    = d.mac_address || d.mac || '';
+    const client = d.nome_cliente || d.comment || '';
+    const devName= d.nome_dispositivo || '';
+    const model  = d.modelo_dispositivo || d.model || '';
+    const dkey   = d.device_key || '';
+    const val    = d.validade || d.activationExpires || null;
+    const criado = d.criado_em || d.createdAt || null;
+    const ativo  = d.ativo !== undefined ? d.ativo : true;
+    const plan   = d.plano || d.plan || 'yearly';
+    const isLifetime = plan === 'vitalicio' || plan === 'lifetime' || val === 'lifetime';
+
+    deviceMap[mac] = { mac, client, devName, model, dkey, val, plan, ativo };
+
+    const expired = !isLifetime && val && new Date(val) < now;
+    const cls = (!ativo || expired) ? 'class="expired-row"' : '';
+    const valStr = isLifetime ? t('res.lifetime') : fmtDate(val);
+
+    let badge;
+    if (!ativo)        badge = `<span class="badge badge-expired">${t('res.statusInactive')}</span>`;
+    else if (expired)  badge = `<span class="badge badge-expired">${t('res.statusExpired')}</span>`;
+    else               badge = `<span class="badge badge-ok">${t('res.statusActive')}</span>`;
+
+    const macE = mac.replace(/'/g, "\\'");
+    return `<tr ${cls}>
+      <td>${i+1}</td>
+      <td>${client || '—'}</td>
+      <td><span class="mac-text">${mac}</span> <button class="copy-btn" onclick="copyText('${mac}')" title="Copiar">📋</button></td>
+      <td>${devName || '—'}</td>
+      <td><span class="model-icon">${modelIcon(model)}</span> ${model || '—'}</td>
+      <td>${valStr}</td>
+      <td>${criado ? fmtDate(criado) : '—'}</td>
+      <td>${badge}</td>
+      <td>
+        <div class="action-menu-wrap">
+          <button class="dot-btn" onclick="toggleDrop('drop-${i}')">⋯</button>
+          <div class="drop-menu" id="drop-${i}">
+            <div class="drop-item" onclick="openEditDevice('${macE}');closeDrop()">${t('res.editAction')}</div>
+            <div class="drop-item" onclick="openRenewModal('${macE}');closeDrop()">${t('res.renewAction')}</div>
+            <div class="drop-item danger" onclick="deactivateDevice('${macE}');closeDrop()">${t('res.deactivateAction')}</div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterDevices(q) {
+  const lq = (q || '').toLowerCase();
+  const filtered = allDevices.filter(d => !lq
+    || (d.mac_address||d.mac||'').toLowerCase().includes(lq)
+    || (d.nome_cliente||d.comment||'').toLowerCase().includes(lq)
+    || (d.nome_dispositivo||'').toLowerCase().includes(lq));
+  renderDevices(filtered);
+}
+
+// ── LISTAS ────────────────────────────────────────────────────────────────────
+async function loadListas() {
+  let qs = '';
+  if (isAdmin()) {
+    const filtro = document.getElementById('lists-filtro')?.value || 'todos';
+    const revSel = document.getElementById('lists-revendedor-sel');
+    if (revSel) revSel.style.display = filtro === 'revendedor' ? '' : 'none';
+    const revId = filtro === 'revendedor' ? (revSel?.value || '') : '';
+    const params = new URLSearchParams({ filtro });
+    if (revId) params.set('revendedor_id', revId);
+    qs = '?' + params.toString();
+    if (revSel && revSel.options.length <= 1) loadListaRevendedores();
+  }
+  const r = await api('/listas' + qs);
+  if (!r?.ok) return;
+  allListas = r.data.listas || [];
+  allDispositivosSemLista = r.data.dispositivos_sem_lista || [];
+  renderListas(allListas, allDispositivosSemLista);
+}
+
+async function loadListaRevendedores() {
+  const r = await api('/sub-resellers');
+  if (!r?.ok) return;
+  const sel = document.getElementById('lists-revendedor-sel');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `<option value="">${t('res.allResellers')}</option>` +
+    r.data.map(s => `<option value="${s.id}">${esc(s.nome || s.email)}</option>`).join('');
+  if (current) sel.value = current;
+}
+
+function renderListas(list, semLista) {
+  const tbody = document.getElementById('lists-body');
+  listaMap = {};
+  semLista = semLista || [];
+
+  const now = new Date();
+
+  // Contadores por MAC
+  const macsAtivos = new Set();
+  const macsExpOuSem = new Set();
+  list.forEach(l => {
+    const mac = l.mac_address || '';
+    const statusRaw = String(l.status || '').toLowerCase();
+    const isAtiva = statusRaw === 'ativa' || statusRaw === 'true' || statusRaw === 'active';
+    const expired = l.expira_em && new Date(l.expira_em) < now;
+    if (isAtiva && !expired) macsAtivos.add(mac);
+    else macsExpOuSem.add(mac);
+  });
+  semLista.forEach(d => macsExpOuSem.add(d.mac_address || ''));
+  macsAtivos.forEach(m => macsExpOuSem.delete(m)); // MAC com pelo menos 1 ativa não conta como expirado
+  const bar = document.getElementById('lst-stats-bar');
+  if (bar) {
+    bar.style.display = (list.length || semLista.length) ? '' : 'none';
+    document.getElementById('lst-count-ativa').textContent = macsAtivos.size;
+    document.getElementById('lst-count-exp').textContent   = macsExpOuSem.size;
+  }
+
+  if (!list.length && !semLista.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">${t('res.noLists')}</td></tr>`;
+    return;
+  }
+  const sevenDays = 7 * 24 * 3600 * 1000;
+  let idx = 1;
+  const rows = [];
+
+  list.forEach((l, i) => {
+    listaMap[l.id] = l;
+    const mac       = l.mac_address || '';
+    const macE      = mac.replace(/'/g, "\\'");
+    const idE       = (l.id || '').replace(/'/g, "\\'");
+    const statusRaw = String(l.status || '').toLowerCase();
+    const isAtiva   = statusRaw === 'ativa' || statusRaw === 'true' || statusRaw === 'active';
+    const expired   = l.expira_em && new Date(l.expira_em) < now;
+    const nearExp   = !expired && l.expira_em && (new Date(l.expira_em) - now) < sevenDays;
+    const expStyle  = expired ? 'color:var(--error);font-weight:700' : nearExp ? 'color:var(--warning);font-weight:700' : '';
+    const expText   = l.expira_em ? fmtDate(l.expira_em) : (t('res.lifetime') || 'Vitalício');
+
+    let badge;
+    if (expired)         badge = `<span class="badge badge-expired">${t('res.statusExpired')}</span>`;
+    else if (!isAtiva)   badge = `<span class="badge badge-pending">${t('res.statusInactive') || 'Inativa'}</span>`;
+    else                 badge = `<span class="badge badge-ok">${t('res.activeBadge')}</span>`;
+
+    const typeBadge = `<span class="badge" style="background:rgba(123,53,196,.2);color:#a78bfa;font-size:.68rem">${esc((l.tipo||'url').toUpperCase())}</span>`;
+    const dropId    = `ldrop-${i}`;
+    const activateItem = (!isAtiva && !expired)
+      ? `<div class="drop-item" onclick="toggleListaActive('${idE}','${macE}');closeDrop()">${t('res.activateListBtn') || '▶ Ativar'}</div>` : '';
+
+    rows.push(`<tr class="${expired ? 'expired-row' : ''}">
+      <td>${idx++}</td>
+      <td>${esc(l.nome_cliente || '—')}</td>
+      <td><span class="mac-text">${mac}</span> <button class="copy-btn" onclick="copyText('${macE}')" title="Copiar">📋</button></td>
+      <td>${esc(l.nome_dispositivo || '—')}</td>
+      <td style="font-weight:600;cursor:pointer;color:var(--text)" onclick="openListaDetail(listaMap['${idE}'])" title="Clique para editar">${esc(l.nome_lista || '—')}</td>
+      <td>${typeBadge}</td>
+      <td style="${expStyle}">${expText}</td>
+      <td>${badge}</td>
+      <td>
+        <div class="action-menu-wrap">
+          <button class="dot-btn" onclick="toggleDrop('${dropId}')">⋯</button>
+          <div class="drop-menu" id="${dropId}">
+            ${activateItem}
+            <div class="drop-item" onclick="openRenovarListaModal(listaMap['${idE}']);closeDrop()">${t('res.renewAction') || '🔄 Renovar / Editar'}</div>
+            <div class="drop-item" onclick="openAddListaModal('${macE}');closeDrop()">${t('res.addListBtn') || '+ Lista'}</div>
+            <div class="drop-item danger" onclick="deactivateLista('${idE}');closeDrop()">${t('res.deactivateAction') || '🗑 Remover'}</div>
+          </div>
+        </div>
+      </td>
+    </tr>`);
+  });
+
+  semLista.forEach((d, i) => {
+    const mac  = d.mac_address || '';
+    const macE = mac.replace(/'/g, "\\'");
+    const dropId = `lsdrop-${i}`;
+    rows.push(`<tr>
+      <td>${idx++}</td>
+      <td>${esc(d.nome_cliente || '—')}</td>
+      <td><span class="mac-text">${mac}</span> <button class="copy-btn" onclick="copyText('${macE}')" title="Copiar">📋</button></td>
+      <td>${esc(d.nome_dispositivo || '—')}</td>
+      <td colspan="3" style="color:var(--text2);font-size:.82rem">${t('res.noListsForDev') || 'Sem listas'}</td>
+      <td>—</td>
+      <td>
+        <div class="action-menu-wrap">
+          <button class="dot-btn" onclick="toggleDrop('${dropId}')">⋯</button>
+          <div class="drop-menu" id="${dropId}">
+            <div class="drop-item" onclick="openAddListaModal('${macE}');closeDrop()">${t('res.addListBtn') || '+ Adicionar Lista'}</div>
+          </div>
+        </div>
+      </td>
+    </tr>`);
+  });
+
+  tbody.innerHTML = rows.join('') || `<tr class="empty-row"><td colspan="9">${t('res.noLists')}</td></tr>`;
+}
+
+function filterListas(q) {
+  const lq = (q || '').toLowerCase();
+  const match = x => !lq
+    || (x.mac_address || '').toLowerCase().includes(lq)
+    || (x.nome_cliente || '').toLowerCase().includes(lq)
+    || (x.nome_dispositivo || '').toLowerCase().includes(lq);
+  renderListas(allListas.filter(match), allDispositivosSemLista.filter(match));
+}
+
+// ── CONTROLE PARENTAL ─────────────────────────────────────────────────────────
+async function loadParental() {
+  const r = await api('/parental');
+  if (!r?.ok) return;
+  allParental = r.data || [];
+  renderParental(allParental);
+}
+
+function renderParental(list) {
+  const tbody = document.getElementById('parental-body');
+  if (!list.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum registo de controle parental encontrado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((p, i) => {
+    const mac  = p.mac_address || '';
+    const macE = mac.replace(/'/g, "\\'");
+    const canais = p.canais_bloqueados || [];
+    const canaisBadges = canais.length
+      ? canais.map(c => `<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;font-size:.68rem">${esc(c)}</span>`).join(' ')
+      : '<span style="color:var(--text2);font-size:.8rem">—</span>';
+    const pinBadge = p.has_pin
+      ? '<span class="badge badge-ok" style="font-size:.68rem">Configurada</span>'
+      : '<span class="badge badge-pending" style="font-size:.68rem">Sem senha</span>';
+    const dropId = `pdrop-${i}`;
+    const unlockItem = canais.length
+      ? `<div class="drop-item" onclick="openParentalUnlock(${i});closeDrop()">🔓 Desbloquear canal</div>` : '';
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${esc(p.nome_cliente || '—')}</td>
+      <td><span class="mac-text">${mac}</span> <button class="copy-btn" onclick="copyText('${macE}')" title="Copiar">📋</button></td>
+      <td>${esc(p.nome_dispositivo || '—')}</td>
+      <td style="line-height:1.8">${canaisBadges}</td>
+      <td>${pinBadge}</td>
+      <td>
+        <div class="action-menu-wrap">
+          <button class="dot-btn" onclick="toggleDrop('${dropId}')">⋯</button>
+          <div class="drop-menu" id="${dropId}">
+            ${unlockItem}
+            <div class="drop-item" onclick="openParentalPin(${i});closeDrop()">🔑 ${p.has_pin ? 'Redefinir senha' : 'Criar senha'}</div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterParental(q) {
+  const lq = (q || '').toLowerCase();
+  renderParental(allParental.filter(p => !lq
+    || (p.mac_address || '').toLowerCase().includes(lq)
+    || (p.nome_cliente || '').toLowerCase().includes(lq)
+    || (p.nome_dispositivo || '').toLowerCase().includes(lq)));
+}
+
+function openParentalUnlock(idx) {
+  const p = allParental[idx];
+  if (!p) return;
+  document.getElementById('pu-mac').value        = p.mac_address || '';
+  document.getElementById('pu-dispositivo').value = p.nome_dispositivo || p.mac_address || '';
+  document.getElementById('pu-pin').value         = '';
+  document.getElementById('pu-canal-sel').value   = '';
+  const container = document.getElementById('pu-canais');
+  const canais = p.canais_bloqueados || [];
+  if (!canais.length) {
+    container.innerHTML = '<span style="color:var(--text2);font-size:.8rem">Nenhum canal bloqueado</span>';
+  } else {
+    container.innerHTML = canais.map(c => {
+      const ce = c.replace(/'/g, "\\'");
+      return `<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;cursor:pointer;padding:5px 10px;font-size:.78rem" onclick="selecionarCanal('${ce}',this)">${esc(c)}</span>`;
+    }).join('');
+  }
+  openModal('modal-parental-unlock');
+}
+
+function selecionarCanal(canal, el) {
+  document.getElementById('pu-canal-sel').value = canal;
+  document.querySelectorAll('#pu-canais .badge').forEach(b => b.style.outline = '');
+  el.style.outline = '2px solid var(--accent)';
+}
+
+async function confirmarDesbloqueioCanal() {
+  const mac   = document.getElementById('pu-mac').value;
+  const canal = document.getElementById('pu-canal-sel').value;
+  const pin   = document.getElementById('pu-pin').value;
+  if (!canal) return toast('Selecione um canal para desbloquear', 'err');
+  const r = await api('/parental/unlock-canal', { method:'POST', body:JSON.stringify({ mac, canal, pin }) });
+  if (!r) return;
+  if (r.ok) {
+    toast('Canal desbloqueado com sucesso');
+    closeModal('modal-parental-unlock');
+    loadParental();
+  } else toast(r.data?.error || 'Erro ao desbloquear', 'err');
+}
+
+function openParentalPin(idx) {
+  const p = allParental[idx];
+  if (!p) return;
+  document.getElementById('pp-mac').value         = p.mac_address || '';
+  document.getElementById('pp-has-pin').value     = p.has_pin ? '1' : '';
+  document.getElementById('pp-dispositivo').value = p.nome_dispositivo || p.mac_address || '';
+  document.getElementById('pp-new-pin').value         = '';
+  document.getElementById('pp-new-pin-confirm').value = '';
+  document.getElementById('pp-current-pin').value     = '';
+  document.getElementById('pp-reset-new').value       = '';
+  document.getElementById('pp-reset-confirm').value   = '';
+  document.getElementById('pp-criar-section').style.display = p.has_pin ? 'none' : '';
+  document.getElementById('pp-reset-section').style.display = p.has_pin ? '' : 'none';
+  openModal('modal-parental-pin');
+}
+
+async function salvarSenhaParental() {
+  const mac    = document.getElementById('pp-mac').value;
+  const hasPin = !!document.getElementById('pp-has-pin').value;
+  let currentPin, newPin, confirm;
+  if (hasPin) {
+    currentPin = document.getElementById('pp-current-pin').value;
+    newPin     = document.getElementById('pp-reset-new').value;
+    confirm    = document.getElementById('pp-reset-confirm').value;
+  } else {
+    newPin  = document.getElementById('pp-new-pin').value;
+    confirm = document.getElementById('pp-new-pin-confirm').value;
+  }
+  if (!newPin || newPin.length < 4) return toast('A senha deve ter pelo menos 4 dígitos', 'err');
+  if (newPin !== confirm) return toast('As senhas não coincidem', 'err');
+  const body = { mac, newPin };
+  if (hasPin) body.currentPin = currentPin;
+  const r = await api('/parental/set-pin', { method:'POST', body:JSON.stringify(body) });
+  if (!r) return;
+  if (r.ok) {
+    toast('Senha parental guardada com sucesso');
+    closeModal('modal-parental-pin');
+    loadParental();
+  } else toast(r.data?.error || 'Erro ao salvar senha', 'err');
+}
+
+function openListaDetail(l) {
+  const tipo = l.tipo || 'url';
+  document.getElementById('lista-detail-id').value          = l.id || '';
+  document.getElementById('lista-detail-tipo').value        = tipo;
+  document.getElementById('lista-detail-mac-show').value    = l.mac_address || '';
+  document.getElementById('lista-detail-nome').value        = l.nome_lista || '';
+  document.getElementById('lista-detail-dispositivo').value = l.nome_dispositivo || '';
+
+  // esconde todos os grupos de tipo
+  ['ld-url-group','ld-file-group','ld-xtream-group'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+
+  if (tipo === 'url' || tipo === 'm3u8') {
+    document.getElementById('ld-url-group').style.display = '';
+    document.getElementById('lista-detail-url').value  = l.url || '';
+    document.getElementById('ld-epg-url').value        = l.url_epg || '';
+  } else if (tipo === 'file') {
+    document.getElementById('ld-file-group').style.display = '';
+    document.getElementById('lista-detail-ficheiro').value = l.ficheiro_nome || '';
+    document.getElementById('ld-epg-file').value           = l.url_epg || '';
+  } else if (tipo === 'xtream') {
+    document.getElementById('ld-xtream-group').style.display = '';
+    document.getElementById('lista-detail-servidor').value = l.servidor || '';
+    document.getElementById('lista-detail-user').value     = l.utilizador_xtream || '';
+    document.getElementById('lista-detail-senha').value    = '';
+    document.getElementById('ld-epg-xtream').value         = l.url_epg || '';
+  }
+
+  // protect playlist
+  const prot = !!l.protect_playlist;
+  document.getElementById('lista-detail-protect').checked = prot;
+  document.getElementById('ld-pin-fields').classList.toggle('show', prot);
+  document.getElementById('lista-detail-pin').value         = '';
+  document.getElementById('lista-detail-pin-confirm').value = '';
+
+  openModal('modal-lista-detail');
+}
+
+async function saveListaDetail() {
+  const id   = document.getElementById('lista-detail-id').value;
+  const tipo = document.getElementById('lista-detail-tipo').value;
+  if (!id) return;
+
+  const protect = document.getElementById('lista-detail-protect').checked;
+  const pin     = document.getElementById('lista-detail-pin').value;
+  const pinConf = document.getElementById('lista-detail-pin-confirm').value;
+
+  if (protect && pin && pin !== pinConf) { toast('PINs não coincidem', 'err'); return; }
+
+  const body = {
+    id,
+    nome_lista:       document.getElementById('lista-detail-nome').value.trim(),
+    nome_dispositivo: document.getElementById('lista-detail-dispositivo').value.trim(),
+    protect_playlist: protect,
+  };
+  if (protect && pin) body.pin = pin;
+
+  if (tipo === 'url' || tipo === 'm3u8') {
+    body.url     = document.getElementById('lista-detail-url').value.trim();
+    body.url_epg = document.getElementById('ld-epg-url').value.trim();
+  } else if (tipo === 'file') {
+    body.ficheiro_nome = document.getElementById('lista-detail-ficheiro').value.trim();
+    body.url_epg       = document.getElementById('ld-epg-file').value.trim();
+  } else if (tipo === 'xtream') {
+    body.servidor          = document.getElementById('lista-detail-servidor').value.trim();
+    body.utilizador_xtream = document.getElementById('lista-detail-user').value.trim();
+    body.url_epg           = document.getElementById('ld-epg-xtream').value.trim();
+    const senha = document.getElementById('lista-detail-senha').value;
+    if (senha) body.senha_xtream = senha;
+  }
+
+  const r = await api('/listas/update-fields', { method: 'POST', body: JSON.stringify(body) });
+  if (r?.ok) { toast('Lista atualizada'); closeModal('modal-lista-detail'); loadListas(); }
+  else toast(r?.data?.error || 'Erro ao salvar', 'err');
+}
+
+async function deactivateLista(id) {
+  if (!confirm(t('pl.confirmRemoveList'))) return;
+  const r = await api('/listas/deactivate', { method: 'POST', body: JSON.stringify({ id }) });
+  if (r?.ok) { toast(t('res.listRemoved')); loadListas(); }
+  else toast(r?.data?.error || 'Erro', 'err');
+}
+
+async function toggleListaActive(id, mac) {
+  const r = await api('/listas/toggle-active', { method: 'POST', body: JSON.stringify({ id, mac_address: mac }) });
+  if (r?.ok) { toast(t('res.listActive')); loadListas(); }
+  else toast(r?.data?.error || 'Erro', 'err');
+}
+
+function toggleRenTipoFields() {
+  const tipo = document.getElementById('lista-ren-tipo').value;
+  document.getElementById('lista-ren-url-group').style.display     = (tipo==='url'||tipo==='m3u8') ? '' : 'none';
+  document.getElementById('lista-ren-file-group').style.display    = tipo === 'file'   ? '' : 'none';
+  document.getElementById('lista-ren-url-epg-group').style.display = tipo !== 'xtream' ? '' : 'none';
+  document.getElementById('lista-ren-xtream-group').style.display  = tipo === 'xtream' ? '' : 'none';
+}
+
+function openRenovarListaModal(l) {
+  if (!l) return;
+  document.getElementById('lista-ren-id').value          = l.id || '';
+  document.getElementById('lista-ren-mac').value         = l.mac_address || '';
+  document.getElementById('lista-ren-cliente').value     = l.nome_cliente || '';
+  document.getElementById('lista-ren-nome').value        = l.nome_lista || '';
+  document.getElementById('lista-ren-devicekey').value   = l.device_key || '';
+  document.getElementById('lista-ren-dispositivo').value = l.nome_dispositivo || '';
+  document.getElementById('lista-ren-tipo').value        = l.tipo || 'url';
+  document.getElementById('lista-ren-url').value         = l.url || '';
+  document.getElementById('lista-ren-ficheiro').value    = l.ficheiro_nome || '';
+  document.getElementById('lista-ren-url-epg').value     = l.url_epg || '';
+  document.getElementById('lista-ren-servidor').value    = l.servidor || '';
+  document.getElementById('lista-ren-user').value        = l.utilizador_xtream || '';
+  document.getElementById('lista-ren-pass').value        = '';
+  document.getElementById('lista-ren-protect').checked   = !!l.protect_playlist;
+  document.getElementById('lista-ren-pin').value         = '';
+  document.getElementById('lista-ren-pin-confirm').value = '';
+  document.getElementById('lista-ren-pin-fields').classList.toggle('show', !!l.protect_playlist);
+  document.getElementById('lista-ren-meses').value       = '1';
+  toggleRenTipoFields();
+  openModal('modal-lista-renovar');
+}
+
+async function renovarLista() {
+  const id      = document.getElementById('lista-ren-id').value;
+  const meses   = document.getElementById('lista-ren-meses').value;
+  const tipo    = document.getElementById('lista-ren-tipo').value;
+  const protect = document.getElementById('lista-ren-protect').checked;
+  const pin     = document.getElementById('lista-ren-pin').value;
+  const pinConf = document.getElementById('lista-ren-pin-confirm').value;
+  if (!id) return;
+  if (protect && pin && pin !== pinConf) { toast(t('res.errPinMismatch'), 'err'); return; }
+  const hasUrl = tipo === 'url' || tipo === 'm3u8';
+  const body = {
+    id,
+    meses:             parseInt(meses),
+    tipo,
+    protect_playlist:  protect,
+    pin:               (protect && pin) ? pin : undefined,
+    nome_lista:        document.getElementById('lista-ren-nome').value.trim()        || undefined,
+    nome_dispositivo:  document.getElementById('lista-ren-dispositivo').value.trim() || undefined,
+    device_key:        document.getElementById('lista-ren-devicekey').value.trim()   || undefined,
+    url:               hasUrl   ? (document.getElementById('lista-ren-url').value.trim()      || undefined) : undefined,
+    url_epg:           tipo !== 'xtream' ? (document.getElementById('lista-ren-url-epg').value.trim()  || undefined) : undefined,
+    ficheiro_nome:     tipo === 'file'   ? (document.getElementById('lista-ren-ficheiro').value.trim() || undefined) : undefined,
+    servidor:          tipo === 'xtream' ? (document.getElementById('lista-ren-servidor').value.trim() || undefined) : undefined,
+    utilizador_xtream: tipo === 'xtream' ? (document.getElementById('lista-ren-user').value.trim()     || undefined) : undefined,
+    senha_xtream:      tipo === 'xtream' ? (document.getElementById('lista-ren-pass').value            || undefined) : undefined,
+  };
+  const r = await api('/listas/renew', { method: 'POST', body: JSON.stringify(body) });
+  if (r?.ok) {
+    const exp = r.data?.expira_em ? ' até ' + fmtDate(r.data.expira_em) : '';
+    toast(t('res.listRenewed') + exp);
+    closeModal('modal-lista-renovar');
+    loadListas();
+  } else toast(r?.data?.error || 'Erro ao renovar', 'err');
+}
+
+function laSwitchType(tipo) {
+  document.getElementById('lista-add-tipo').value = tipo;
+  ['url','file','xtream','m3u8'].forEach(t => {
+    document.getElementById('la-fields-' + t).style.display = t === tipo ? '' : 'none';
+    document.getElementById('la-tab-' + t).classList.toggle('active', t === tipo);
+  });
+}
+
+function openAddListaModal(mac) {
+  document.getElementById('lista-add-mac').value       = mac;
+  document.getElementById('lista-add-mac-show').value  = mac;
+  document.getElementById('lista-add-nome').value      = '';
+  document.getElementById('lista-add-url').value       = '';
+  document.getElementById('lista-add-url-m3u8').value  = '';
+  document.getElementById('lista-add-servidor').value  = '';
+  document.getElementById('lista-add-user').value      = '';
+  document.getElementById('lista-add-pass').value      = '';
+  document.getElementById('lista-add-epg').value       = '';
+  document.getElementById('lista-add-protect').checked = false;
+  document.getElementById('lista-add-pin').value        = '';
+  document.getElementById('lista-add-pin-confirm').value = '';
+  document.getElementById('lista-add-pin-fields').classList.remove('show');
+  document.getElementById('lista-add-meses').value     = '3';
+  laSwitchType('url');
+  openModal('modal-lista-add');
+}
+
+async function addLista() {
+  const mac     = document.getElementById('lista-add-mac').value;
+  const tipo    = document.getElementById('lista-add-tipo').value;
+  const nome    = document.getElementById('lista-add-nome').value.trim();
+  const epg     = document.getElementById('lista-add-epg').value.trim();
+  const protect  = document.getElementById('lista-add-protect').checked;
+  const pin      = document.getElementById('lista-add-pin').value;
+  const pinConf  = document.getElementById('lista-add-pin-confirm').value;
+  const meses    = parseInt(document.getElementById('lista-add-meses').value) || 1;
+
+  if (!mac) return;
+  if (protect && pin !== pinConf) { toast(t('res.errPinMismatch'), 'err'); return; }
+  if (protect && !pin) { toast(t('res.errPinRequired'), 'err'); return; }
+
+  let url, ficheiro_nome, servidor, utilizador_xtream, senha_xtream;
+  if (tipo === 'url') {
+    url = document.getElementById('lista-add-url').value.trim();
+    if (!url) { toast(t('res.errUrl'), 'err'); return; }
+  } else if (tipo === 'file') {
+    const fi = document.getElementById('lista-add-file');
+    if (!fi.files?.length) { toast(t('res.errFile'), 'err'); return; }
+    ficheiro_nome = fi.files[0].name;
+  } else if (tipo === 'xtream') {
+    servidor = document.getElementById('lista-add-servidor').value.trim();
+    utilizador_xtream = document.getElementById('lista-add-user').value.trim();
+    senha_xtream = document.getElementById('lista-add-pass').value;
+    if (!servidor) { toast(t('res.errServer'), 'err'); return; }
+  } else if (tipo === 'm3u8') {
+    url = document.getElementById('lista-add-url-m3u8').value.trim();
+    if (!url) { toast(t('res.errUrlM3u8'), 'err'); return; }
+  }
+
+  const body = {
+    mac_address:       mac, tipo, meses,
+    nome_lista:        nome || undefined,
+    url:               url || undefined,
+    ficheiro_nome:     ficheiro_nome || undefined,
+    servidor:          servidor || undefined,
+    utilizador_xtream: utilizador_xtream || undefined,
+    senha_xtream:      senha_xtream || undefined,
+    url_epg:           epg || undefined,
+    protect_playlist:  protect || undefined,
+    pin:               (protect && pin) ? pin : undefined,
+  };
+
+  const r = await api('/listas/add', { method: 'POST', body: JSON.stringify(body) });
+  if (r?.ok) { toast(t('res.listAdded')); closeModal('modal-lista-add'); loadListas(); }
+  else toast(r?.data?.error || 'Erro ao adicionar', 'err');
+}
+
+function toggleDrop(id) {
+  if (openDropId && openDropId !== id) document.getElementById(openDropId)?.classList.remove('open');
+  const el = document.getElementById(id);
+  const isOpen = el.classList.contains('open');
+  el.classList.toggle('open');
+  openDropId = !isOpen ? id : null;
+  if (!isOpen) {
+    const btn = el.previousElementSibling;
+    const rect = btn.getBoundingClientRect();
+    el.style.top  = (rect.bottom + 4) + 'px';
+    el.style.left = Math.max(4, rect.right - 160) + 'px';
+  }
+}
+function closeDrop() { if(openDropId) { document.getElementById(openDropId)?.classList.remove('open'); openDropId=null; } }
+
+function detectEditMacModel() {
+  const raw = document.getElementById('edit-dev-new-mac').value.replace(/[^a-fA-F0-9]/g,'').toUpperCase();
+  const model = raw.length >= 6 ? (MAC_OUI[raw.slice(0,6)] || null) : null;
+  const group = document.getElementById('edit-modelo-group');
+  const passGroup = document.getElementById('edit-password-group');
+  passGroup.style.display = raw.length > 0 ? 'block' : 'none';
+  if (model) { group.style.display = 'block'; document.getElementById('edit-dev-modelo').value = model; }
+  else { group.style.display = 'none'; document.getElementById('edit-dev-modelo').value = ''; }
+}
+
+function openEditDevice(mac) {
+  const d = deviceMap[mac] || {};
+  document.getElementById('edit-dev-mac').value        = mac;
+  document.getElementById('edit-dev-mac-show').value   = mac;
+  document.getElementById('edit-dev-new-mac').value    = '';
+  document.getElementById('edit-dev-devicekey').value  = d.dkey    || '';
+  document.getElementById('edit-dev-devicename').value = d.devName || '';
+  document.getElementById('edit-dev-comment').value    = d.client  || '';
+  document.getElementById('edit-dev-modelo').value     = '';
+  document.getElementById('edit-dev-password').value   = '';
+  document.getElementById('edit-modelo-group').style.display   = 'none';
+  document.getElementById('edit-password-group').style.display = 'none';
+  openModal('modal-edit-device');
+}
+
+async function saveDeviceEdit() {
+  const mac        = document.getElementById('edit-dev-mac').value;
+  const newMac     = document.getElementById('edit-dev-new-mac').value.trim();
+  const comment    = document.getElementById('edit-dev-comment').value.trim();
+  const deviceKey  = document.getElementById('edit-dev-devicekey').value.trim();
+  const deviceName = document.getElementById('edit-dev-devicename').value.trim();
+  const password   = document.getElementById('edit-dev-password').value;
+  if (newMac && !password) { toast(t('res.errPwForMac'), 'err'); return; }
+  const body = { mac, comment, deviceKey, deviceName };
+  if (newMac) { body.newMac = newMac; body.password = password; }
+  const r = await api('/devices/update', { method:'POST', body:JSON.stringify(body) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.devUpdated')); closeModal('modal-edit-device'); loadDevices(); }
+  else toast(r.data.error || 'Erro', 'err');
+}
+
+async function deactivateDevice(mac) {
+  if (!confirm(t('res.confirmDeactivate').replace('{mac}', mac))) return;
+  const r = await api('/devices/deactivate', { method:'POST', body:JSON.stringify({mac}) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.devDeactivated')); loadDevices(); }
+  else toast(r.data.error || 'Erro', 'err');
+}
+
+async function removeDevice(mac) {
+  if (!confirm(t('res.confirmRemoveDev').replace('{mac}', mac))) return;
+  const r = await api('/devices/remove', { method:'POST', body:JSON.stringify({mac}) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.devDeactivated')); loadDevices(); }
+  else toast(r.data.error || 'Erro', 'err');
+}
+
+// ── MAC OUI → modelo ──────────────────────────────────────────────────────────
+const MAC_OUI = {
+  'FC65DE':'Amazon Fire TV','747548':'Amazon Fire TV','A002DC':'Amazon Fire TV',
+  '84D6D0':'Amazon Fire TV','34D270':'Amazon Fire TV','40B4CD':'Amazon Fire TV',
+  '680571':'Amazon Fire TV','AC63BE':'Amazon Fire TV','CC9E00':'Amazon Fire TV',
+  '74C246':'Amazon Fire TV','F0272D':'Amazon Fire TV','F0D2F1':'Amazon Fire TV',
+  '001247':'Samsung Smart TV','001377':'Samsung Smart TV','001599':'Samsung Smart TV',
+  '001632':'Samsung Smart TV','84C9B2':'Samsung Smart TV','5C49EB':'Samsung Smart TV',
+  'A8F274':'Samsung Smart TV','78BD06':'Samsung Smart TV','8C771F':'Samsung Smart TV',
+  '001E75':'LG Smart TV','001F6B':'LG Smart TV','58A2B5':'LG Smart TV',
+  '60E3AC':'LG Smart TV','A823FE':'LG Smart TV','8C3AE3':'LG Smart TV',
+  'C4360C':'LG Smart TV','A0B4A5':'LG Smart TV',
+  '001A79':'MAG Box','002583':'Formuler','B43A28':'Formuler',
+  '207840':'Apple TV','6C709F':'Apple TV','9C207B':'Apple TV','7C6D62':'Apple TV',
+  '286C07':'Xiaomi Mi Box','64B473':'Xiaomi Mi Box','F48B32':'Xiaomi Mi Box',
+  '50642B':'Xiaomi Mi Box','0C1DAF':'Xiaomi Mi Box',
+  '48B02D':'NVIDIA Shield','00044B':'NVIDIA Shield',
+  'B03495':'Roku','DC3A5E':'Roku','C8394E':'Roku','D03E5C':'Roku',
+  'B4755E':'Android TV Box','18B169':'Android TV Box','7C1EB3':'Android TV Box',
+};
+
+function detectMacModel() {
+  const raw = document.getElementById('act-mac').value.replace(/[^a-fA-F0-9]/g,'').toUpperCase();
+  const model = raw.length >= 6 ? (MAC_OUI[raw.slice(0,6)] || null) : null;
+  const group = document.getElementById('act-modelo-group');
+  const field = document.getElementById('act-modelo-detected');
+  if (model) { field.value = model; group.style.display = ''; }
+  else { group.style.display = 'none'; field.value = ''; }
+}
+
+function openActivateModal() {
+  ['act-mac','act-comment','act-devicekey','act-devicename'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('act-modelo-group').style.display = 'none';
+  document.getElementById('act-plan').value = 'yearly';
+  document.getElementById('act-mode').value = 'new';
+  document.getElementById('act-mac').readOnly = false;
+  document.getElementById('act-modal-title').textContent = t('res.actModalTitle');
+  document.getElementById('act-modal-info').textContent = t('res.actModalInfo');
+  document.getElementById('act-submit-btn').textContent = t('res.actActivateBtn');
+  openModal('modal-activate');
+}
+
+function openRenewModal(mac) {
+  const d = deviceMap[mac] || {};
+  ['act-mac','act-comment','act-devicekey','act-devicename'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('act-mac').value      = mac;
+  document.getElementById('act-comment').value  = d.client  || '';
+  document.getElementById('act-devicekey').value= d.dkey    || '';
+  document.getElementById('act-devicename').value= d.devName || '';
+  document.getElementById('act-plan').value     = d.plan    || 'yearly';
+  document.getElementById('act-mac').readOnly   = true;
+  document.getElementById('act-mode').value     = 'renew';
+  document.getElementById('act-modal-title').textContent = t('res.renewAction') + ' ' + t('res.colDevice');
+  document.getElementById('act-modal-info').textContent  = t('res.actModalInfo');
+  document.getElementById('act-submit-btn').textContent  = t('res.renewAction');
+  document.getElementById('act-modelo-group').style.display = 'none';
+  openModal('modal-activate');
+}
+function openAddExistingModal() {
+  document.getElementById('add-mac').value = '';
+  document.getElementById('add-comment').value = '';
+  document.getElementById('add-devicename').value = '';
+  document.getElementById('add-modelo').value = '';
+  document.getElementById('add-devicekey').value = '';
+  const res = document.getElementById('add-lookup-result');
+  res.style.display = 'none'; res.textContent = '';
+  openModal('modal-add-existing');
+}
+
+async function lookupDeviceMac() {
+  const mac = document.getElementById('add-mac').value.trim();
+  if (!mac) { toast(t('res.errInfoMac'), 'err'); return; }
+  const res = document.getElementById('add-lookup-result');
+  res.style.display = 'block'; res.textContent = t('res.searching');
+  const r = await api(`/devices/lookup?mac=${encodeURIComponent(mac)}`);
+  if (!r?.ok || !r.data) {
+    res.textContent = t('res.lookupNotFound');
+    return;
+  }
+  const d = r.data;
+  document.getElementById('add-comment').value   = d.nome_cliente   || '';
+  document.getElementById('add-devicename').value= d.nome_dispositivo || '';
+  document.getElementById('add-modelo').value    = d.modelo_dispositivo || '';
+  document.getElementById('add-devicekey').value = d.device_key      || '';
+  res.textContent = `${t('res.lookupFound')}: ${d.nome_dispositivo || mac} — ${t('res.lookupValidity')}: ${d.validade ? fmtDate(d.validade) : 'N/A'}`;
+}
+
+async function activateDevice() {
+  const mode       = document.getElementById('act-mode').value;
+  const mac        = document.getElementById('act-mac').value.trim();
+  const comment    = document.getElementById('act-comment').value.trim();
+  const deviceKey  = document.getElementById('act-devicekey').value.trim();
+  const deviceName = document.getElementById('act-devicename').value.trim();
+  const plan       = document.getElementById('act-plan').value;
+  const detectedModel = document.getElementById('act-modelo-detected').value.trim();
+  if (!mac) { toast(t('res.errMacRequired'), 'err'); return; }
+
+  if (mode === 'renew') {
+    const r = await api('/devices/renew', {
+      method: 'POST',
+      body: JSON.stringify({ mac, plan, deviceKey, deviceName, nomeCliente: comment })
+    });
+    if (!r) return;
+    if (r.ok) { toast(t('res.devRenewed')); closeModal('modal-activate'); loadDevices(); loadDashboard(); }
+    else toast(r.data.error || 'Erro ao renovar', 'err');
+  } else {
+    const r = await api('/devices/activate', {
+      method: 'POST',
+      body: JSON.stringify({ mac, comment, plan, deviceKey, deviceName, detectedModel })
+    });
+    if (!r) return;
+    if (r.ok) { toast(t('res.devActivated')); closeModal('modal-activate'); loadDevices(); loadDashboard(); }
+    else toast(r.data.error || 'Erro ao ativar', 'err');
+  }
+}
+
+async function addExistingDevice() {
+  const mac        = document.getElementById('add-mac').value.trim();
+  const deviceKey  = document.getElementById('add-devicekey').value.trim();
+  const comment    = document.getElementById('add-comment').value.trim();
+  const deviceName = document.getElementById('add-devicename').value.trim();
+  const modelo     = document.getElementById('add-modelo').value.trim();
+  if (!mac) { toast(t('res.errMacRequired'), 'err'); return; }
+  const r = await api('/devices/add-existing', { method:'POST', body:JSON.stringify({mac, deviceKey, comment, deviceName, modelo}) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.devAdded')); closeModal('modal-add-existing'); loadDevices(); }
+  else toast(r.data.error || 'Erro', 'err');
+}
+
+// ── CREDITS / PACKAGES ────────────────────────────────────────────────────────
+async function loadPackages() {
+  const r = await api('/packages');
+  if (!r?.ok) return;
+  PACKAGES = r.data;
+  renderPackages();
+}
+
+function renderPackages() {
+  const grid = document.getElementById('packages-grid');
+  grid.innerHTML = PACKAGES.map((p, i) => `
+    <div class="pkg-card" id="pkg-${i}" onclick="selectPkg(${i})">
+      <div class="pkg-name">${p.name}</div>
+      <div class="pkg-activations">${p.activations}</div>
+      <div class="pkg-act-lbl">${t('res.activationsLbl')}</div>
+      <div class="pkg-price">R$ ${(p.priceInCents/100).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      <div class="pkg-per">R$ ${((p.priceInCents/100)/p.activations).toFixed(2)} ${t('res.perActLbl')}</div>
+    </div>`).join('');
+}
+
+function selectPkg(i) {
+  selectedPkg = PACKAGES[i];
+  document.querySelectorAll('.pkg-card').forEach((c,j) => c.classList.toggle('selected', j===i));
+  document.getElementById('buy-payment-section').style.display = 'block';
+  document.getElementById('buy-pix-section').style.display = 'none';
+  document.getElementById('buy-confirm-btn').style.display = 'inline-block';
+}
+
+async function openBuyModal() {
+  selectedPkg = null;
+  document.getElementById('buy-payment-section').style.display = 'none';
+  document.getElementById('buy-pix-section').style.display = 'none';
+  document.getElementById('buy-confirm-btn').style.display = 'none';
+  document.getElementById('buy-status-msg').textContent = t('res.awaitingPayment');
+  if (buyStatusInterval) clearInterval(buyStatusInterval);
+  openModal('modal-buy');
+  await loadPackages();
+}
+
+async function confirmBuy() {
+  if (!selectedPkg) { toast(t('res.errSelectPackage'), 'err'); return; }
+  const method = document.getElementById('buy-method').value;
+  const r = await api('/buy-credits', { method:'POST', body:JSON.stringify({packageId: selectedPkg.id, method}) });
+  if (!r) return;
+  if (!r.ok) { toast(r.data.error || 'Erro ao iniciar compra', 'err'); return; }
+
+  document.getElementById('buy-confirm-btn').style.display = 'none';
+
+  if (method === 'pix') {
+    document.getElementById('buy-pix-section').style.display = 'block';
+    document.getElementById('buy-qr').src = r.data.qrCodeBase64 || '';
+    document.getElementById('buy-pix-code').textContent = r.data.qrCodeText || '';
+    buyPaymentId = r.data.paymentId;
+    buyStatusInterval = setInterval(checkBuyStatus, 4000);
+  }
+}
+
+function copyPix() { copyText(document.getElementById('buy-pix-code').textContent); }
+
+async function checkBuyStatus() {
+  const r = await fetch(`/api/reseller/buy-credits/status?id=${buyPaymentId}`, { headers:{'x-reseller-token': SESSION?.token||''} });
+  const data = await r.json();
+  if (data.status === 'paid') {
+    clearInterval(buyStatusInterval);
+    document.getElementById('buy-status-msg').textContent = t('res.paymentConfirmed');
+    toast(t('res.creditsAdded'));
+    loadDashboard();
+    loadTransactions();
+    setTimeout(() => closeModal('modal-buy'), 2000);
+  }
+}
+
+// ── TRANSACTIONS ──────────────────────────────────────────────────────────────
+async function loadTransactions() {
+  const r = await api('/transactions');
+  if (!r?.ok) return;
+  const tbody = document.getElementById('transactions-body');
+  const list = r.data;
+  if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${t('res.noTransactions')}</td></tr>`; return; }
+  tbody.innerHTML = list.map((t, i) => `<tr>
+    <td>${i+1}</td>
+    <td>${fmtDate(t.criado_em)}</td>
+    <td style="color:var(--text2);font-size:.85rem">${t.descricao||'—'}</td>
+    <td style="color:var(--gold);font-weight:600">+${t.quantidade}</td>
+    <td style="color:var(--text2)">${t.saldo_inicial}</td>
+    <td style="color:var(--gold);font-weight:600">${t.saldo_final}</td>
+  </tr>`).join('');
+}
+
+async function loadActivationsLog() {
+  const r = await api('/activations-log');
+  if (!r?.ok) return;
+  const tbody = document.getElementById('activations-log-body');
+  const list = r.data;
+  if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">${t('res.noActivationsLog')}</td></tr>`; return; }
+  tbody.innerHTML = list.map((a, i) => `<tr>
+    <td>${i+1}</td>
+    <td>${fmtDate(a.criado_em)}</td>
+    <td style="color:var(--text2);font-size:.85rem">${a.descricao||'—'}</td>
+    <td style="color:var(--text2)">${a.saldo_inicial}</td>
+    <td style="color:var(--error);font-weight:600">${a.saldo_final}</td>
+    <td><span class="mac-text">${a.mac_address||'—'}</span></td>
+    <td>${a.nome_cliente||'—'}</td>
+  </tr>`).join('');
+}
+
+// ── REFERRAL LINKS ────────────────────────────────────────────────────────────
+async function loadLinks() {
+  const r = await api('/referral-links');
+  if (!r?.ok) return;
+  const container = document.getElementById('links-list');
+  const list = r.data;
+  if (!list.length) { container.innerHTML = `<div style="text-align:center;color:var(--text2);padding:32px">${t('res.noLinks')}</div>`; return; }
+  const base = window.location.origin;
+  container.innerHTML = list.map(l => `
+    <div class="link-card">
+      <div>
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:4px">${l.name} · ${PLAN_LABELS()[l.plan]||l.plan}</div>
+        <div class="link-url">${base}/activate?ref=${l.code}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div class="link-stats">
+          <span>${t('res.activationsCount')}: <b>${l.activations||0}</b></span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="copyText('${base}/activate?ref=${l.code}')">📋</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLink('${l.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function openNewLinkModal() { document.getElementById('link-name').value=''; openModal('modal-new-link'); }
+
+async function createLink() {
+  const name = document.getElementById('link-name').value.trim();
+  const plan = document.getElementById('link-plan').value;
+  if (!name) { toast(t('res.errNameRequired'), 'err'); return; }
+  const r = await api('/referral-links', { method:'POST', body:JSON.stringify({name, plan}) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.linkCreated')); closeModal('modal-new-link'); loadLinks(); }
+  else toast(r.data.error || 'Erro', 'err');
+}
+
+async function deleteLink(id) {
+  if (!confirm(t('res.confirmRemoveLink'))) return;
+  const r = await api('/referral-links/' + id, { method:'DELETE' });
+  if (!r) return;
+  if (r.ok) { toast(t('res.linkRemoved')); loadLinks(); }
+  else toast(r.data.error || 'Erro', 'err');
+}
+
+// ── FATURAMENTO ───────────────────────────────────────────────────────────────
+let fatHistorico = [];
+
+function brl(val) { return (val||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+
+function initFaturamento() {
+  const mes = new Date().toISOString().slice(0,7);
+  if (!document.getElementById('fat-mes').value) document.getElementById('fat-mes').value = mes;
+  loadFatRevendedores();
+  loadFaturamento();
+  if (!fatGraficoMes) loadFatHistorico();
+}
+
+function toggleRevSelector() {
+  const filtro = document.getElementById('fat-filtro').value;
+  document.getElementById('fat-rev-wrap').style.display = filtro === 'revendedor' ? 'block' : 'none';
+}
+
+async function loadFatRevendedores() {
+  const r = await api('/faturamento/revendedores');
+  if (!r?.ok) return;
+  const sel = document.getElementById('fat-revendedor');
+  sel.innerHTML = '<option value="">Todos</option>' +
+    r.data.map(rv => `<option value="${rv.id}">${rv.nome || rv.email}</option>`).join('');
+}
+
+async function loadFaturamento() {
+  const mes    = document.getElementById('fat-mes').value || new Date().toISOString().slice(0,7);
+  const filtro = document.getElementById('fat-filtro').value;
+  const revId  = document.getElementById('fat-revendedor').value;
+  let qs = `?mes=${mes}&filtro=${filtro}`;
+  if (filtro === 'revendedor' && revId) qs += `&revendedor_id=${revId}`;
+
+  const [rRes, rDia] = await Promise.all([
+    api('/faturamento/resumo' + qs),
+    api('/faturamento/diario' + qs)
+  ]);
+
+  if (rRes?.ok) {
+    const d = rRes.data;
+    document.getElementById('fat-val-ativ').textContent  = brl(d.ativacoes.valor);
+    document.getElementById('fat-qtd-ativ').textContent  = d.ativacoes.quantidade + ' ativação(ões)';
+    document.getElementById('fat-val-cred').textContent  = brl(d.creditos.valor);
+    document.getElementById('fat-qtd-cred').textContent  = d.creditos.quantidade + ' venda(s)';
+    document.getElementById('fat-val-total').textContent = brl(d.total);
+  }
+
+  if (rDia?.ok) renderFatDiario(rDia.data);
+  loadFechamento(mes);
+  const tabAtiva = document.querySelector('#page-withdrawals .tab.active');
+  if (tabAtiva && tabAtiva.textContent.includes('Transações')) loadFatTransacoes();
+}
+
+function renderFatDiario(list) {
+  const tbody = document.getElementById('fat-diario-body');
+  if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="4">${t('res.noDataPeriod')}</td></tr>`; return; }
+  const totA = list.reduce((s,d)=>s+d.ativacoes,0);
+  const totC = list.reduce((s,d)=>s+d.creditos,0);
+  const totT = list.reduce((s,d)=>s+d.total,0);
+  const fmtDia = iso => iso.split('-').reverse().join('/');
+  tbody.innerHTML = list.map(d => `<tr>
+    <td>${fmtDia(d.dia)}</td>
+    <td style="color:var(--accent)">${brl(d.ativacoes)}</td>
+    <td style="color:var(--gold)">${brl(d.creditos)}</td>
+    <td style="font-weight:700">${brl(d.total)}</td>
+  </tr>`).join('') + `<tr style="border-top:2px solid var(--border);font-weight:700;background:var(--surface2)">
+    <td>Total</td><td style="color:var(--accent)">${brl(totA)}</td><td style="color:var(--gold)">${brl(totC)}</td><td>${brl(totT)}</td>
+  </tr>`;
+}
+
+let fatGraficoMes = null;
+
+async function loadFatHistorico() {
+  const r = await api('/faturamento/grafico-mes');
+  if (!r?.ok) return;
+  fatGraficoMes = r.data;
+  drawFatChart();
+}
+
+function drawFatChart() {
+  const canvas = document.getElementById('fat-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = Math.max(canvas.parentElement?.clientWidth || 600, 400);
+  canvas.width = W; canvas.height = 260;
+  ctx.clearRect(0, 0, W, 260);
+
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const clr = {
+    text:      isLight ? 'rgba(0,0,0,0.75)'  : 'rgba(255,255,255,0.85)',
+    textMid:   isLight ? 'rgba(0,0,0,0.55)'  : 'rgba(255,255,255,0.6)',
+    textMuted: isLight ? 'rgba(0,0,0,0.45)'  : 'rgba(255,255,255,0.45)',
+    textFaint: isLight ? 'rgba(0,0,0,0.3)'   : 'rgba(255,255,255,0.3)',
+    grid:      isLight ? 'rgba(0,0,0,0.08)'  : 'rgba(255,255,255,0.07)',
+  };
+
+  const sem = () => {
+    ctx.fillStyle = clr.textFaint;
+    ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Sem dados de faturamento para o mês atual', W / 2, 130);
+  };
+
+  if (!fatGraficoMes || (fatGraficoMes.ativacao === 0 && fatGraficoMes.credito === 0)) { sem(); return; }
+
+  const PAD = { top: 40, right: 40, bottom: 60, left: 80 };
+  const cW = W - PAD.left - PAD.right;
+  const cH = 260 - PAD.top - PAD.bottom;
+
+  const bars = [
+    { label: 'Ativações', valor: fatGraficoMes.ativacao, color: '#7c3aed' },
+    { label: 'Créditos',  valor: fatGraficoMes.credito,  color: '#d4a017' }
+  ];
+  const maxVal = Math.max(...bars.map(b => b.valor), 1);
+  const bW = Math.min(cW / bars.length * 0.45, 80);
+  const gap = cW / bars.length;
+
+  // Gridlines + eixo Y
+  ctx.strokeStyle = clr.grid; ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.top + cH * (1 - i / 4);
+    ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+    ctx.fillStyle = clr.textMuted; ctx.font = '10px sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(brl(maxVal * i / 4), PAD.left - 6, y + 3);
+  }
+
+  bars.forEach((b, i) => {
+    const cx = PAD.left + i * gap + gap / 2;
+    const h  = (b.valor / maxVal) * cH;
+    const x  = cx - bW / 2;
+    const y  = PAD.top + cH - h;
+
+    // Gradiente na barra
+    const grad = ctx.createLinearGradient(x, y, x, PAD.top + cH);
+    grad.addColorStop(0, b.color);
+    grad.addColorStop(1, b.color + '55');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, bW, h, 6) : ctx.fillRect(x, y, bW, h);
+    ctx.fill();
+
+    // Valor em cima da barra
+    ctx.fillStyle = clr.text; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(brl(b.valor), cx, y - 6);
+
+    // Label X
+    ctx.fillStyle = clr.textMid; ctx.font = '11px sans-serif';
+    ctx.fillText(b.label, cx, PAD.top + cH + 20);
+  });
+
+  // Total no topo
+  const mesLabel = fatGraficoMes.mes ? fatGraficoMes.mes.split('-').reverse().join('/') : '';
+  ctx.fillStyle = clr.textMuted; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(`Total ${mesLabel}: ${brl(fatGraficoMes.total)}`, W / 2, PAD.top - 12);
+
+  // Legenda registros
+  if (fatGraficoMes.registros !== undefined) {
+    ctx.fillStyle = clr.textFaint; ctx.font = '10px sans-serif';
+    ctx.fillText(`${fatGraficoMes.registros} transaç${fatGraficoMes.registros === 1 ? 'ão' : 'ões'} no mês`, W / 2, PAD.top + cH + 40);
+  }
+}
+
+async function loadRevendedorChart() {
+  const mes = document.getElementById('fat-mes').value || new Date().toISOString().slice(0, 7);
+  const r = await api('/faturamento/por-revendedor?mes=' + mes);
+  const canvas  = document.getElementById('fat-chart-rev');
+  const empty   = document.getElementById('fat-chart-rev-empty');
+  if (!canvas) return;
+
+  if (!r?.ok || !r.data.length) {
+    canvas.style.display = 'none';
+    empty.style.display  = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  empty.style.display  = 'none';
+
+  const data = r.data.slice(0, 15); // max 15 barras
+  const ROW_H   = 38;
+  const PAD     = { top: 16, right: 120, bottom: 16, left: 160 };
+  const W       = Math.max(canvas.parentElement.clientWidth || 600, 500);
+  const H       = PAD.top + data.length * ROW_H + PAD.bottom;
+  canvas.width  = W;
+  canvas.height = H;
+
+  const ctx     = canvas.getContext('2d');
+  const maxAtiv = Math.max(...data.map(d => d.ativacoes), 1);
+  const barW    = W - PAD.left - PAD.right;
+
+  const isLight2 = document.documentElement.getAttribute('data-theme') === 'light';
+  const clr2 = {
+    text:      isLight2 ? 'rgba(0,0,0,0.75)'  : 'rgba(255,255,255,0.85)',
+    textMuted: isLight2 ? 'rgba(0,0,0,0.45)'  : 'rgba(255,255,255,0.45)',
+    barBg:     isLight2 ? 'rgba(0,0,0,0.06)'  : 'rgba(255,255,255,0.06)',
+  };
+
+  ctx.clearRect(0, 0, W, H);
+
+  data.forEach((d, i) => {
+    const y      = PAD.top + i * ROW_H;
+    const fillW  = (d.ativacoes / maxAtiv) * barW;
+    const barY   = y + 8;
+    const barH   = ROW_H - 14;
+
+    // Fundo cinza da barra
+    ctx.fillStyle = clr2.barBg;
+    ctx.beginPath();
+    ctx.roundRect(PAD.left, barY, barW, barH, 4);
+    ctx.fill();
+
+    // Barra colorida com gradiente
+    const grad = ctx.createLinearGradient(PAD.left, 0, PAD.left + fillW, 0);
+    grad.addColorStop(0, '#7c3aed');
+    grad.addColorStop(1, '#a855f7');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(PAD.left, barY, Math.max(fillW, 4), barH, 4);
+    ctx.fill();
+
+    // Nome do revendedor (esquerda)
+    ctx.fillStyle = clr2.text;
+    ctx.font      = '12px sans-serif';
+    ctx.textAlign = 'right';
+    const nomeShort = d.nome.length > 20 ? d.nome.slice(0, 18) + '…' : d.nome;
+    ctx.fillText(nomeShort, PAD.left - 8, barY + barH / 2 + 4);
+
+    // Ativações + valor (direita)
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#a855f7';
+    ctx.font      = 'bold 12px sans-serif';
+    ctx.fillText(d.ativacoes + ' ativ.', PAD.left + barW + 8, barY + barH / 2);
+    ctx.fillStyle = clr2.textMuted;
+    ctx.font      = '10px sans-serif';
+    ctx.fillText(brl(d.valor), PAD.left + barW + 8, barY + barH / 2 + 13);
+  });
+}
+
+async function loadFechamento(mes) {
+  const r = await api(`/faturamento/fechamento?mes=${mes}`);
+  const saved = r?.ok ? r.data : null;
+  const ativVal = parseFloat((document.getElementById('fat-val-ativ').textContent||'0').replace(/[R$\s.]/g,'').replace(',','.')) || 0;
+  const credVal = parseFloat((document.getElementById('fat-val-cred').textContent||'0').replace(/[R$\s.]/g,'').replace(',','.')) || 0;
+  const recBruta = ativVal + credVal;
+  renderFechamento(mes, recBruta, saved);
+}
+
+function renderFechamento(mes, recBruta, saved) {
+  const tGw   = saved?.taxaGateway  || 0;
+  const tApp  = saved?.taxaApp      || 0;
+  const tSite = saved?.taxaSite     || 0;
+  const reimb = saved?.reembolsos   || 0;
+  const notas = saved?.notas        || '';
+  const descontos = tGw + tApp + tSite + reimb;
+  const lucro = recBruta - descontos;
+  document.getElementById('fat-fechamento-content').innerHTML = `
+<div id="fat-fech-area" data-receita="${recBruta}" data-mes="${mes}">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px">
+    <div class="stat-card"><div class="stat-label">Receita bruta</div><div class="stat-value" style="font-size:1.2rem">${brl(recBruta)}</div></div>
+    <div class="stat-card"><div class="stat-label">Total descontos</div><div class="stat-value" id="fech-total-desc" style="color:var(--error);font-size:1.2rem">${brl(descontos)}</div></div>
+    <div class="stat-card" style="border-color:var(--gold)"><div class="stat-label">Lucro líquido</div><div class="stat-value" id="fech-lucro" style="color:var(--gold);font-size:1.2rem">${brl(lucro)}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+    <div class="form-group"><label>Taxa de gateway (R$)</label><input type="number" id="fech-gw" value="${tGw}" min="0" step="0.01" oninput="recalcFechamento()"></div>
+    <div class="form-group"><label>Custos do app (R$)</label><input type="number" id="fech-app" value="${tApp}" min="0" step="0.01" oninput="recalcFechamento()"></div>
+    <div class="form-group"><label>Custos site/infra (R$)</label><input type="number" id="fech-site" value="${tSite}" min="0" step="0.01" oninput="recalcFechamento()"></div>
+    <div class="form-group"><label>Reembolsos (R$)</label><input type="number" id="fech-reimb" value="${reimb}" min="0" step="0.01" oninput="recalcFechamento()"></div>
+  </div>
+  <div class="form-group" style="margin-bottom:14px"><label>Observações</label>
+    <textarea id="fech-notas" rows="3" style="width:100%;background:var(--bg3,var(--surface2));border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);resize:vertical;font-size:.85rem">${notas}</textarea>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-primary btn-sm" onclick="saveFechamento()">💾 Salvar fechamento</button>
+    <button class="btn btn-outline btn-sm" onclick="printFechamento()">🖨️ Imprimir relatório</button>
+  </div>
+</div>`;
+}
+
+function recalcFechamento() {
+  const recBruta = parseFloat(document.getElementById('fat-fech-area')?.dataset.receita) || 0;
+  const v = id => parseFloat(document.getElementById(id)?.value) || 0;
+  const desc = v('fech-gw') + v('fech-app') + v('fech-site') + v('fech-reimb');
+  if (document.getElementById('fech-total-desc')) document.getElementById('fech-total-desc').textContent = brl(desc);
+  if (document.getElementById('fech-lucro'))      document.getElementById('fech-lucro').textContent = brl(recBruta - desc);
+}
+
+async function saveFechamento() {
+  const area = document.getElementById('fat-fech-area');
+  const mes  = area?.dataset.mes;
+  if (!mes) return;
+  const v = id => parseFloat(document.getElementById(id)?.value) || 0;
+  const r = await api('/faturamento/fechamento', { method:'POST', body:JSON.stringify({
+    mes, taxaGateway: v('fech-gw'), taxaApp: v('fech-app'),
+    taxaSite: v('fech-site'), reembolsos: v('fech-reimb'),
+    notas: document.getElementById('fech-notas')?.value || ''
+  })});
+  if (r?.ok) toast(t('res.closuresSaved')); else toast('Erro ao salvar','err');
+}
+
+function printFechamento() {
+  const mes = document.getElementById('fat-mes').value;
+  const recBruta = parseFloat(document.getElementById('fat-fech-area')?.dataset.receita) || 0;
+  const tGw   = parseFloat(document.getElementById('fech-gw')?.value) || 0;
+  const tApp  = parseFloat(document.getElementById('fech-app')?.value) || 0;
+  const tSite = parseFloat(document.getElementById('fech-site')?.value) || 0;
+  const reimb = parseFloat(document.getElementById('fech-reimb')?.value) || 0;
+  const notas = document.getElementById('fech-notas')?.value || '';
+  const desc = tGw + tApp + tSite + reimb;
+  const lucro = recBruta - desc;
+  const ativTxt = document.getElementById('fat-val-ativ').textContent;
+  const credTxt = document.getElementById('fat-val-cred').textContent;
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fechamento ${mes}</title><style>
+    body{font-family:Arial,sans-serif;padding:30px;color:#111;max-width:700px;margin:auto}
+    h1{color:#2d2d6e;border-bottom:2px solid #2d2d6e;padding-bottom:8px}
+    .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0}
+    .card{border:1px solid #ddd;border-radius:8px;padding:14px}
+    .label{font-size:.75rem;color:#666;margin-bottom:4px}
+    .value{font-size:1.2rem;font-weight:700}
+    table{width:100%;border-collapse:collapse;margin:16px 0}
+    td,th{padding:8px 12px;text-align:left;border-bottom:1px solid #eee}
+    th{background:#f4f4f4;font-size:.8rem}
+    .total{font-weight:700;font-size:1.05rem}
+    .lucro{color:green}.negativo{color:#c00}
+    @media print{button{display:none}}
+  </style></head><body>
+  <h1>Relatório de Fechamento — ${mes}</h1>
+  <div class="grid">
+    <div class="card"><div class="label">Receita bruta</div><div class="value">${brl(recBruta)}</div></div>
+    <div class="card"><div class="label">Total descontos</div><div class="value negativo">${brl(desc)}</div></div>
+    <div class="card"><div class="label">Lucro líquido</div><div class="value lucro">${brl(lucro)}</div></div>
+  </div>
+  <table>
+    <tr><th>Item</th><th>Valor</th></tr>
+    <tr><td>Ativações (app direto)</td><td>${ativTxt}</td></tr>
+    <tr><td>Vendas de créditos (revendedores)</td><td>${credTxt}</td></tr>
+    <tr><td>Taxa de gateway</td><td class="negativo">${brl(tGw)}</td></tr>
+    <tr><td>Custos do app</td><td class="negativo">${brl(tApp)}</td></tr>
+    <tr><td>Custos site/infra</td><td class="negativo">${brl(tSite)}</td></tr>
+    <tr><td>Reembolsos</td><td class="negativo">${brl(reimb)}</td></tr>
+    <tr class="total"><td>LUCRO LÍQUIDO</td><td class="lucro">${brl(lucro)}</td></tr>
+  </table>
+  ${notas ? `<p><strong>Obs:</strong> ${notas}</p>` : ''}
+  <p style="font-size:.75rem;color:#999;margin-top:30px">Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+  <script>setTimeout(()=>window.print(),400);<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+function switchFatTab(name, el) {
+  document.querySelectorAll('#page-withdrawals .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#page-withdrawals .tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('fat-tab-'+name).classList.add('active');
+  if (name === 'grafico') {
+    loadFatHistorico().then(() => requestAnimationFrame(drawFatChart));
+    loadRevendedorChart();
+  }
+  if (name === 'transacoes') { loadFatTransacoes(); }
+  if (name === 'fechamento') { const mes = document.getElementById('fat-mes').value; if(mes) loadFechamento(mes); }
+}
+
+async function loadFatTransacoes() {
+  const mes    = document.getElementById('fat-mes').value || new Date().toISOString().slice(0,7);
+  const filtro = document.getElementById('fat-filtro').value || 'geral';
+  const revId  = document.getElementById('fat-revendedor')?.value || '';
+  const tbody  = document.getElementById('fat-transacoes-body');
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="11">Carregando...</td></tr>';
+
+  const params = new URLSearchParams({ mes, filtro });
+  if (revId) params.set('revendedor_id', revId);
+  const r = await api('/faturamento/transacoes?' + params.toString());
+
+  if (!r?.ok) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="11">Tabela transacoes ainda não criada no banco.</td></tr>';
+    return;
+  }
+  const list = r.data;
+  if (!list.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="11">${t('res.noTxPeriod')}</td></tr>`;
+    return;
+  }
+  const fmt = iso => iso ? iso.replace('T',' ').slice(0,16) : '—';
+  const origemLabel = o => o === 'ativacao' ? '📱 Ativação' : '💳 Crédito';
+  tbody.innerHTML = list.map((t, i) => {
+    const pid = t.pagamento_id || '—';
+    const idf = t.identificador || '—';
+    const idfShort = idf.length > 20 ? idf.slice(0, 20) + '…' : idf;
+    return `<tr>
+    <td>${i+1}</td>
+    <td style="font-family:monospace;font-size:.73rem;word-break:break-all" title="${pid}">${pid}</td>
+    <td>${origemLabel(t.origem)}</td>
+    <td>${fmt(t.data)}</td>
+    <td><span class="badge ${t.status==='pago'?'badge-ok':'badge-expired'}">${t.status||'—'}</span></td>
+    <td>${t.tipo_pagamento||'—'}</td>
+    <td style="font-family:monospace;font-size:.78rem" title="${idf}">${idfShort}</td>
+    <td>${t.nome||'—'}</td>
+    <td style="color:var(--gold);font-weight:700">${brl(parseFloat(t.valor_pago)||0)}</td>
+    <td style="font-size:.75rem;color:var(--text2)">${t.nome_revendedor||'— (App direto)'}</td>
+    <td style="font-size:.75rem;color:var(--text2)">${fmt(t.criado_em)}</td>
+  </tr>`;
+  }).join('');
+}
+
+// legado (mantido para compatibilidade)
+function openWithdrawModal() {}
+async function loadWithdrawals() {}
+
+// ── SUB-RESELLERS ──────────────────────────────────────────────────────────────
+async function loadSubresellers() {
+  const r = await api('/sub-resellers');
+  if (!r?.ok) return;
+  const tbody = document.getElementById('subresellers-body');
+  const list = r.data;
+  if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">${t('res.noSubresellers')}</td></tr>`; return; }
+  tbody.innerHTML = list.map((s, i) => {
+    const ativo = s.active;
+    const badgeClass = ativo ? 'badge-ok' : 'badge-pending';
+    const badgeLabel = ativo ? t('res.statusActive') : t('res.statusPending');
+    const actionBtn = ativo
+      ? `<button class="btn btn-outline btn-sm" onclick="deactivateReseller('${s.id}','${esc(s.nome)}')">${t('res.deactivateBtn')}</button>`
+      : `<button class="btn btn-primary btn-sm" onclick="approveReseller('${s.id}','${esc(s.nome)}')">${t('res.approveBtn')}</button>`;
+    return `<tr>
+      <td>${i+1}</td>
+      <td><div style="font-weight:600">${esc(s.nome)}</div><div style="font-size:.75rem;color:var(--text2)">${esc(s.email)}</div></td>
+      <td>${s.credits}</td>
+      <td>${s.totalActivations}</td>
+      <td>${s.monthActivations}</td>
+      <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+      <td>${fmtDate(s.createdAt)}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">
+        ${actionBtn}
+        <button class="btn btn-outline btn-sm" onclick="giveCredits('${s.id}','${esc(s.nome)}')">${t('res.giveCreditsBtn')}</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(str) { return String(str||'').replace(/'/g,"\\'").replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function openNewSubresellerModal() {
+  ['sub-nome','sub-pais','sub-telefone','sub-email','sub-pass'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sub-nascimento').value = '';
+  document.getElementById('sub-credits').value = '0';
+  openModal('modal-new-sub');
+}
+
+async function createSubreseller() {
+  const nome     = document.getElementById('sub-nome').value.trim();
+  const email    = document.getElementById('sub-email').value.trim();
+  const senha    = document.getElementById('sub-pass').value;
+  const telefone = document.getElementById('sub-telefone').value.trim();
+  const pais     = document.getElementById('sub-pais').value.trim();
+  const data_nascimento = document.getElementById('sub-nascimento').value;
+  const credits  = parseInt(document.getElementById('sub-credits').value) || 0;
+  if (!nome || !email || !senha) { toast(t('res.errMinFields'), 'err'); return; }
+  if (senha.length < 6) { toast(t('res.errPwMin6'), 'err'); return; }
+  const r = await api('/sub-resellers', { method:'POST', body:JSON.stringify({ nome, email, senha, telefone, pais, data_nascimento, credits }) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.resellerCreated')); closeModal('modal-new-sub'); loadSubresellers(); }
+  else toast(r.data?.error || 'Erro ao criar revendedor', 'err');
+}
+
+async function approveReseller(id, nome) {
+  if (!confirm(t('res.confirmApprove').replace('{name}', nome))) return;
+  const r = await api('/sub-resellers/approve', { method:'POST', body:JSON.stringify({ id }) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.resellerApproved').replace('{name}', nome)); loadSubresellers(); }
+  else toast(r.data?.error || 'Erro', 'err');
+}
+
+async function deactivateReseller(id, nome) {
+  if (!confirm(t('res.confirmDeactivateReseller').replace('{name}', nome))) return;
+  const r = await api('/sub-resellers/deactivate-user', { method:'POST', body:JSON.stringify({ id }) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.resellerDeactivated').replace('{name}', nome)); loadSubresellers(); }
+  else toast(r.data?.error || 'Erro', 'err');
+}
+
+async function giveCredits(id, nome) {
+  const n = parseInt(prompt(t('res.promptCredits').replace('{name}', nome), '10'));
+  if (!n || n <= 0) return;
+  const r = await api('/sub-resellers/give-credits', { method:'POST', body:JSON.stringify({ subresellerId: id, credits: n }) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.creditsGiven').replace('{n}', n).replace('{name}', nome)); loadSubresellers(); loadDashboard(); }
+  else toast(r.data?.error || 'Erro', 'err');
+}
+
+// ── PACKAGES ADMIN ────────────────────────────────────────────────────────────
+async function loadPkgAdmin() {
+  const r = await api('/packages/admin');
+  if (!r?.ok) return;
+  const tbody = document.getElementById('pkg-admin-body');
+  const list = r.data;
+  if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">${t('res.noPackages')}</td></tr>`; return; }
+  tbody.innerHTML = list.map(p => {
+    const valorTotal = (p.valor_centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    const valorUnit  = ((p.valor_centavos / 100) / p.ativacoes).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    const ativo = p.ativo !== false;
+    return `<tr style="${ativo ? '' : 'opacity:.55'}">
+      <td>${p.ordem ?? '—'}</td>
+      <td style="font-weight:700">${esc(p.nome)}</td>
+      <td>${p.ativacoes}</td>
+      <td>R$ ${valorTotal}</td>
+      <td>R$ ${valorUnit}</td>
+      <td><span class="badge ${ativo ? 'badge-ok' : 'badge-expired'}">${ativo ? t('res.statusActive') : t('res.statusInactive')}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="openPkgModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">${t('res.editPkg')}</button>
+        <button class="btn btn-outline btn-sm" onclick="togglePkg('${p.id}',${ativo})">${ativo ? t('res.deactivatePkg') : t('res.activatePkg')}</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePkg('${p.id}','${esc(p.nome)}')">${t('res.deletePkg')}</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function calcPkgUnit() {
+  const atv = parseFloat(document.getElementById('pkg-ativacoes').value) || 0;
+  const val = parseFloat(document.getElementById('pkg-valor').value) || 0;
+  const el  = document.getElementById('pkg-unit-preview');
+  el.textContent = (atv > 0 && val > 0) ? 'R$ ' + (val / atv).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
+}
+
+function openPkgModal(pkg) {
+  document.getElementById('pkg-modal-title').textContent = pkg ? t('res.pkgModalEditTitle') : t('res.pkgModalNewTitle');
+  document.getElementById('pkg-edit-id').value   = pkg?.id   ?? '';
+  document.getElementById('pkg-nome').value      = pkg?.nome ?? '';
+  document.getElementById('pkg-ativacoes').value = pkg?.ativacoes ?? '';
+  document.getElementById('pkg-valor').value     = pkg ? (pkg.valor_centavos / 100).toFixed(2) : '';
+  document.getElementById('pkg-ordem').value     = pkg?.ordem ?? 1;
+  calcPkgUnit();
+  openModal('modal-pkg');
+}
+
+async function savePkg() {
+  const id       = document.getElementById('pkg-edit-id').value;
+  const nome     = document.getElementById('pkg-nome').value.trim();
+  const ativacoes = parseInt(document.getElementById('pkg-ativacoes').value) || 0;
+  const valor    = parseFloat(document.getElementById('pkg-valor').value) || 0;
+  const ordem    = parseInt(document.getElementById('pkg-ordem').value) || 1;
+  if (!nome)       { toast(t('res.errNameRequired'), 'err'); return; }
+  if (ativacoes < 1) { toast(t('res.errActivations'), 'err'); return; }
+  if (valor <= 0)  { toast(t('res.errValue'), 'err'); return; }
+  const body = { nome, ativacoes, valor, ordem };
+  const r = id
+    ? await api('/packages/admin/' + id, { method: 'PUT', body: JSON.stringify(body) })
+    : await api('/packages/admin',       { method: 'POST', body: JSON.stringify(body) });
+  if (!r) return;
+  if (r.ok) { toast(id ? t('res.pkgSaved') : t('res.pkgCreated')); closeModal('modal-pkg'); loadPkgAdmin(); }
+  else toast(r.data?.error || 'Erro ao salvar', 'err');
+}
+
+async function togglePkg(id, currentlyAtivo) {
+  const r = await api('/packages/admin/' + id + '/toggle', { method: 'PATCH', body: JSON.stringify({ ativo: !currentlyAtivo }) });
+  if (!r) return;
+  if (r.ok) { toast(currentlyAtivo ? t('res.pkgDeactivated') : t('res.pkgActivated')); loadPkgAdmin(); }
+  else toast(r.data?.error || 'Erro', 'err');
+}
+
+async function deletePkg(id, nome) {
+  if (!confirm(t('res.confirmDeletePkg').replace('{name}', nome))) return;
+  const r = await api('/packages/admin/' + id, { method: 'DELETE' });
+  if (!r) return;
+  if (r.ok) { toast(t('res.pkgDeleted')); loadPkgAdmin(); }
+  else toast(r.data?.error || 'Erro', 'err');
+}
+
+// ── PROFILE ───────────────────────────────────────────────────────────────────
+let _profileOriginalEmail = '';
+
+async function loadProfile() {
+  const r = await api('/profile');
+  if (!r?.ok) return;
+  const d = r.data;
+  document.getElementById('profile-nome').value       = d.nome      || '';
+  document.getElementById('profile-email').value      = d.email     || '';
+  document.getElementById('profile-pais').value       = d.pais      || '';
+  document.getElementById('profile-telefone').value   = d.telefone  || '';
+  document.getElementById('profile-nascimento').value = d.data_nascimento ? d.data_nascimento.substring(0, 10) : '';
+  _profileOriginalEmail = d.email || '';
+}
+
+async function saveProfileData() {
+  const nome            = document.getElementById('profile-nome').value.trim();
+  const email           = document.getElementById('profile-email').value.trim().toLowerCase();
+  const pais            = document.getElementById('profile-pais').value.trim();
+  const telefone        = document.getElementById('profile-telefone').value.trim();
+  const data_nascimento = document.getElementById('profile-nascimento').value;
+  if (email !== _profileOriginalEmail) {
+    document.getElementById('confirm-email-senha').value = '';
+    openModal('modal-confirm-email');
+    return;
+  }
+  const r = await api('/profile', { method: 'POST', body: JSON.stringify({ nome, pais, telefone, data_nascimento }) });
+  if (!r) return;
+  if (r.ok) toast(t('res.profileSaved'));
+  else toast(r.data?.error || 'Erro ao salvar', 'err');
+}
+
+async function confirmEmailChange() {
+  const senhaAtual = document.getElementById('confirm-email-senha').value;
+  if (!senhaAtual) { toast(t('res.errTypePw'), 'err'); return; }
+  const nome            = document.getElementById('profile-nome').value.trim();
+  const email           = document.getElementById('profile-email').value.trim().toLowerCase();
+  const pais            = document.getElementById('profile-pais').value.trim();
+  const telefone        = document.getElementById('profile-telefone').value.trim();
+  const data_nascimento = document.getElementById('profile-nascimento').value;
+  const r = await api('/profile', { method: 'POST', body: JSON.stringify({ nome, email, pais, telefone, data_nascimento, senhaAtual }) });
+  if (!r) return;
+  if (r.ok) { toast(t('res.profileEmailSaved')); closeModal('modal-confirm-email'); _profileOriginalEmail = email; }
+  else toast(r.data?.error || 'Erro', 'err');
+}
+
+async function saveProfilePassword() {
+  const senhaAtual = document.getElementById('profile-senha-atual').value;
+  const novaSenha  = document.getElementById('profile-nova-senha').value;
+  const confirmar  = document.getElementById('profile-confirmar-senha').value;
+  if (!senhaAtual || !novaSenha) { toast(t('res.errFillAll'), 'err'); return; }
+  if (novaSenha !== confirmar)   { toast(t('res.errPwNoMatch'), 'err'); return; }
+  if (novaSenha.length < 6)      { toast(t('res.errPwNewMin6'), 'err'); return; }
+  const r = await api('/profile/change-password', { method: 'POST', body: JSON.stringify({ senhaAtual, novaSenha }) });
+  if (!r) return;
+  if (r.ok) {
+    toast(t('res.pwChanged'));
+    ['profile-senha-atual','profile-nova-senha','profile-confirmar-senha'].forEach(id => document.getElementById(id).value = '');
+  } else toast(r.data?.error || 'Erro', 'err');
+}
+
+async function deleteAccount() {
+  const senha = document.getElementById('delete-account-senha').value;
+  if (!senha) { toast(t('res.errTypePw'), 'err'); return; }
+  const r = await api('/profile/delete-account', { method: 'POST', body: JSON.stringify({ senha }) });
+  if (!r) return;
+  if (r.ok) {
+    closeModal('modal-delete-account');
+    toast(t('res.accountDeleted'));
+    setTimeout(() => { localStorage.removeItem('reseller_session'); window.location.reload(); }, 1800);
+  } else toast(r.data?.error || 'Erro', 'err');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const saved = localStorage.getItem('reseller_session');
+if (saved) {
+  try {
+    SESSION = JSON.parse(saved);
+    if (!SESSION.role) { localStorage.removeItem('reseller_session'); SESSION = null; }
+    else startApp();
+  } catch(e) { localStorage.removeItem('reseller_session'); }
+}
+</script>
+<script src="theme.js"></script>
+</body>
+</html>

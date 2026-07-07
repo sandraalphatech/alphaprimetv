@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Alpha Prime</string>
+    <string name="tv_live">TV ao Vivo</string>
+    <string name="search_hint">Pesquisar canais…</string>
+    <string name="loading">A carregar canais…</string>
+    <string name="no_config">Configure uma lista M3U ou Xtream Codes nas Configurações</string>
+    <string name="error_loading">Erro ao carregar canais</string>
+    <string name="retry">Tentar novamente</string>
+    <string name="settings_title">Configurações</string>
+    <string name="save">Guardar</string>
+    <string name="back">Voltar</string>
+    <string name="m3u_url_hint">URL da lista M3U (ex: http://…/lista.m3u)</string>
+    <string name="xtream_server_hint">Servidor (ex: http://servidor.com:8080)</string>
+    <string name="xtream_user_hint">Utilizador</string>
+    <string name="xtream_pass_hint">Senha</string>
+    <string name="saved_ok">Guardado com sucesso!</string>
+    <string name="fill_all">Preencha todos os campos</string>
+    <string name="enter_url">Introduza uma URL válida</string>
+</resources>

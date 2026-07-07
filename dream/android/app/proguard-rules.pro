@@ -1,0 +1,4 @@
+-keep class org.videolan.** { *; }
+-keep class coil.** { *; }
+-dontwarn org.videolan.**
+-dontwarn coil.**

@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Prime — Gerir minhas Listas</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        (function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+    </script>
+    <style>
+        .page-area { padding-top: 80px; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, var(--secondary-color), var(--bg-dark) 70%); }
+        .page-hero { padding: 48px 20px 8px; text-align: center; }
+        .page-hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--text-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-hero p  { color: #9ca3af; margin-top: 8px; }
+        .nav-links a.active { color: var(--primary-color); }
+        .pl-wrap { padding: 32px 16px 64px; }
+
+        /* ── Campos ── */
+        .fl { width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 22px; }
+        .fl label { font-size: .82rem; color: #9ca3af; }
+        .fl label span { color: #ef4444; }
+        .fl-row { display: flex; align-items: center; gap: 8px; }
+        .fl input { background: transparent; border: none; border-bottom: 1px solid var(--border-color); border-radius: 0; padding: 8px 0; color: var(--text-light); font-size: .92rem; outline: none; transition: border-color .2s; width: 100%; }
+        .fl input:focus { border-color: var(--primary-color); }
+        .fl input::placeholder { color: #4b5563; }
+        .eye-toggle { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 1rem; padding: 4px; }
+        .eye-toggle:hover { color: var(--text-light); }
+
+        .user-dropdown hr { border: none; border-top: 1px solid var(--border-color); margin: 4px 0; }
+        .dd-danger { color: #ef4444 !important; }
+
+        /* ── Modal de login ── */
+        .auth-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 3000; align-items: center; justify-content: center; padding: 16px; }
+        .auth-modal-overlay.open { display: flex; }
+        .auth-modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; width: 100%; max-width: 440px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .auth-modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 4px 8px; }
+        .auth-modal-close:hover { color: var(--text-light); }
+        .auth-modal h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+        .auth-modal p.auth-sub { color: #9ca3af; font-size: .85rem; margin-bottom: 24px; }
+        .auth-divider { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; }
+        .auth-section-label { font-size: .75rem; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; display: block; }
+        #auth-error { color: #ef4444; font-size: .85rem; text-align: center; display: none; margin-bottom: 12px; }
+        .btn-login { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 8px; padding: 13px; width: 100%; font-size: 1rem; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: opacity .2s; }
+        .btn-login:hover { opacity: .88; }
+        .btn-login:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* ── Ecrã "não autenticado" ── */
+        .not-logged-in { max-width: 460px; margin: 0 auto; text-align: center; padding: 56px 20px; }
+        .not-logged-in .icon { font-size: 3.5rem; margin-bottom: 16px; }
+        .not-logged-in h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+        .not-logged-in p { color: #9ca3af; font-size: .9rem; margin-bottom: 28px; line-height: 1.6; }
+        .btn-big-login { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+        .btn-big-login:hover { opacity: .88; }
+
+        /* ── Área autenticada ── */
+        .section-header-row { max-width: 640px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: space-between; }
+        .section-header-row h2 { font-size: 1rem; font-weight: 700; color: var(--text-light); }
+
+        /* ── Secção por dispositivo ── */
+        .devices-wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 50px; }
+        .device-section { border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; }
+        .device-section-header { display: flex; align-items: center; justify-content: space-between; background: rgba(124,58,237,.12); border-bottom: 1px solid var(--border-color); padding: 14px 18px; gap: 10px; flex-wrap: wrap; }
+        .device-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .device-dot { width: 9px; height: 9px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
+        .device-mac { font-size: .78rem; color: #9ca3af; font-family: monospace; display: block; }
+        .device-name-display { font-weight: 700; color: var(--text-light); font-size: .95rem; }
+        .rename-input { background: transparent; border: none; border-bottom: 1px solid var(--primary-color); color: var(--text-light); font-size: .95rem; font-weight: 700; outline: none; padding: 2px 0; min-width: 120px; }
+        .device-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .btn-add-pl { background: var(--primary-color); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: .82rem; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+        .btn-add-pl:hover { opacity: .85; }
+        .btn-remove-dev { background:#ef4444; border: 1px solid var(--border-color); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: .70rem; cursor: pointer; transition: all .15s; }
+        .btn-remove-dev:hover { border-color: #dc2626; color: #fff; }
+        .device-playlists { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+        .device-empty { text-align: center; color: #9ca3af; font-size: .85rem; padding: 18px; }
+
+        /* ── Playlist item ── */
+        .pl-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color .2s; }
+        .pl-item:hover { border-color: var(--primary-color); }
+        .pl-item.is-active { border-color: #10b981; background: rgba(16,185,129,.06); }
+        .pl-item-select { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border-color); flex-shrink: 0; margin-top: 2px; }
+        .pl-item.is-active .pl-item-select { border-color: #10b981; background: #10b981; }
+        .pl-item-row { display: flex; align-items: flex-start; gap: 10px; min-width: 0; flex: 1; }
+        .pl-item-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+        .pl-item-name { font-weight: 600; font-size: .9rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .pl-item-meta { color: #9ca3af; font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+        .pl-item-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .68rem; font-weight: 700; background: rgba(124,58,237,.2); color: #a78bfa; }
+        .pl-item-active-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .68rem; font-weight: 700; background: rgba(16,185,129,.2); color: #10b981; }
+        .pl-item-del { background: #ef4444; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .8rem; flex-shrink: 0; }
+        .pl-item-del:hover { background: #dc2626; }
+
+        /* ── Adicionar dispositivo ── */
+        .add-device-card { max-width: 640px; margin: 0 auto; border: 2px dashed var(--border-color); border-radius: 14px; padding: 22px; text-align: center; cursor: pointer; transition: border-color .2s; }
+        .add-device-card:hover { border-color: var(--primary-color); }
+        .add-device-card .adc-icon { color: var(--primary-color); font-size: 1.8rem; line-height: 1; }
+        .add-device-card strong { color: var(--text-light); font-size: .95rem; display: block; margin-top: 4px; }
+        .add-device-card p { color: #9ca3af; font-size: .84rem; margin-top: 3px; }
+
+        /* ── Cards de formulário ── */
+        .pl-card { max-width: 640px; margin: 20px auto 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; }
+        .pl-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 20px; color: var(--text-light); }
+        .btn-carregar { display: block; margin: 24px auto 0; min-width: 200px; background: #7B35C4; color: #fff; border: none; border-radius: 8px; padding: 13px 32px; font-size: .95rem; font-weight: 800; letter-spacing: .5px; cursor: pointer; transition: background .2s; }
+        .btn-carregar:hover { background: #a78bfa; }
+        .btn-carregar:disabled { opacity: .5; cursor: not-allowed; }
+        .cbtn-outline-btn { background: none; border: 1px solid var(--border-color); color: #9ca3af; border-radius: 8px; padding: 13px; cursor: pointer; font-size: .9rem; font-weight: 700; transition: all .15s; }
+        .cbtn-outline-btn:hover { border-color: var(--primary-color); color: var(--text-light); }
+        .pl-feedback { text-align: center; font-size: .85rem; margin-top: 14px; min-height: 1.2em; }
+        .pl-feedback.ok  { color: #10b981; }
+        .pl-feedback.err { color: #ef4444; }
+
+        /* Device selector dentro de forms */
+        .dev-sel-wrap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 22px; }
+        .dev-sel-wrap label { font-size: .82rem; color: #9ca3af; }
+        .dev-sel-wrap select { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); padding: 9px 12px; font-size: .92rem; outline: none; }
+        .dev-sel-wrap select:focus { border-color: var(--primary-color); }
+
+        /* Picker de ativações no form adicionar dispositivo */
+        .activation-picker-box { background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.25); border-radius: 12px; padding: 16px 18px; margin-bottom: 22px; }
+        .activation-picker-box label { font-size: .78rem; color: #a78bfa; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; display: block; margin-bottom: 10px; }
+        .activation-picker-box select { width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); padding: 9px 12px; font-size: .92rem; outline: none; }
+        .activation-picker-box select:focus { border-color: var(--primary-color); }
+        .activation-picker-box select option { background: #1e293b; }
+        .activation-picker-hint { font-size: .8rem; color: #9ca3af; margin-top: 8px; }
+        .activation-picker-hint a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
+        .activation-picker-hint a:hover { text-decoration: underline; }
+        .activation-divider { display: flex; align-items: center; gap: 10px; color: #4b5563; font-size: .78rem; margin-bottom: 20px; }
+        .activation-divider::before, .activation-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+
+        /* Abas tipo playlist */
+        .pl-tabs { display: flex; justify-content: center; gap: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 26px; }
+        .pl-tab { background: none; border: none; cursor: pointer; padding: 0 0 12px; font-size: .9rem; font-weight: 600; color: #9ca3af; border-bottom: 2px solid transparent; transition: all .2s; }
+        .pl-tab:hover { color: var(--text-light); }
+        .pl-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        .pl-checkbox { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: .9rem; font-weight: 600; color: var(--text-light); margin-bottom: 18px; }
+        .pl-checkbox input { width: 18px; height: 18px; accent-color: var(--primary-color); }
+        .pin-fields { display: none; flex-direction: column; }
+        .pin-fields.show { display: flex; }
+
+        /* Parental */
+        .parental-card { margin-top: 24px; }
+        .parental-title { font-size: 1rem; color: var(--text-light); margin-bottom: 6px; }
+        .parental-sub { color: #9ca3af; font-size: .82rem; line-height: 1.5; margin-bottom: 18px; }
+        .parental-divider { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; }
+        .parental-locked-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
+        .parental-locked-name { display: flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 600; }
+        .btn-unlock { background: none; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: .78rem; font-weight: 700; }
+        .btn-unlock:hover { background: var(--primary-color); color: #fff; }
+        .cbtn-link { background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: .85rem; font-weight: 700; padding: 0; text-decoration: none; }
+        .parental-forgot { text-align: center; font-size: .8rem; color: #9ca3af; margin-top: 16px; }
+        .parental-forgot a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
+        .parental-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
+        .parental-modal-overlay.open { display: flex; }
+        .parental-modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 28px; width: 100%; max-width: 360px; }
+        .parental-modal h3 { font-size: 1rem; margin-bottom: 16px; color: var(--text-light); }
+        .parental-modal h3 span { color: var(--primary-color); }
+        .parental-modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .parental-modal-actions .btn-carregar { margin: 0; flex: 1; min-width: 0; }
+        input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,textarea:-webkit-autofill,select:-webkit-autofill {-webkit-box-shadow: 0 0 0px 1000px #1f2937 inset !important; -webkit-text-fill-color: #fff !important; caret-color: #fff; transition: background-color transparent ease-in-out 0s;}
+
+        /* Toast */
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 20px; font-size: .88rem; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all .3s; max-width: 300px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.ok  { border-color: #10b981; color: #10b981; }
+        .toast.err { border-color: #ef4444; color: #ef4444; }
+
+        /* Profile modal */
+        .profile-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 3000; align-items: center; justify-content: center; padding: 16px; }
+        .profile-modal-overlay.open { display: flex; }
+
+        @media(max-width: 768px) {
+            .pl-card { padding: 20px; }
+            .page-hero h1 { font-size: 1.8rem; }
+            .pl-tabs { gap: 14px; flex-wrap: wrap; }
+            .device-section-header { gap: 8px; }
+        }
+        @media(max-width: 480px) {
+            .page-hero { padding: 32px 16px 8px; }
+            .pl-card { padding: 16px; }
+            .pl-tabs { gap: 10px; justify-content: flex-start; }
+            .pl-tab { font-size: .82rem; }
+            .device-section-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body data-page-title="pl.pageTitle">
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+    <div class="container">
+        <div class="logo">
+            <img src="icons/logoheader.png" class="logo">
+            <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav.home">Início</a></li>
+            <li><a href="index.html#features" data-i18n="nav.features">Funcionalidades</a></li>
+            <li><a href="index.html#download" data-i18n="nav.download">Download</a></li>
+            <li><a href="index.html#contact" data-i18n="nav.contact">Contato</a></li>
+        </ul>
+        <!-- Área de autenticação no header -->
+        <div class="nav-auth">
+            <button class="btn-nav-login" id="btn-header-login" onclick="window.location.href='login.html'" data-i18n="nav.login">Entrar</button>
+            <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
+                <button class="user-avatar-btn" id="nav-user-toggle">
+                    <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
+                    <span id="nav-username" data-i18n="nav.user"></span>
+                    <span style="font-size:.7rem; color:#9ca3af;">▾</span>
+                </button>
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="activate.html" data-i18n="nav.activateApp">🎬 Ativar App</a>
+                    <a href="playlists.html" data-i18n="nav.manageLists">📋 Gerir minhas listas</a>
+                    <a href="profile.html" data-i18n="nav.editProfile">👤 Alterar meus dados</a>
+                    <a href="parental.html" data-i18n="nav.parentalCtrl">🔒 Gerir canais bloqueados</a>
+                    <hr>
+                    <button class="dd-danger" id="dd-logout" data-i18n="nav.logout">🚪 Deslogar</button>
+                </div>
+            </div>
+        </div>
+        <button class="theme-toggle" title="Modo claro">☀️</button>
+        <button class="menu-toggle">☰</button>
+    </div>
+</nav>
+
+<!-- ── ÁREA PRINCIPAL ── -->
+<div class="page-area">
+    <div class="page-hero">
+        <h1 data-i18n="pl.h1">Carregar lista de reprodução</h1>
+        <p data-i18n="pl.sub">Escolha como deseja carregar sua lista de reprodução no aplicativo</p>
+    </div>
+
+    <div class="pl-wrap">
+
+        <!-- NÃO AUTENTICADO -->
+        <div id="section-login">
+            <div class="not-logged-in">
+                <div class="icon">📺</div>
+                <h2 data-i18n="pl.welcome">Bem-vindo ao Gerir Listas</h2>
+                <p data-i18n="pl.loginRequired">Faça login para ver e gerir as listas de reprodução de todos os seus dispositivos, com suporte a múltiplos televisores e boxes.</p>
+                <button class="btn-big-login" onclick="window.location.href='login.html'" data-i18n="pl.loginBtn">Entrar na minha conta</button>
+            </div>
+        </div>
+
+        <!-- ÁREA AUTENTICADA -->
+        <div id="section-app" style="display:none">
+
+            <!-- Lista de dispositivos -->
+            <div class="section-header-row">
+                <h2 data-i18n="pl.myDevices">Os meus dispositivos</h2>
+            </div>
+            <div class="devices-wrap" id="devices-wrap"></div>
+
+            <!-- Botão adicionar dispositivo -->
+            <div class="add-device-card" id="add-device-toggle" onclick="toggleAddDevice()" style="margin-top:16px;">
+                <div class="adc-icon">＋</div>
+                <strong data-i18n="pl.addDevice">Adicionar dispositivo</strong>
+                <p data-i18n="pl.addDeviceSub">Associar outro televisor, box ou telemóvel</p>
+            </div>
+
+            <!-- Form: novo dispositivo + lista (card combinada) -->
+            <div class="pl-card" id="add-device-form" style="display:none">
+                <p class="pl-card-title" data-i18n="pl.newDevice">➕ Novo Dispositivo</p>
+
+                <!-- Picker de dispositivos ativados (visível apenas se logado) -->
+                <div class="activation-picker-box" id="activation-picker-wrap" style="display:none">
+                    <label data-i18n="pl.activatedDevices">📋 Dispositivos da sua conta</label>
+                    <select id="activation-picker" onchange="onActivationSelect(this)">
+                        <option value="" data-i18n="pl.selectDevice">Selecionar um dispositivo ativado…</option>
+                    </select>
+                    <p class="activation-picker-hint" id="activation-picker-hint" style="display:none"></p>
+                </div>
+
+                <div class="activation-divider" id="activation-divider" style="display:none" data-i18n="pl.orManual">ou preencha manualmente</div>
+
+                <div class="fl">
+                    <label data-i18n="pl.devName">Nome do dispositivo</label>
+                    <input type="text" id="new-dev-name" data-i18n-ph="ph.devName" placeholder="ex: TV Quarto, TV Sala, Telemóvel">
+                </div>
+                <div class="fl">
+                    <label>MAC Address <span>*</span></label>
+                    <input type="text" id="new-dev-mac" data-i18n-ph="ph.devMac" placeholder="ex: aa:bb:cc:dd:ee:ff" autocomplete="off">
+                </div>
+                <div class="fl">
+                    <label data-i18n="pl.deviceKey">Device Key <span>*</span></label>
+                    <input type="text" id="new-dev-key" data-i18n-ph="ph.devKey" placeholder="ex: 123456" autocomplete="off">
+                </div>
+
+                <!-- Secção de lista de reprodução -->
+                <div style="border-top:1px solid var(--border-color); margin:20px 0 24px;"></div>
+                <p style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#9ca3af; margin-bottom:18px;" data-i18n="pl.plSection">Lista de reprodução (opcional)</p>
+
+                <div class="pl-tabs" style="margin-bottom:20px;">
+                    <button class="pl-tab active" id="ndpltab-url"    onclick="ndSwitchType('url')">URL</button>
+                    <button class="pl-tab"        id="ndpltab-file"   onclick="ndSwitchType('file')">File</button>
+                    <button class="pl-tab"        id="ndpltab-xtream" onclick="ndSwitchType('xtream')" data-i18n="pl.tabXtream">Conta Xtream</button>
+                    <button class="pl-tab"        id="ndpltab-other"  onclick="ndSwitchType('other')">M3u8</button>
+                </div>
+
+                <div class="fl">
+                    <label data-i18n="pl.plName">Nome da lista de reprodução</label>
+                    <input type="text" id="nd-pl-name" data-i18n-ph="ph.plName" placeholder="Nome da lista">
+                </div>
+
+                <div id="nd-fields-url">
+                    <div class="fl"><label data-i18n="pl.urlLabel">URL da lista de reprodução</label><input type="url" id="nd-pl-url" data-i18n-ph="ph.plUrl" placeholder="http://..."></div>
+                </div>
+                <div id="nd-fields-file" style="display:none">
+                    <div class="fl"><label data-i18n="pl.fileLabel">Ficheiro (.m3u/.m3u8)</label><input type="file" id="nd-pl-file" accept=".m3u,.m3u8"></div>
+                </div>
+                <div id="nd-fields-xtream" style="display:none">
+                    <div class="fl"><label data-i18n="pl.server">Servidor</label><input type="url" id="nd-pl-server" data-i18n-ph="ph.plServer" placeholder="http://servidor.com:8080"></div>
+                    <div class="fl"><label data-i18n="pl.username">Utilizador</label><input type="text" id="nd-pl-username" data-i18n-ph="ph.plUsername" placeholder="Utilizador"></div>
+                    <div class="fl"><label data-i18n="pl.password">Senha</label><input type="password" id="nd-pl-password" data-i18n-ph="ph.plPassword" placeholder="Senha"></div>
+                </div>
+
+                <div class="fl"><label data-i18n="pl.epgUrl">URL do EPG (opcional)</label><input type="url" id="nd-pl-epg" data-i18n-ph="ph.plEpg" placeholder="URL do EPG"></div>
+
+                <label class="pl-checkbox">
+                    <input type="checkbox" id="nd-pl-protect" onchange="document.getElementById('nd-pin-fields').classList.toggle('show', this.checked)">
+                    <span data-i18n="pl.protectPl">Protect Playlist</span>
+                </label>
+                <div class="pin-fields" id="nd-pin-fields">
+                    <div class="fl"><label data-i18n="pl.setPin">Set PIN</label><div class="fl-row"><input type="password" id="nd-pl-pin" data-i18n-ph="pl.setPin" placeholder="Set PIN" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('nd-pl-pin',this)">👁</button></div></div>
+                    <div class="fl"><label data-i18n="pl.confirmPin">Confirm PIN</label><div class="fl-row"><input type="password" id="nd-pl-pin-confirm" data-i18n-ph="pl.confirmPin" placeholder="Confirm PIN" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('nd-pl-pin-confirm',this)">👁</button></div></div>
+                </div>
+
+                <p id="add-dev-error" style="color:#ef4444; font-size:.85rem; display:none; margin-bottom:8px;"></p>
+                <div style="display:flex; gap:10px; margin-top:16px;">
+                    <button class="btn-carregar" id="add-dev-btn" style="margin:0; flex:1;" onclick="addDevice()" data-i18n="pl.btnAdd">Adicionar</button>
+                    <button class="cbtn-outline-btn" style="flex:1;" onclick="toggleAddDevice()" data-i18n="pl.btnCancel">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Form: adicionar playlist -->
+            <div class="pl-card" id="pl-form-card" style="display:none">
+                <p class="pl-card-title" data-i18n="pl.addList">➕ Adicionar Lista</p>
+
+                <div class="dev-sel-wrap" id="device-selector-wrap">
+                    <label data-i18n="pl.device">Dispositivo</label>
+                    <select id="pl-device-select"></select>
+                </div>
+
+                <div class="pl-tabs">
+                    <button class="pl-tab active" id="pltab-url"    onclick="switchType('url')">URL</button>
+                    <button class="pl-tab"        id="pltab-file"   onclick="switchType('file')">File</button>
+                    <button class="pl-tab"        id="pltab-xtream" onclick="switchType('xtream')" data-i18n="pl.tabXtream">Conta Xtream</button>
+                    <button class="pl-tab"        id="pltab-other"  onclick="switchType('other')">M3u8</button>
+                </div>
+
+                <form id="pl-form">
+                    <div class="fl">
+                        <label data-i18n="pl.plName">Nome da lista de reprodução</label>
+                        <input type="text" id="pl-name" data-i18n-ph="ph.plName" placeholder="Nome da lista de reprodução">
+                    </div>
+                    <div id="fields-url">
+                        <div class="fl">
+                            <label data-i18n="pl.urlLabel">URL da lista de reprodução</label>
+                            <input type="url" id="pl-url" data-i18n-ph="ph.plUrl" placeholder="URL da lista de reprodução">
+                        </div>
+                    </div>
+                    <div id="fields-file" style="display:none">
+                        <div class="fl">
+                            <label data-i18n="pl.fileLabel">Ficheiro (.m3u/.m3u8)</label>
+                            <input type="file" id="pl-file" accept=".m3u,.m3u8">
+                        </div>
+                    </div>
+                    <div id="fields-xtream" style="display:none">
+                        <div class="fl"><label data-i18n="pl.server">Servidor</label><input type="url" id="pl-server" data-i18n-ph="ph.plServer" placeholder="http://servidor.com:8080"></div>
+                        <div class="fl"><label data-i18n="pl.username">Utilizador</label><input type="text" id="pl-username" data-i18n-ph="ph.plUsername" placeholder="Utilizador"></div>
+                        <div class="fl"><label data-i18n="pl.password">Senha</label><input type="password" id="pl-password" data-i18n-ph="ph.plPassword" placeholder="Senha"></div>
+                    </div>
+                    <div class="fl">
+                        <label data-i18n="pl.epgUrl">URL do EPG (opcional)</label>
+                        <input type="url" id="pl-epg" data-i18n-ph="ph.plEpg" placeholder="URL do EPG da lista de reprodução">
+                    </div>
+                    <label class="pl-checkbox">
+                        <input type="checkbox" id="pl-protect" onchange="document.getElementById('pin-fields').classList.toggle('show', this.checked)">
+                        <span data-i18n="pl.protectPl">Protect Playlist</span>
+                    </label>
+                    <div class="pin-fields" id="pin-fields">
+                        <div class="fl"><label data-i18n="pl.setPin">Set PIN</label><div class="fl-row"><input type="password" id="pl-pin" data-i18n-ph="pl.setPin" placeholder="Set PIN" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('pl-pin', this)">👁</button></div></div>
+                        <div class="fl"><label data-i18n="pl.confirmPin">Confirm PIN</label><div class="fl-row"><input type="password" id="pl-pin-confirm" data-i18n-ph="pl.confirmPin" placeholder="Confirm PIN" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('pl-pin-confirm', this)">👁</button></div></div>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:24px;">
+                        <button type="submit" class="btn-carregar" id="pl-submit" style="margin:0; flex:1;" data-i18n="pl.btnLoad">CARREGAR</button>
+                        <button type="button" class="cbtn-outline-btn" style="flex:1;" onclick="hidePlForm()" data-i18n="pl.btnCancel">Cancelar</button>
+                    </div>
+                    <p class="pl-feedback" id="pl-feedback"></p>
+                </form>
+            </div>
+
+        </div><!-- /section-app -->
+    </div>
+
+</div><!-- /page-area -->
+
+
+<!-- Modal: editar perfil -->
+<div class="profile-modal-overlay" id="profile-modal-overlay" onclick="if(event.target===this)closeEditProfile()">
+    <div class="auth-modal">
+        <button class="auth-modal-close" onclick="closeEditProfile()">✕</button>
+        <h2 data-i18n="prof.editTitle">Alterar meus dados</h2>
+        <p class="auth-sub" data-i18n="prof.cardSub">As alterações são guardadas no banco de dados</p>
+        <div class="fl" style="margin-bottom:18px;">
+            <label data-i18n="prof.fullName">Nome completo <span style="color:#ef4444">*</span></label>
+            <input type="text" id="profile-nickname" data-i18n-ph="prof.fullName" placeholder="O seu nome completo">
+        </div>
+        <div class="fl" style="margin-bottom:18px;">
+            <label data-i18n="prof.phone">Telefone (com DDI)</label>
+            <input type="tel" id="profile-telefone" placeholder="ex: +55 11 99999-9999">
+        </div>
+        <div class="fl" style="margin-bottom:18px;">
+            <label data-i18n="prof.birthdate">Data de nascimento</label>
+            <input type="date" id="profile-nascimento">
+        </div>
+        <div class="fl" style="margin-bottom:18px;">
+            <label data-i18n="prof.country">País</label>
+            <input type="text" id="profile-pais" placeholder="ex: Brasil">
+        </div>
+        <div class="fl" style="margin-bottom:22px;">
+            <label data-i18n="prof.emailSecondary">E-mail secundário</label>
+            <input type="email" id="profile-email2" placeholder="outro@email.com">
+        </div>
+        <p id="profile-feedback" style="text-align:center;font-size:.85rem;min-height:1.2em;margin-bottom:10px;"></p>
+        <button class="btn-login" id="profile-save-btn" onclick="saveProfile()" data-i18n="prof.btnSave">GUARDAR</button>
+
+        <hr class="auth-divider">
+
+        <button type="button" class="cbtn-link" id="toggle-pw-btn" onclick="togglePwSection()" style="width:100%;text-align:left;font-size:.85rem;" data-i18n="prof.changePw">🔑 Alterar senha</button>
+        <div id="pw-section" style="display:none;margin-top:16px;display:none;">
+            <div class="fl" style="margin-bottom:18px;">
+                <label data-i18n="prof.currentPw">Senha atual <span style="color:#ef4444">*</span></label>
+                <div class="fl-row"><input type="password" id="pw-current" data-i18n-ph="prof.currentPw" placeholder="Senha atual" maxlength="64"><button type="button" class="eye-toggle" onclick="toggleEye('pw-current',this)">👁</button></div>
+            </div>
+            <div class="fl" style="margin-bottom:18px;">
+                <label data-i18n="prof.newPw">Nova senha <span style="color:#ef4444">*</span></label>
+                <div class="fl-row"><input type="password" id="pw-new" placeholder="Mínimo 6 caracteres" maxlength="64"><button type="button" class="eye-toggle" onclick="toggleEye('pw-new',this)">👁</button></div>
+            </div>
+            <div class="fl" style="margin-bottom:18px;">
+                <label data-i18n="prof.confirmPw">Confirmar nova senha <span style="color:#ef4444">*</span></label>
+                <div class="fl-row"><input type="password" id="pw-confirm" placeholder="Repita a nova senha" maxlength="64"><button type="button" class="eye-toggle" onclick="toggleEye('pw-confirm',this)">👁</button></div>
+            </div>
+            <p id="pw-feedback" style="text-align:center;font-size:.85rem;min-height:1.2em;margin-bottom:10px;"></p>
+            <button class="btn-login" id="pw-save-btn" onclick="changePassword()" data-i18n="prof.changePwBtn">ALTERAR SENHA</button>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="footer">
+        <p data-i18n="footer.rights">&copy; 2026 Alpha Prime. Todos os direitos reservados.</p>
+        <div class="footer-links">
+            <a href="legal.html" data-i18n="footer.terms">Termos de Uso</a>
+        </div>
+    </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="i18n.js"></script>
+<script src="script.js"></script>
+<script>
+// ── Estado ────────────────────────────────────────────────────────────────────
+let user    = JSON.parse(localStorage.getItem('ap_user')    || 'null');
+let account = JSON.parse(localStorage.getItem('ap_account') || 'null');
+
+// Migrar sessão antiga (MAC+deviceKey único) para novo formato multi-dispositivo
+(function migrate() {
+    const old = JSON.parse(localStorage.getItem('ap_playlists_session') || 'null');
+    if (old && !account) {
+        account = { nickname: user?.nome || 'Utilizador', devices: [{ mac: old.mac, deviceKey: old.deviceKey, name: 'Dispositivo 1' }] };
+        localStorage.setItem('ap_account', JSON.stringify(account));
+        localStorage.removeItem('ap_playlists_session');
+    }
+})();
+
+// Garantir account inicializado quando utilizador logado mas sem account local
+if (user && !account) {
+    account = { nickname: user.nome, devices: [] };
+    localStorage.setItem('ap_account', JSON.stringify(account));
+}
+
+let plType   = 'url';
+let ndPlType = 'url';
+let pollTimer = null;
+let addPlMac = null;
+let firstLoad = true;
+
+// ── Arranque ──────────────────────────────────────────────────────────────────
+if (user || account) {
+    enterApp();
+} else {
+    document.getElementById('section-login').style.display = 'block';
+    updateHeaderAuth();
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+function updateHeaderAuth() {
+    const nick = (user?.nome || account?.nickname || '').split(' ')[0] || null;
+    if (nick) {
+        document.getElementById('btn-header-login').style.display = 'none';
+        document.getElementById('nav-user-wrap').style.display = 'flex';
+        document.getElementById('nav-username').textContent = nick;
+        document.getElementById('nav-avatar-letter').textContent = nick[0].toUpperCase();
+    } else {
+        document.getElementById('btn-header-login').style.display = 'block';
+        document.getElementById('nav-user-wrap').style.display = 'none';
+    }
+}
+
+// Dropdown toggle
+document.getElementById('nav-user-toggle').addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('user-dropdown').classList.toggle('open');
+});
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('nav-user-wrap');
+    if (wrap && !wrap.contains(e.target))
+        document.getElementById('user-dropdown').classList.remove('open');
+});
+
+// Logout
+document.getElementById('dd-logout').addEventListener('click', async function() {
+    if (user?.token) {
+        try { await fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + user.token } }); } catch(_) {}
+    }
+    logout();
+});
+
+// ── Logout / Perfil ───────────────────────────────────────────────────────────
+function logout() {
+    localStorage.removeItem('ap_user');
+    localStorage.removeItem('ap_account');
+    user = null; account = null;
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    window.location.href = 'login.html';
+}
+
+function togglePwSection() {
+    const t   = window.__i18n.t;
+    const sec = document.getElementById('pw-section');
+    const open = sec.style.display === 'none' || sec.style.display === '';
+    sec.style.display = open ? 'block' : 'none';
+    document.getElementById('toggle-pw-btn').textContent = open ? t('prof.closePw') : t('prof.changePw');
+    if (open) {
+        document.getElementById('pw-current').value = '';
+        document.getElementById('pw-new').value = '';
+        document.getElementById('pw-confirm').value = '';
+        document.getElementById('pw-feedback').textContent = '';
+    }
+}
+
+async function changePassword() {
+    const t       = window.__i18n.t;
+    const current  = document.getElementById('pw-current').value;
+    const newPw    = document.getElementById('pw-new').value;
+    const confirm  = document.getElementById('pw-confirm').value;
+    const feedback = document.getElementById('pw-feedback');
+    const btn      = document.getElementById('pw-save-btn');
+
+    if (!current)           { feedback.textContent = t('prof.errCurrentPw');  feedback.style.color = '#ef4444'; return; }
+    if (newPw.length < 6)   { feedback.textContent = t('prof.errNewPwLen');   feedback.style.color = '#ef4444'; return; }
+    if (newPw !== confirm)  { feedback.textContent = t('prof.errPwMatch');    feedback.style.color = '#ef4444'; return; }
+
+    btn.disabled = true; btn.textContent = t('prof.changing');
+    try {
+        const res  = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + user.token },
+            body: JSON.stringify({ currentPassword: current, newPassword: newPw })
+        });
+        const data = await res.json();
+        if (!res.ok) { feedback.textContent = data.error || t('prof.errNetPw'); feedback.style.color = '#ef4444'; return; }
+        feedback.textContent = t('prof.pwChanged'); feedback.style.color = '#10b981';
+        setTimeout(togglePwSection, 1500);
+    } catch(_) {
+        feedback.textContent = t('prof.errNetPw'); feedback.style.color = '#ef4444';
+    } finally {
+        btn.disabled = false; btn.textContent = t('prof.changePwBtn');
+    }
+}
+
+async function openEditProfile() {
+    const t = window.__i18n.t;
+    document.getElementById('profile-feedback').textContent = '';
+    document.getElementById('profile-nickname').value  = user?.nome || account?.nickname || '';
+    document.getElementById('profile-telefone').value  = '';
+    document.getElementById('profile-nascimento').value = '';
+    document.getElementById('profile-pais').value      = '';
+    document.getElementById('profile-email2').value    = '';
+
+    if (user?.token) {
+        try {
+            const res = await fetch('/api/auth/profile', { headers: { Authorization: 'Bearer ' + user.token } });
+            if (res.ok) {
+                const p = await res.json();
+                document.getElementById('profile-nickname').value   = p.nome               || '';
+                document.getElementById('profile-telefone').value   = p.telefone           || '';
+                document.getElementById('profile-nascimento').value = p.data_nascimento    || '';
+                document.getElementById('profile-pais').value       = p.pais               || '';
+                document.getElementById('profile-email2').value     = p.email_secundario   || '';
+            }
+        } catch(_) {}
+    }
+
+    document.getElementById('profile-modal-overlay').classList.add('open');
+    document.getElementById('user-dropdown').classList.remove('open');
+}
+
+function closeEditProfile() {
+    document.getElementById('profile-modal-overlay').classList.remove('open');
+}
+
+async function saveProfile() {
+    const t         = window.__i18n.t;
+    const nome      = document.getElementById('profile-nickname').value.trim();
+    const telefone  = document.getElementById('profile-telefone').value.trim();
+    const nascimento = document.getElementById('profile-nascimento').value;
+    const pais      = document.getElementById('profile-pais').value.trim();
+    const email2    = document.getElementById('profile-email2').value.trim();
+    const feedback  = document.getElementById('profile-feedback');
+    const btn       = document.getElementById('profile-save-btn');
+
+    if (!nome) { feedback.textContent = t('prof.errName'); feedback.style.color = '#ef4444'; return; }
+
+    if (user?.token) {
+        btn.disabled = true; btn.textContent = t('prof.saving');
+        try {
+            const res = await fetch('/api/auth/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + user.token },
+                body: JSON.stringify({ nome, telefone, data_nascimento: nascimento || null, pais, email_secundario: email2 })
+            });
+            const data = await res.json();
+            if (!res.ok) { feedback.textContent = data.error || t('prof.errSave'); feedback.style.color = '#ef4444'; return; }
+            user.nome = data.nome;
+            localStorage.setItem('ap_user', JSON.stringify(user));
+            updateHeaderAuth();
+            feedback.textContent = t('prof.saved'); feedback.style.color = '#10b981';
+            setTimeout(closeEditProfile, 1200);
+        } catch(_) {
+            feedback.textContent = t('prof.errNetName'); feedback.style.color = '#ef4444';
+        } finally {
+            btn.disabled = false; btn.textContent = t('prof.btnSave');
+        }
+    } else if (account) {
+        account.nickname = nome;
+        localStorage.setItem('ap_account', JSON.stringify(account));
+        updateHeaderAuth();
+        closeEditProfile();
+        toast(t('prof.nameUpdated'), 'ok');
+    }
+}
+
+// ── App ───────────────────────────────────────────────────────────────────────
+async function enterApp() {
+    document.getElementById('section-login').style.display = 'none';
+    document.getElementById('section-app').style.display = 'block';
+    updateHeaderAuth();
+
+    // Sincronizar dispositivos do Supabase (ativacoes) com o account local
+    if (user?.token) {
+        try {
+            const res = await fetch('/api/user/devices', { headers: { Authorization: 'Bearer ' + user.token } });
+            if (res.ok) {
+                const dbDevices = await res.json();
+                if (!account) { account = { nickname: user.nome, devices: [] }; }
+                dbDevices.forEach(d => {
+                    if (!account.devices.some(x => x.mac === d.mac_address)) {
+                        account.devices.push({ mac: d.mac_address, deviceKey: d.device_key, name: d.nome_dispositivo || d.mac_address });
+                    }
+                });
+                localStorage.setItem('ap_account', JSON.stringify(account));
+            }
+        } catch(_) {}
+    }
+
+    initDeviceSections();
+    renderDeviceSelectors();
+    loadAllDevices();
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(loadAllDevices, 5000);
+}
+
+// ── Multi-dispositivo ─────────────────────────────────────────────────────────
+function initDeviceSections() {
+    const t    = window.__i18n.t;
+    const wrap = document.getElementById('devices-wrap');
+    wrap.innerHTML = '';
+    account.devices.forEach(dev => {
+        const section = document.createElement('div');
+        section.className = 'device-section';
+        section.id = 'dev-' + dev.mac.replace(/:/g,'');
+        section.innerHTML = `<div class="device-empty" style="padding:24px;">${t('pl.loadingOf')} <strong>${esc(dev.name || dev.mac)}</strong>…</div>`;
+        wrap.appendChild(section);
+    });
+}
+
+async function loadAllDevices() {
+    await Promise.all(account.devices.map(d => loadDevicePlaylists(d)));
+}
+
+async function loadDevicePlaylists(device) {
+    try {
+        const res = await fetch(`/api/playlists?mac=${encodeURIComponent(device.mac)}&deviceKey=${encodeURIComponent(device.deviceKey)}`);
+        if (res.status === 401) return;
+        const list = await res.json();
+        renderDeviceSection(device, list);
+    } catch(e) { /* tenta de novo no próximo ciclo */ }
+}
+
+function renderDeviceSection(device, list) {
+    const t = window.__i18n.t;
+    let section = document.getElementById('dev-' + device.mac.replace(/:/g,''));
+    if (!section) {
+        section = document.createElement('div');
+        section.className = 'device-section';
+        section.id = 'dev-' + device.mac.replace(/:/g,'');
+        document.getElementById('devices-wrap').appendChild(section);
+    }
+
+    const typeLabel = { url: 'URL', file: 'FILE', xtream: 'XTREAM', other: 'M3U8', m3u: 'URL' };
+    const macId = device.mac.replace(/:/g,'');
+
+    const plHtml = list.length
+        ? list.map(p => `
+            <div class="pl-item ${p.active ? 'is-active' : ''}" onclick="activatePlaylist('${esc(p.id)}','${esc(device.mac)}','${esc(device.deviceKey)}')">
+                <div class="pl-item-row">
+                    <div class="pl-item-select"></div>
+                    <div class="pl-item-info">
+                        <div class="pl-item-name">
+                            ${esc(p.name)}
+                            <span class="pl-item-badge">${typeLabel[p.type] || p.type}</span>
+                            ${p.active ? `<span class="pl-item-active-badge">${t('pl.active')}</span>` : ''}
+                        </div>
+                        <div class="pl-item-meta">${esc(p.url || p.server || '')}</div>
+                    </div>
+                </div>
+                <button class="pl-item-del" onclick="event.stopPropagation(); deletePlaylist('${esc(p.id)}','${esc(device.mac)}','${esc(device.deviceKey)}')">${t('pl.btnRemove')}</button>
+            </div>`).join('')
+        : `<div class="device-empty">${t('pl.noList')}</div>`;
+
+    section.innerHTML = `
+        <div class="device-section-header">
+            <div class="device-header-left">
+                <div>
+                    <span class="device-mac">${esc(device.mac)}</span>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;" id="dname-wrap-${macId}">
+                        <span class="device-name-display">${esc(device.name || t('pl.noName'))}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="device-header-right">
+                <button class="btn-add-pl" onclick="openPlForm('${esc(device.mac)}')">${t('pl.addListBtn')}</button>
+                <button class="btn-remove-dev" onclick="removeDevice('${esc(device.mac)}')">${t('pl.removeDevice')}</button>
+            </div>
+        </div>
+        <div class="device-playlists">${plHtml}</div>`;
+}
+
+// ── Adicionar dispositivo ─────────────────────────────────────────────────────
+function toggleAddDevice() {
+    const form = document.getElementById('add-device-form');
+    const btn  = document.getElementById('add-device-toggle');
+    const open = form.style.display === 'none' || form.style.display === '';
+    form.style.display = open ? 'block' : 'none';
+    btn.style.display  = open ? 'none'  : 'block';
+    if (open) {
+        document.getElementById('new-dev-mac').value  = '';
+        document.getElementById('new-dev-key').value  = '';
+        document.getElementById('new-dev-name').value = '';
+        document.getElementById('add-dev-error').style.display = 'none';
+        if (user?.token) {
+            loadActivatedDevices();
+        } else {
+            document.getElementById('new-dev-name').focus();
+        }
+        setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+}
+
+async function loadActivatedDevices() {
+    const t           = window.__i18n.t;
+    const pickerWrap  = document.getElementById('activation-picker-wrap');
+    const divider     = document.getElementById('activation-divider');
+    const hint        = document.getElementById('activation-picker-hint');
+    const picker      = document.getElementById('activation-picker');
+
+    pickerWrap.style.display = 'block';
+    hint.style.display = 'none';
+    picker.innerHTML = `<option value="">${t('pl.loadingDevices')}</option>`;
+    picker.disabled = true;
+
+    try {
+        const res = await fetch('/api/user/devices', {
+            headers: { Authorization: 'Bearer ' + user.token }
+        });
+        if (!res.ok) throw new Error();
+        const all = await res.json();
+
+        const added = new Set((account.devices || []).map(d => d.mac));
+        const available = all.filter(d => !added.has(d.mac_address));
+
+        picker.disabled = false;
+
+        if (all.length === 0) {
+            picker.innerHTML = `<option value="">${t('pl.noActivated')}</option>`;
+            hint.innerHTML = t('pl.noActivatedHint');
+            hint.style.display = 'block';
+            divider.style.display = 'flex';
+        } else if (available.length === 0) {
+            picker.innerHTML = `<option value="">${t('pl.allAdded')}</option>`;
+            divider.style.display = 'flex';
+        } else {
+            picker.innerHTML = `<option value="">${t('pl.selectDevice')}</option>` +
+                available.map(d => {
+                    const plan = d.plano === 'vitalicio' ? t('pl.licLifetime') : t('pl.licAnnual');
+                    const label = [
+                        d.nome_dispositivo || d.mac_address,
+                        d.modelo_dispositivo ? `(${d.modelo_dispositivo})` : '',
+                        `· ${plan}`
+                    ].filter(Boolean).join(' ');
+                    return `<option value="${esc(d.mac_address)}" data-key="${esc(d.device_key||'')}" data-name="${esc(d.nome_dispositivo||'')}">${esc(label)}</option>`;
+                }).join('');
+            divider.style.display = 'flex';
+        }
+    } catch(e) {
+        picker.disabled = false;
+        picker.innerHTML = `<option value="">${t('pl.pickerError')}</option>`;
+        divider.style.display = 'flex';
+    }
+
+    document.getElementById('new-dev-name').focus();
+}
+
+function onActivationSelect(sel) {
+    if (!sel.value) return;
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('new-dev-mac').value  = sel.value;
+    document.getElementById('new-dev-key').value  = opt.dataset.key  || '';
+    document.getElementById('new-dev-name').value = opt.dataset.name || '';
+    document.getElementById('new-dev-name').focus();
+}
+
+async function addDevice() {
+    const t         = window.__i18n.t;
+    const name      = document.getElementById('new-dev-name').value.trim() || t('pl.addDevice');
+    const mac       = document.getElementById('new-dev-mac').value.trim().toLowerCase();
+    const deviceKey = document.getElementById('new-dev-key').value.trim();
+    const errEl     = document.getElementById('add-dev-error');
+    errEl.style.display = 'none';
+
+    if (!mac || !deviceKey) { errEl.textContent = t('pl.errMacKey'); errEl.style.display = 'block'; return; }
+
+    const plName    = document.getElementById('nd-pl-name').value.trim();
+    const plUrl     = document.getElementById('nd-pl-url')?.value.trim()      || '';
+    const plServer  = document.getElementById('nd-pl-server')?.value.trim()   || '';
+    const plUser    = document.getElementById('nd-pl-username')?.value.trim() || '';
+    const plPass    = document.getElementById('nd-pl-password')?.value.trim() || '';
+    const plEpg     = document.getElementById('nd-pl-epg').value.trim();
+    const plProtect = document.getElementById('nd-pl-protect').checked;
+    const plPin     = document.getElementById('nd-pl-pin').value.trim();
+    const plPinC    = document.getElementById('nd-pl-pin-confirm').value.trim();
+    const hasPlaylist = !!(plName && (plUrl || plServer));
+
+    if (hasPlaylist && plProtect && plPin !== plPinC) {
+        errEl.textContent = t('pl.errPinMatch'); errEl.style.display = 'block'; return;
+    }
+
+    const addBtn = document.getElementById('add-dev-btn');
+    addBtn.disabled = true; addBtn.textContent = t('pl.adding');
+
+    try {
+        const alreadyAdded = account.devices.some(d => d.mac === mac);
+        if (!alreadyAdded) {
+            const res  = await fetch('/api/playlists/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ mac, deviceKey }) });
+            const data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || t('pl.errMacKeyWrong'); errEl.style.display = 'block'; return; }
+
+            const newDev = { mac, deviceKey, name };
+            account.devices.push(newDev);
+            localStorage.setItem('ap_account', JSON.stringify(account));
+
+            const section = document.createElement('div');
+            section.className = 'device-section';
+            section.id = 'dev-' + mac.replace(/:/g,'');
+            section.innerHTML = `<div class="device-empty" style="padding:20px;">${t('pl.loadingOf')} <strong>${esc(name)}</strong>…</div>`;
+            document.getElementById('devices-wrap').appendChild(section);
+            renderDeviceSelectors();
+        }
+
+        const dev = account.devices.find(d => d.mac === mac);
+
+        if (hasPlaylist && dev) {
+            addBtn.textContent = t('pl.loadingList');
+            const plBody = { mac: dev.mac, deviceKey: dev.deviceKey, name: plName, type: ndPlType,
+                url: plUrl, server: plServer, username: plUser, password: plPass,
+                epgUrl: plEpg, protected: plProtect, pin: plProtect ? plPin : '' };
+            const plRes = await fetch('/api/playlists/create', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(plBody) });
+            if (!plRes.ok) { errEl.textContent = t('pl.devAddedListErr'); errEl.style.display = 'block'; }
+        }
+
+        ['new-dev-mac','new-dev-key','new-dev-name','nd-pl-name','nd-pl-url','nd-pl-server','nd-pl-username','nd-pl-password','nd-pl-epg'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+        document.getElementById('nd-pl-protect').checked = false;
+        document.getElementById('nd-pin-fields').classList.remove('show');
+        ndSwitchType('url');
+        toggleAddDevice();
+        if (dev) loadDevicePlaylists(dev);
+        toast(hasPlaylist ? t('pl.devAndListAdded') : t('pl.devAdded'), 'ok');
+    } catch(e) {
+        errEl.textContent = t('pl.errServerContact'); errEl.style.display = 'block';
+    } finally {
+        addBtn.disabled = false; addBtn.textContent = t('pl.btnAdd');
+    }
+}
+
+function removeDevice(mac) {
+    const t   = window.__i18n.t;
+    const dev = account.devices.find(d => d.mac === mac);
+    const msg = t('pl.confirmRemoveDev').replace('{name}', dev?.name || mac);
+    if (!confirm(msg)) return;
+    account.devices = account.devices.filter(d => d.mac !== mac);
+    localStorage.setItem('ap_account', JSON.stringify(account));
+    document.getElementById('dev-' + mac.replace(/:/g,''))?.remove();
+    renderDeviceSelectors();
+    if (account.devices.length === 0) logout();
+    else toast(t('pl.devRemoved'), 'ok');
+}
+
+// ── Selectores de dispositivo ─────────────────────────────────────────────────
+function renderDeviceSelectors() {
+    const opts  = account.devices.map(d => `<option value="${esc(d.mac)}">${esc(d.name || d.mac)} — ${esc(d.mac)}</option>`).join('');
+    const plSel = document.getElementById('pl-device-select');
+    if (plSel) plSel.innerHTML = opts;
+
+    const plWrap = document.getElementById('device-selector-wrap');
+    if (plWrap) plWrap.style.display = account.devices.length <= 1 ? 'none' : 'block';
+}
+
+// ── Form de playlist ──────────────────────────────────────────────────────────
+function openPlForm(mac) {
+    addPlMac = mac;
+    const sel = document.getElementById('pl-device-select');
+    if (sel) sel.value = mac;
+    document.getElementById('pl-form-card').style.display = 'block';
+    setTimeout(() => document.getElementById('pl-form-card').scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+}
+function hidePlForm() {
+    document.getElementById('pl-form-card').style.display = 'none';
+}
+
+async function activatePlaylist(id, mac, deviceKey) {
+    const t   = window.__i18n.t;
+    const res = await fetch(`/api/playlists/${id}/activate`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ mac, deviceKey }) });
+    if (res.ok) { toast(t('pl.listActivated'),'ok'); const dev = account.devices.find(d=>d.mac===mac); if(dev) loadDevicePlaylists(dev); }
+    else toast(t('pl.errActivate'),'err');
+}
+
+async function deletePlaylist(id, mac, deviceKey) {
+    const t = window.__i18n.t;
+    if (!confirm(t('pl.confirmRemoveList'))) return;
+    const res = await fetch(`/api/playlists/${id}`, { method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ mac, deviceKey }) });
+    if (res.ok) { toast(t('pl.listRemoved'),'ok'); const dev = account.devices.find(d=>d.mac===mac); if(dev) loadDevicePlaylists(dev); }
+    else toast(t('pl.errRemoveList'),'err');
+}
+
+function switchType(type) {
+    plType = type;
+    ['url','file','xtream','other'].forEach(t => document.getElementById('pltab-'+t)?.classList.toggle('active', t===type));
+    document.getElementById('fields-url').style.display    = (type==='url'||type==='other') ? 'block' : 'none';
+    document.getElementById('fields-file').style.display   = type==='file'   ? 'block' : 'none';
+    document.getElementById('fields-xtream').style.display = type==='xtream' ? 'block' : 'none';
+}
+
+function ndSwitchType(type) {
+    ndPlType = type;
+    ['url','file','xtream','other'].forEach(t => document.getElementById('ndpltab-'+t)?.classList.toggle('active', t===type));
+    document.getElementById('nd-fields-url').style.display    = (type==='url'||type==='other') ? 'block' : 'none';
+    document.getElementById('nd-fields-file').style.display   = type==='file'   ? 'block' : 'none';
+    document.getElementById('nd-fields-xtream').style.display = type==='xtream' ? 'block' : 'none';
+}
+
+document.getElementById('pl-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const t      = window.__i18n.t;
+    const selMac = document.getElementById('pl-device-select').value || addPlMac || account.devices[0]?.mac;
+    const dev    = account.devices.find(d => d.mac === selMac);
+    if (!dev) return;
+
+    const name     = document.getElementById('pl-name').value.trim();
+    const feedback = document.getElementById('pl-feedback');
+    feedback.textContent = ''; feedback.className = 'pl-feedback';
+    if (!name) { feedback.textContent = t('pl.errListName'); feedback.className = 'pl-feedback err'; return; }
+
+    const protect = document.getElementById('pl-protect').checked;
+    if (protect) {
+        const pin = document.getElementById('pl-pin').value.trim();
+        const pinC = document.getElementById('pl-pin-confirm').value.trim();
+        if (!pin || pin !== pinC) { feedback.textContent = t('pl.errPinMismatch'); feedback.className = 'pl-feedback err'; return; }
+    }
+
+    const body = {
+        mac: dev.mac, deviceKey: dev.deviceKey, name, type: plType,
+        url:      document.getElementById('pl-url')?.value.trim() || '',
+        server:   document.getElementById('pl-server')?.value.trim() || '',
+        username: document.getElementById('pl-username')?.value.trim() || '',
+        password: document.getElementById('pl-password')?.value.trim() || '',
+        epgUrl:   document.getElementById('pl-epg').value.trim(),
+        protected: protect,
+        pin: protect ? document.getElementById('pl-pin').value.trim() : ''
+    };
+
+    const btn = document.getElementById('pl-submit');
+    btn.disabled = true; btn.textContent = t('pl.loadingPlaylist');
+    try {
+        const res = await fetch('/api/playlists/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if (res.status === 401) { logout(); return; }
+        if (!res.ok) throw new Error('failed');
+        feedback.textContent = t('pl.listLoaded'); feedback.className = 'pl-feedback ok';
+        toast(t('pl.listLoaded'),'ok');
+        this.reset();
+        document.getElementById('pin-fields').classList.remove('show');
+        switchType('url');
+        hidePlForm();
+        loadDevicePlaylists(dev);
+    } catch(err) {
+        feedback.textContent = t('pl.errLoadList'); feedback.className = 'pl-feedback err';
+    } finally {
+        btn.disabled = false; btn.textContent = t('pl.btnLoad');
+    }
+});
+
+// ── Visibilidade da aba ───────────────────────────────────────────────────────
+document.addEventListener('visibilitychange', () => {
+    if (!account) return;
+    if (document.hidden) { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+    else { loadAllDevices(); if (!pollTimer) pollTimer = setInterval(loadAllDevices, 5000); }
+});
+
+// ── Utilitários ───────────────────────────────────────────────────────────────
+function toggleEye(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    btn.textContent = hidden ? '***' : '👁';
+}
+function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, type='ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'toast ' + type + ' show';
+    setTimeout(() => el.classList.remove('show'), 3200);
+}
+</script>
+<script src="theme.js"></script>
+</body>
+</html>

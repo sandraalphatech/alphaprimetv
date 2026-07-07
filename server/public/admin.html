@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alpha Prime — Painel Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080810;--surface:#12121f;--surface2:#1a1a2e;--accent:#7B35C4;--gold:#D4A843;--text:#e5e7eb;--text2:#9ca3af;--success:#10b981;--error:#ef4444;--warning:#f59e0b;--border:#2d2d4e}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh}
+
+/* LOGIN */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at center,#12082a 0%,#080810 70%)}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;width:360px;display:flex;flex-direction:column;gap:20px;align-items:center}
+.login-logo{font-size:1.6rem;font-weight:900;letter-spacing:6px;color:#fff}
+.login-logo span{color:var(--gold)}
+.login-sub{font-size:.75rem;color:var(--text2);letter-spacing:3px;margin-top:-14px}
+.login-box input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:.95rem;outline:none;transition:border .2s}
+.login-box input:focus{border-color:var(--accent)}
+.btn{padding:11px 22px;border-radius:8px;border:none;cursor:pointer;font-size:.9rem;font-weight:700;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:#6a28b0}
+.btn-sm{padding:6px 14px;font-size:.8rem}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--error);color:#fff}
+.btn-warning{background:var(--warning);color:#000}
+.btn-outline{background:none;border:1px solid var(--border);color:var(--text2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--text)}
+#login-error{color:var(--error);font-size:.85rem;display:none}
+
+/* LAYOUT */
+#app{display:none;min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.logo-text{font-weight:900;letter-spacing:4px;font-size:1.1rem}
+.logo-text span{color:var(--gold)}
+.header-right{display:flex;align-items:center;gap:12px;color:var(--text2);font-size:.85rem}
+.sidebar{position:fixed;left:0;top:56px;bottom:0;width:220px;background:var(--surface);border-right:1px solid var(--border);padding:16px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;color:var(--text2);font-size:.9rem;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface2);color:var(--accent);border-left-color:var(--accent)}
+.nav-item .icon{font-size:1.1rem;width:22px;text-align:center}
+main{margin-left:220px;padding:28px;min-height:calc(100vh - 56px)}
+
+/* CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat-card .num{font-size:2rem;font-weight:800;margin-bottom:4px}
+.stat-card .lbl{font-size:.8rem;color:var(--text2)}
+.stat-card.active .num{color:var(--success)}
+.stat-card.pending .num{color:var(--warning)}
+.stat-card.expiring .num{color:var(--error)}
+.stat-card.total .num{color:var(--accent)}
+
+/* SECTION */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-size:1.1rem;font-weight:700}
+
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--surface2);padding:12px 16px;text-align:left;font-size:.8rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+tbody tr{border-top:1px solid var(--border);transition:background .15s}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:12px 16px;font-size:.88rem}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700}
+.badge-active{background:rgba(16,185,129,.15);color:var(--success)}
+.badge-inactive{background:rgba(239,68,68,.15);color:var(--error)}
+.badge-plan{background:rgba(124,53,196,.15);color:var(--accent)}
+.actions{display:flex;gap:6px}
+
+/* SEARCH */
+.search-bar{display:flex;gap:10px;margin-bottom:16px}
+.search-bar input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:.9rem;outline:none}
+.search-bar input:focus{border-color:var(--accent)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;width:460px;display:flex;flex-direction:column;gap:16px}
+.modal h3{font-size:1.1rem;font-weight:700}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:.82rem;color:var(--text2)}
+.form-group input,.form-group select,.form-group textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-size:.9rem;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select option{background:var(--surface2)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end}
+.mac-highlight{color:var(--gold);font-weight:700;font-family:monospace}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 20px;font-size:.9rem;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--success);color:var(--success)}
+.toast.err{border-color:var(--error);color:var(--error)}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">ALPHA <span>PRIME</span></div>
+    <div class="login-sub">PAINEL ADMIN</div>
+    <input type="text" id="inp-user" placeholder="Utilizador" value="admin">
+    <input type="password" id="inp-pass" placeholder="Senha" value="admin123" onkeydown="if(e.key==='Enter')login()">
+    <div id="login-error">Credenciais inválidas</div>
+    <button class="btn btn-primary" onclick="login()">Entrar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="logo-text">ALPHA <span>PRIME</span> <span style="color:var(--text2);font-size:.7rem;letter-spacing:2px;font-weight:400">ADMIN</span></div>
+    <div class="header-right">
+      <span id="admin-name"></span>
+      <button class="btn btn-outline btn-sm" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <div class="sidebar">
+    <div class="nav-item active" onclick="showSection('dashboard', this)">
+      <span class="icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showSection('devices', this)">
+      <span class="icon">📱</span> Dispositivos
+    </div>
+    <div class="nav-item" onclick="showSection('settings', this)">
+      <span class="icon">⚙️</span> Configurações
+    </div>
+  </div>
+
+  <main>
+    <!-- DASHBOARD -->
+    <div id="section-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card total"><div class="num" id="stat-total">—</div><div class="lbl">Total de Dispositivos</div></div>
+        <div class="stat-card active"><div class="num" id="stat-active">—</div><div class="lbl">Ativados</div></div>
+        <div class="stat-card pending"><div class="num" id="stat-pending">—</div><div class="lbl">Aguardando Ativação</div></div>
+        <div class="stat-card expiring"><div class="num" id="stat-expiring">—</div><div class="lbl">A Expirar em 3 dias</div></div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">Pendentes de Ativação</div>
+        <button class="btn btn-outline btn-sm" onclick="loadDashboard()">🔄 Atualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>MAC Address</th><th>Device Key</th><th>Registado em</th><th>Ação</th></tr></thead>
+          <tbody id="pending-list"><tr><td colspan="4" style="text-align:center;color:var(--text2);padding:24px">A carregar...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DEVICES -->
+    <div id="section-devices" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Todos os Dispositivos</div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="🔍  Pesquisar por MAC, Device Key ou nota..." oninput="searchDevices(this.value)">
+        <button class="btn btn-primary btn-sm" onclick="openActivateModal()">+ Ativar Manualmente</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>MAC Address</th><th>Device Key</th><th>Estado</th><th>Plano</th><th>Expira em</th><th>Notas</th><th>Ações</th></tr></thead>
+          <tbody id="devices-list"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="section-settings" style="display:none">
+      <div class="section-title" style="margin-bottom:20px">Configurações</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:420px;display:flex;flex-direction:column;gap:16px">
+        <h3>Alterar Senha</h3>
+        <div class="form-group"><label>Senha Atual</label><input type="password" id="cp-current" placeholder="••••••••"></div>
+        <div class="form-group"><label>Nova Senha</label><input type="password" id="cp-new" placeholder="••••••••"></div>
+        <div class="form-group"><label>Confirmar Nova Senha</label><input type="password" id="cp-confirm" placeholder="••••••••"></div>
+        <button class="btn btn-primary" onclick="changePassword()">Guardar Nova Senha</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: Ativar dispositivo -->
+<div class="modal-overlay" id="modal-activate">
+  <div class="modal">
+    <h3>Ativar Dispositivo</h3>
+    <div class="form-group">
+      <label>MAC Address</label>
+      <input type="text" id="act-mac" placeholder="ex: aa:bb:cc:dd:ee:ff">
+    </div>
+    <div class="form-group">
+      <label>Plano</label>
+      <select id="act-plan">
+        <option value="basic">Basic</option>
+        <option value="pro" selected>Pro</option>
+        <option value="premium">Premium</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Duração (dias)</label>
+      <input type="number" id="act-days" value="30" min="1" max="3650">
+    </div>
+    <div class="form-group">
+      <label>Notas (opcional)</label>
+      <input type="text" id="act-notes" placeholder="Nome do cliente, etc.">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-success" onclick="activateDevice()">✅ Ativar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';  // mesmo servidor
+let token = localStorage.getItem('ap_token') || '';
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+async function login() {
+  const username = document.getElementById('inp-user').value;
+  const password = document.getElementById('inp-pass').value;
+  const res = await fetch(`${API}/api/admin/login`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ username, password })
+  });
+  if (!res.ok) { document.getElementById('login-error').style.display='block'; return; }
+  const data = await res.json();
+  token = data.token;
+  localStorage.setItem('ap_token', token);
+  document.getElementById('admin-name').textContent = '👤 ' + data.username;
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadDashboard();
+}
+
+function logout() {
+  localStorage.removeItem('ap_token');
+  location.reload();
+}
+
+// Auto-login se token existe
+if (token) {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  document.getElementById('admin-name').textContent = '👤 ' + payload.username;
+  loadDashboard();
+}
+
+// ─── NAVEGAÇÃO ────────────────────────────────────────────────────────────────
+function showSection(name, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('main > div').forEach(s => s.style.display = 'none');
+  el.classList.add('active');
+  document.getElementById('section-' + name).style.display = 'block';
+  if (name === 'devices') loadDevices();
+  if (name === 'dashboard') loadDashboard();
+}
+
+// ─── API HELPER ───────────────────────────────────────────────────────────────
+async function api(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  if (res.status === 401) { logout(); return null; }
+  return res.json();
+}
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const stats = await api('/api/admin/stats');
+  if (!stats) return;
+  document.getElementById('stat-total').textContent    = stats.total;
+  document.getElementById('stat-active').textContent   = stats.active;
+  document.getElementById('stat-pending').textContent  = stats.pending;
+  document.getElementById('stat-expiring').textContent = stats.expiringSoon;
+
+  const devices = await api('/api/admin/devices');
+  const pending = (devices || []).filter(d => d.activated === 0);
+  const tbody = document.getElementById('pending-list');
+
+  if (pending.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text2);padding:24px">Nenhum dispositivo pendente</td></tr>';
+    return;
+  }
+  tbody.innerHTML = pending.map(d => `
+    <tr>
+      <td class="mac-highlight">${d.mac_address}</td>
+      <td style="font-family:monospace;color:var(--gold)">${d.device_key}</td>
+      <td style="color:var(--text2);font-size:.8rem">${formatDate(d.created_at)}</td>
+      <td><button class="btn btn-success btn-sm" onclick="quickActivate('${d.mac_address}')">⚡ Ativar</button></td>
+    </tr>
+  `).join('');
+}
+
+// ─── DEVICES ─────────────────────────────────────────────────────────────────
+async function loadDevices(search = '') {
+  const url = search ? `/api/admin/devices?search=${encodeURIComponent(search)}` : '/api/admin/devices';
+  const devices = await api(url);
+  renderDevices(devices || []);
+}
+
+function renderDevices(devices) {
+  const tbody = document.getElementById('devices-list');
+  if (devices.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text2);padding:24px">Nenhum dispositivo encontrado</td></tr>';
+    return;
+  }
+  tbody.innerHTML = devices.map(d => `
+    <tr>
+      <td class="mac-highlight">${d.mac_address}</td>
+      <td style="font-family:monospace;color:var(--text2)">${d.device_key}</td>
+      <td><span class="badge ${d.activated ? 'badge-active' : 'badge-inactive'}">${d.activated ? '✅ Ativo' : '⏳ Pendente'}</span></td>
+      <td><span class="badge badge-plan">${d.plan || '—'}</span></td>
+      <td style="font-size:.8rem;color:var(--text2)">${d.expires_at ? formatDate(d.expires_at) : '—'}</td>
+      <td style="font-size:.8rem;color:var(--text2)">${d.notes || '—'}</td>
+      <td>
+        <div class="actions">
+          ${d.activated
+            ? `<button class="btn btn-warning btn-sm" onclick="deactivateDevice('${d.mac_address}')">🚫 Desativar</button>`
+            : `<button class="btn btn-success btn-sm" onclick="prefillActivate('${d.mac_address}')">⚡ Ativar</button>`}
+          <button class="btn btn-danger btn-sm" onclick="deleteDevice('${d.mac_address}')">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+let searchTimeout;
+function searchDevices(q) {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => loadDevices(q), 400);
+}
+
+// ─── AÇÕES ────────────────────────────────────────────────────────────────────
+function openActivateModal(mac = '') {
+  document.getElementById('act-mac').value = mac;
+  document.getElementById('act-plan').value = 'pro';
+  document.getElementById('act-days').value = 30;
+  document.getElementById('act-notes').value = '';
+  document.getElementById('modal-activate').classList.add('open');
+}
+
+function prefillActivate(mac) { openActivateModal(mac); }
+function closeModal() { document.getElementById('modal-activate').classList.remove('open'); }
+
+async function activateDevice() {
+  const mac   = document.getElementById('act-mac').value.trim();
+  const plan  = document.getElementById('act-plan').value;
+  const days  = document.getElementById('act-days').value;
+  const notes = document.getElementById('act-notes').value;
+  if (!mac) { toast('Introduza o MAC Address', 'err'); return; }
+  const r = await api('/api/admin/activate', 'POST', { mac, plan, days, notes });
+  if (r?.success) {
+    toast('Dispositivo ativado com sucesso!', 'ok');
+    closeModal();
+    loadDevices();
+    loadDashboard();
+  } else {
+    toast(r?.error || 'Erro ao ativar', 'err');
+  }
+}
+
+async function quickActivate(mac) {
+  const r = await api('/api/admin/activate', 'POST', { mac, plan: 'pro', days: 30 });
+  if (r?.success) { toast('Ativado!', 'ok'); loadDashboard(); }
+  else toast('Erro', 'err');
+}
+
+async function deactivateDevice(mac) {
+  if (!confirm('Desativar este dispositivo?')) return;
+  await api('/api/admin/deactivate', 'POST', { mac });
+  toast('Desativado', 'ok');
+  loadDevices();
+  loadDashboard();
+}
+
+async function deleteDevice(mac) {
+  if (!confirm('Apagar permanentemente?')) return;
+  await api(`/api/admin/devices/${encodeURIComponent(mac)}`, 'DELETE');
+  toast('Removido', 'ok');
+  loadDevices();
+  loadDashboard();
+}
+
+async function changePassword() {
+  const cur  = document.getElementById('cp-current').value;
+  const nw   = document.getElementById('cp-new').value;
+  const conf = document.getElementById('cp-confirm').value;
+  if (nw !== conf) { toast('As senhas não coincidem', 'err'); return; }
+  const r = await api('/api/admin/change-password', 'POST', { currentPassword: cur, newPassword: nw });
+  if (r?.success) toast('Senha alterada!', 'ok');
+  else toast(r?.error || 'Erro', 'err');
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('pt-PT', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + type + ' show';
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// Fechar modal ao clicar fora
+document.getElementById('modal-activate').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>

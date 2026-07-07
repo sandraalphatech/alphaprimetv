@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Prime — Entrar</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>(function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
+    <style>
+        body { min-height: 100vh; display: flex; flex-direction: column; }
+        .login-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 100px 16px 40px; background: radial-gradient(ellipse at 50% 0%, var(--secondary-color), var(--bg-dark) 70%); }
+        .login-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; padding: 40px 36px; width: 100%; max-width: 420px; }
+        .login-logo { text-align: center; margin-bottom: 28px; }
+        .login-logo img { height: 60px; }
+        .login-title { font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 4px; }
+        .login-sub { text-align: center; color: var(--text-muted); font-size: .88rem; margin-bottom: 32px; }
+        .fl { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
+        .fl label { font-size: .82rem; color: var(--text-muted); }
+        .fl-row { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); transition: border-color .2s; }
+        .fl-row:focus-within { border-color: var(--primary-color); }
+        .fl-row input { flex: 1; background: transparent; border: none; padding: 9px 0; color: var(--text-light); font-size: .95rem; outline: none; }
+        .fl-row input::placeholder { color: #4b5563; }
+        .eye-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; font-size: 1rem; }
+        .eye-btn:hover { color: var(--text-light); }
+        .btn-submit { width: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 1rem; font-weight: 800; letter-spacing: .5px; cursor: pointer; transition: opacity .2s; margin-top: 8px; }
+        .btn-submit:hover { opacity: .88; }
+        .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
+        .form-error { color: #ef4444; font-size: .85rem; text-align: center; min-height: 1.2em; margin-top: 10px; }
+        .login-footer { text-align: center; margin-top: 24px; font-size: .88rem; color: var(--text-muted); }
+        .login-footer a { color: var(--primary-color); text-decoration: none; font-weight: 700; }
+        .login-footer a:hover { text-decoration: underline; }
+        .divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--text-muted); font-size: .8rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+        input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus,textarea:-webkit-autofill,select:-webkit-autofill {-webkit-box-shadow: 0 0 0px 1000px #1f2937 inset !important; -webkit-text-fill-color: #fff !important; caret-color: #fff; transition: background-color transparent ease-in-out 0s;}
+        html[data-theme="light"] input:-webkit-autofill,html[data-theme="light"] input:-webkit-autofill:hover,html[data-theme="light"] input:-webkit-autofill:focus {-webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important; -webkit-text-fill-color: #1e293b !important; caret-color: #1e293b;}
+        .forgot-link { display: block; text-align: right; font-size: .8rem; color: var(--text-muted); text-decoration: none; margin-top: -12px; margin-bottom: 20px; }
+        .forgot-link:hover { color: var(--primary-color); }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); z-index: 999; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px; margin: 16px; }
+        .modal-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
+        .modal-sub { font-size: .85rem; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+        .modal-success { text-align: center; padding: 12px 0; }
+        .modal-success .check-icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .modal-success p { color: var(--text-muted); font-size: .9rem; line-height: 1.6; }
+        .btn-modal { width: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; padding: 13px; font-size: .95rem; font-weight: 700; cursor: pointer; transition: opacity .2s; margin-top: 4px; }
+        .btn-modal:hover { opacity: .88; }
+        .btn-modal:disabled { opacity: .5; cursor: not-allowed; }
+        .btn-modal-ghost { width: 100%; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 10px; padding: 12px; font-size: .9rem; cursor: pointer; margin-top: 10px; transition: border-color .2s; }
+        .btn-modal-ghost:hover { border-color: var(--primary-color); color: var(--text-light); }
+        .email-choice-btn { width: 100%; background: var(--bg-dark,#0f172a); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 4px; transition: border-color .2s, background .2s; }
+        .email-choice-btn:hover { border-color: var(--primary-color); background: rgba(109,40,217,.08); }
+        .email-choice-btn .choice-label { font-size: .75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+        .email-choice-btn .choice-addr { font-size: .95rem; color: var(--text-light); font-weight: 600; }
+    </style>
+</head>
+<body data-page-title="login.pageTitle">
+<nav class="navbar">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <img src="icons/logoheader.png" class="logo">
+            <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav.home">Início</a></li>
+            <li><a href="index.html#features" data-i18n="nav.features">Funcionalidades</a></li>
+            <li><a href="index.html#download" data-i18n="nav.download">Download</a></li>
+            <li><a href="index.html#contact" data-i18n="nav.contact">Contato</a></li>
+        </ul>
+        <div class="nav-auth">
+            <button class="btn-nav-login" onclick="window.location.href='login.html'" data-i18n="nav.login">Entrar</button>
+        </div>
+        <button class="theme-toggle" title="Modo claro">☀️</button>
+        <button class="menu-toggle">☰</button>
+    </div>
+</nav>
+
+<div class="login-page">
+    <div class="login-card">
+        <div class="login-logo">
+            <img src="icons/logo.png" alt="Alpha Prime">
+        </div>
+        <h1 class="login-title" data-i18n="login.welcome">Bem-vindo de volta</h1>
+        <p class="login-sub" data-i18n="login.sub">Entre na sua conta Alpha Prime</p>
+
+        <div class="fl">
+            <label data-i18n="login.email">Email</label>
+            <div class="fl-row">
+                <input type="email" id="email" data-i18n-ph="ph.loginEmail" placeholder="o_seu@email.com" autocomplete="email" autofocus>
+            </div>
+        </div>
+        <div class="fl">
+            <label data-i18n="login.password">Senha</label>
+            <div class="fl-row">
+                <input type="password" id="senha" data-i18n-ph="ph.loginPw" placeholder="A sua senha" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+                <button class="eye-btn" onclick="toggleEye('senha',this)">👁</button>
+            </div>
+        </div>
+
+        <a href="#" class="forgot-link" id="forgot-link" onclick="openForgot();return false;">Esqueci minha senha</a>
+
+        <button class="btn-submit" id="btn-login" onclick="doLogin()" data-i18n="login.btn">ENTRAR</button>
+        <p class="form-error" id="form-error"></p>
+
+        <div class="divider" data-i18n="login.or">ou</div>
+        <div class="login-footer">
+            <span data-i18n="login.noAccount">Não tem Cadastro?</span> <a href="cadastro.html" data-i18n="login.createLink">Crie sua conta</a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Esqueci minha senha -->
+<div class="modal-overlay" id="forgot-modal">
+    <div class="modal-box">
+        <!-- Passo 1: informar email -->
+        <div id="forgot-step-form">
+            <p class="modal-title">Esqueci minha senha</p>
+            <p class="modal-sub">Informe o email da sua conta. Enviaremos um link para você criar uma nova senha.</p>
+            <div class="fl">
+                <label>Email</label>
+                <div class="fl-row">
+                    <input type="email" id="forgot-email" placeholder="o_seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')submitForgot()">
+                </div>
+            </div>
+            <p class="form-error" id="forgot-error"></p>
+            <button class="btn-modal" id="btn-forgot" onclick="submitForgot()">Enviar link</button>
+            <button class="btn-modal-ghost" onclick="closeForgot()">Cancelar</button>
+        </div>
+        <!-- Passo 2: escolher destino (quando há email secundário) -->
+        <div id="forgot-step-choose" style="display:none;">
+            <p class="modal-title">Para onde enviar?</p>
+            <p class="modal-sub">Escolha onde deseja receber o link de redefinição de senha.</p>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;">
+                <button class="email-choice-btn" id="btn-choose-primary" onclick="sendForgot('primary')">
+                    <span class="choice-label">Email principal</span>
+                    <span class="choice-addr" id="masked-primary"></span>
+                </button>
+                <button class="email-choice-btn" id="btn-choose-secondary" onclick="sendForgot('secondary')">
+                    <span class="choice-label">Email secundário</span>
+                    <span class="choice-addr" id="masked-secondary"></span>
+                </button>
+            </div>
+            <p class="form-error" id="forgot-choose-error"></p>
+            <button class="btn-modal-ghost" onclick="forgotBack()">Voltar</button>
+        </div>
+        <!-- Passo 3: sucesso -->
+        <div id="forgot-step-success" style="display:none;">
+            <div class="modal-success">
+                <div class="check-icon">✉️</div>
+                <p class="modal-title" style="text-align:center;margin-bottom:10px;">Email enviado!</p>
+                <p>O link de redefinição foi enviado. Verifique também a caixa de spam.</p>
+            </div>
+            <button class="btn-modal" style="margin-top:24px;" onclick="closeForgot()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Redefinir senha (via link no email) -->
+<div class="modal-overlay" id="reset-modal">
+    <div class="modal-box">
+        <div id="reset-step-form">
+            <p class="modal-title">Nova senha</p>
+            <p class="modal-sub">Digite e confirme a sua nova senha.</p>
+            <div class="fl">
+                <label>Nova senha</label>
+                <div class="fl-row">
+                    <input type="password" id="reset-pw1" placeholder="Mínimo 6 caracteres" onkeydown="if(event.key==='Enter')submitReset()">
+                    <button class="eye-btn" onclick="toggleEye('reset-pw1',this)">👁</button>
+                </div>
+            </div>
+            <div class="fl">
+                <label>Confirmar senha</label>
+                <div class="fl-row">
+                    <input type="password" id="reset-pw2" placeholder="Repita a nova senha" onkeydown="if(event.key==='Enter')submitReset()">
+                </div>
+            </div>
+            <p class="form-error" id="reset-error"></p>
+            <button class="btn-modal" id="btn-reset" onclick="submitReset()">Salvar nova senha</button>
+        </div>
+        <div id="reset-step-success" style="display:none;">
+            <div class="modal-success">
+                <div class="check-icon">✅</div>
+                <p class="modal-title" style="text-align:center;margin-bottom:10px;">Senha alterada!</p>
+                <p>Sua nova senha foi definida com sucesso. Agora você pode entrar na sua conta.</p>
+            </div>
+            <button class="btn-modal" style="margin-top:24px;" onclick="closeReset()">Entrar agora</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer">
+        <p data-i18n="footer.rights">&copy; 2026 Alpha Prime. Todos os direitos reservados.</p>
+        <div class="footer-links">
+            <a href="legal.html" data-i18n="footer.terms">Termos de Uso</a>
+        </div>
+    </div>
+</footer>
+
+<script src="theme.js"></script>
+<script src="i18n.js"></script>
+<script src="script.js"></script>
+<script>
+    const existing = localStorage.getItem('ap_user');
+    if (existing) window.location.replace('playlists.html');
+
+    // Verifica se URL tem token de redefinição
+    const resetToken = new URLSearchParams(window.location.search).get('reset');
+    if (resetToken) {
+        document.getElementById('reset-modal').classList.add('open');
+        history.replaceState(null, '', 'login.html');
+    }
+
+    function openForgot() {
+        _forgotEmail = '';
+        document.getElementById('forgot-email').value = '';
+        document.getElementById('forgot-error').textContent = '';
+        document.getElementById('forgot-choose-error').textContent = '';
+        document.getElementById('forgot-step-form').style.display = '';
+        document.getElementById('forgot-step-choose').style.display = 'none';
+        document.getElementById('forgot-step-success').style.display = 'none';
+        document.getElementById('forgot-modal').classList.add('open');
+        setTimeout(() => document.getElementById('forgot-email').focus(), 100);
+    }
+
+    function closeForgot() {
+        document.getElementById('forgot-modal').classList.remove('open');
+    }
+
+    let _forgotEmail = '';
+
+    async function submitForgot() {
+        const email = document.getElementById('forgot-email').value.trim();
+        const errEl = document.getElementById('forgot-error');
+        errEl.textContent = '';
+        if (!email) { errEl.textContent = 'Informe o seu email.'; return; }
+
+        const btn = document.getElementById('btn-forgot');
+        btn.disabled = true; btn.textContent = 'Verificando...';
+
+        try {
+            const res = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Erro ao enviar. Tente novamente.'; return; }
+
+            if (data.step === 'choose') {
+                _forgotEmail = email;
+                document.getElementById('masked-primary').textContent = data.maskedPrimary;
+                document.getElementById('masked-secondary').textContent = data.maskedSecondary;
+                document.getElementById('forgot-step-form').style.display = 'none';
+                document.getElementById('forgot-step-choose').style.display = '';
+            } else {
+                document.getElementById('forgot-step-form').style.display = 'none';
+                document.getElementById('forgot-step-success').style.display = '';
+            }
+        } catch {
+            errEl.textContent = 'Erro ao enviar. Tente novamente.';
+        } finally {
+            btn.disabled = false; btn.textContent = 'Enviar link';
+        }
+    }
+
+    async function sendForgot(sendTo) {
+        const errEl = document.getElementById('forgot-choose-error');
+        errEl.textContent = '';
+        const btnId = sendTo === 'primary' ? 'btn-choose-primary' : 'btn-choose-secondary';
+        const btn = document.getElementById(btnId);
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: _forgotEmail, sendTo })
+            });
+            const data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Erro ao enviar. Tente novamente.'; return; }
+            document.getElementById('forgot-step-choose').style.display = 'none';
+            document.getElementById('forgot-step-success').style.display = '';
+        } catch {
+            errEl.textContent = 'Erro de conexão. Tente novamente.';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function forgotBack() {
+        document.getElementById('forgot-step-choose').style.display = 'none';
+        document.getElementById('forgot-step-form').style.display = '';
+    }
+
+    function closeReset() {
+        document.getElementById('reset-modal').classList.remove('open');
+    }
+
+    async function submitReset() {
+        const pw1 = document.getElementById('reset-pw1').value;
+        const pw2 = document.getElementById('reset-pw2').value;
+        const errEl = document.getElementById('reset-error');
+        errEl.textContent = '';
+
+        if (!pw1 || !pw2) { errEl.textContent = 'Preencha os dois campos.'; return; }
+        if (pw1.length < 6) { errEl.textContent = 'A senha deve ter pelo menos 6 caracteres.'; return; }
+        if (pw1 !== pw2) { errEl.textContent = 'As senhas não coincidem.'; return; }
+
+        const btn = document.getElementById('btn-reset');
+        btn.disabled = true; btn.textContent = 'Salvando...';
+
+        try {
+            const res = await fetch('/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: resetToken, newPassword: pw1 })
+            });
+            const data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || 'Erro ao redefinir senha.'; return; }
+            document.getElementById('reset-step-form').style.display = 'none';
+            document.getElementById('reset-step-success').style.display = '';
+        } catch {
+            errEl.textContent = 'Erro de conexão. Tente novamente.';
+        } finally {
+            btn.disabled = false; btn.textContent = 'Salvar nova senha';
+        }
+    }
+
+    // Fecha modais ao clicar fora
+    document.getElementById('forgot-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeForgot();
+    });
+    document.getElementById('reset-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeReset();
+    });
+
+    function toggleEye(id, btn) {
+        const input = document.getElementById(id);
+        const hide = input.type === 'password';
+        input.type = hide ? 'text' : 'password';
+        btn.textContent = hide ? '🙈' : '👁';
+    }
+
+    async function doLogin() {
+        const t = window.__i18n.t;
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('senha').value;
+        const errEl = document.getElementById('form-error');
+        errEl.textContent = '';
+
+        if (!email || !senha) { errEl.textContent = t('login.errEmpty'); return; }
+
+        const btn = document.getElementById('btn-login');
+        btn.disabled = true; btn.textContent = t('login.loading');
+
+        try {
+            const res  = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+            const data = await res.json();
+            if (!res.ok) { errEl.textContent = data.error || t('login.errGeneric'); return; }
+
+            localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email }));
+
+            const next = new URLSearchParams(window.location.search).get('next') || 'playlists.html';
+            window.location.replace(next);
+        } catch(e) {
+            errEl.textContent = t('login.errServer');
+        } finally {
+            btn.disabled = false; btn.textContent = t('login.btn');
+        }
+    }
+</script>
+</body>
+</html>

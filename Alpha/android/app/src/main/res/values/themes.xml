@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AlphaPrime" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:statusBarColor">#0f172a</item>
+        <item name="android:navigationBarColor">#0f172a</item>
+        <!-- Sem isto, o Android mostra por instantes a "starting window" do
+             sistema (ícone/fundo do launcher ou do que estava aberto antes)
+             enquanto a app ainda não desenhou o primeiro frame — em alguns
+             aparelhos/emuladores isso aparece como um fundo/animação do
+             próprio sistema, não da nossa app. Desativa essa pré-visualização
+             e vai direto ao nosso windowBackground preto. -->
+        <item name="android:windowDisablePreview">true</item>
+    </style>
+</resources>

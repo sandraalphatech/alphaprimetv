@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.alphaprime.tv.app-mergeDebugResources-35:/layout/activity_main.xml",
+        "source": "com.alphaprime.tv.app-main-38:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.alphaprime.tv.app-mergeDebugResources-35:/layout/activity_settings.xml",
+        "source": "com.alphaprime.tv.app-main-38:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.alphaprime.tv.app-mergeDebugResources-35:/layout/item_channel.xml",
+        "source": "com.alphaprime.tv.app-main-38:/layout/item_channel.xml"
+    },
+    {
+        "merged": "com.alphaprime.tv.app-mergeDebugResources-35:/layout/activity_splash.xml",
+        "source": "com.alphaprime.tv.app-main-38:/layout/activity_splash.xml"
+    }
+]

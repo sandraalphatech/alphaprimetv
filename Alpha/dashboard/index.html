@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Prime - Streaming de TV ao Vivo</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        (function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+    </script>
+</head>
+<body data-page-title="index.pageTitle">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <img src="icons/logoheader.png" class="logo">
+                <span class="logo2"><img src = "icons/logoheader2.png" alt="Alpha Prime"></span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home" data-i18n="nav.home">Início</a></li>
+                <li><a href="#features" data-i18n="nav.features">Funcionalidades</a></li>
+                <li><a href="#download" data-i18n="nav.download">Download</a></li>
+                <li><a href="#contact" data-i18n="nav.contact">Contato</a></li>
+            </ul>
+            <div class="nav-auth">
+                <button class="btn-nav-login" id="btn-header-login" data-i18n="nav.login">Entrar</button>
+                <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
+                    <button class="user-avatar-btn" id="nav-user-toggle">
+                        <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
+                        <span style="font-size:.7rem;color:#9ca3af;">▾</span>
+                    </button>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <a href="activate.html" data-i18n="nav.activateApp">🎬 Ativar App</a>
+                        <a href="playlists.html" data-i18n="nav.manageLists">📋 Gerir minhas listas</a>
+                        <a href="profile.html" data-i18n="nav.editProfile">👤 Alterar meus dados</a>
+                        <a href="parental.html" data-i18n="nav.parentalCtrl">🔒 Gerir canais bloqueados</a>
+                        <hr style="border:none;border-top:1px solid #2d2d4e;margin:4px 0;">
+                        <button id="dd-logout" style="color:#ef4444;" data-i18n="nav.logout">🚪 Deslogar</button>
+                    </div>
+                </div>
+            </div>
+            <button class="theme-toggle" title="Modo claro">☀️</button>
+            <button class="menu-toggle">☰</button>
+        </div>
+    </nav>
+
+    <!-- Trial Banner -->
+    <div class="trial-banner">
+        <span class="trial-banner-icon">🎁</span>
+        <span data-i18n="index.trialBanner">Período experimental gratuito de <strong>7 dias</strong> — experimente sem compromisso!</span>
+        <a href="#download" class="trial-banner-cta" data-i18n="index.trialBannerCta">Começar grátis</a>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="tv-mockup">
+            <div class="tv">
+                <div class="tv-screen">
+                <div class="tv-content">
+                <div class="hero-content"><img src="icons/logo.png" alt="Alpha Prime"><p class="subtitle" data-i18n="index.heroSubtitle">A forma mais inteligente de assistir TV ao Vivo</p>
+                    <p class="description" data-i18n="index.heroDesc">Qualidade 4K • Milhares de Canais • EPG em Tempo Real • Sem Publicidade</p>
+                </div>
+                <div class="tv-image"><img src="imagem.jpg" alt=""></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-buttons">
+        <a href="#download" class="btn btn-primary" data-i18n="index.btnDownload">Baixar Agora</a>
+        <a href="#features" class="btn btn-secondary" data-i18n="index.btnFeatures">Ver Funcionalidades</a>
+    </div>
+
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 data-i18n="index.featTitle">Tudo o que você precisa para uma experiência completa de entretenimento</h2>
+            <p class="section-subtitle" data-i18n="index.featSub"> Instale em minutos e comece a assistir com máxima qualidade. </p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <img src="icons/smart-tv.png">
+                    <h3 data-i18n="feat1.title">Milhares de Canais</h3>
+                    <p data-i18n="feat1.desc">Assista aos principais canais de filmes, séries, esportes, notícias, infantis e muito mais em um só lugar.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/stream.png">
+                    <h3 data-i18n="feat2.title">Nunca perca um programa</h3>
+                    <p data-i18n="feat2.desc">Consulte a programação completa em tempo real e descubra o que está passando agora e a seguir.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/rec.png">
+                    <h3 data-i18n="feat3.title">Assista no seu tempo</h3>
+                    <p data-i18n="feat3.desc">Grave seus programas favoritos e veja quando quiser, sem depender dos horários da TV.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/4k.png">
+                    <h3 data-i18n="feat4.title">Imagem em até 4K</h3>
+                    <p data-i18n="feat4.desc">Qualidade impressionante com transmissão estável e adaptação automática à sua conexão.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/multi.png">
+                    <h3 data-i18n="feat5.title">Uma conta, vários dispositivos</h3>
+                    <p data-i18n="feat5.desc">Continue assistindo na Smart TV, celular, tablet ou computador, onde estiver.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/lupa.png">
+                    <h3 data-i18n="feat6.title">Encontre tudo rapidamente</h3>
+                    <p data-i18n="feat6.desc">Busque canais por nome, categoria, país ou idioma em poucos segundos.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/star.png">
+                    <h3 data-i18n="feat7.title">Seus favoritos sempre à mão</h3>
+                    <p data-i18n="feat7.desc">Organize seus canais preferidos e continue de onde parou sempre que voltar.</p>
+                </div>
+                <div class="feature-card">
+                    <img src="icons/security.png">
+                    <h3 data-i18n="feat8.title">Segurança e estabilidade</h3>
+                    <p data-i18n="feat8.desc">Conexão protegida, desempenho otimizado e privacidade para você assistir com tranquilidade.</p>
+                </div>
+            </div>
+             <div class="features-cta">
+                <h2 data-i18n="index.ctaTitle">Comece a assistir em menos de 2 minutos</h2>
+                <p data-i18n="index.ctaDesc">Tenha acesso a milhares de canais, filmes e séries com qualidade premium. Instalação rápida, suporte especializado e compatibilidade com Smart TVs, celulares e computadores.</p>
+                <a href="#download" class="btn btn-cta" data-i18n="index.ctaBtn">Testar Agora</a>
+             </div>
+        </div>
+    </section>
+
+    <section class="screenshots">
+    <div class="container">
+        <h2 data-i18n="index.screenshotsTitle">Conheça a experiência Alpha Prime</h2>
+
+        <div class="screenshots-grid">
+
+            <div class="screenshot">
+                <div class="tv-frame">
+                    <img src="screens/interface.png" alt="Lista de Canais">
+                </div>
+                <h4 data-i18n="scr1.title">Interface Moderna</h4>
+                <p data-i18n="scr1.desc">Acesse TV ao vivo, filmes, séries e configurações em uma interface rápida, elegante e intuitiva.</p>
+            </div>
+
+            <div class="screenshot">
+                <div class="tv-frame">
+                    <img src="screens/lista.png" alt="EPG">
+                </div>
+                <h4 data-i18n="scr2.title">Guia Inteligente de Canais</h4>
+                <p data-i18n="scr2.desc">Consulte a programação dos canais enquanto assiste e descubra o que está passando agora e a seguir.</p>
+            </div>
+
+            <div class="screenshot">
+                <div class="tv-frame">
+                    <img src="screens/series.png" alt="Player">
+                </div>
+                <h4 data-i18n="scr3.title">Filmes e Séries Sob Demanda</h4>
+                <p data-i18n="scr3.desc">Encontre seus títulos favoritos organizados por categorias e comece a assistir em segundos.</p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+    <!-- Download Section -->
+    <section id="download" class="download">
+        <div class="container">
+            <h2 data-i18n="index.downloadTitle">Instale onde você preferir</h2>
+            <p class="download-subtitle" data-i18n="index.downloadSub">O Alpha Prime está disponível para smartphones, tablets, Android TV, TV Box e Smart TVs compatíveis.</p>
+            <div class="download-buttons">
+                <a href="#" class="download-btn">
+                   <img src="icons/google.png">
+                    <div class="store-text">
+                        <strong>Google Play</strong>
+                        <small data-i18n="index.googlePlaySub">Baixe pelo seu smartphone ou tablet.</small>
+                    </div>
+                </a>
+
+                <a href="#" class="download-btn">
+                    <img src ="icons/smarttvt.png">
+                    <div class="store-text">
+                        <strong>Android TV / Smart TV</strong>
+                        <small data-i18n="index.smartTVSub">Baixe Alpha Prime na Google Play da sua TV</small>
+                    </div>
+                </a>
+            </div>
+            <div class="system-requirements">
+                <h4 data-i18n="index.minReqs">Requisitos Mínimos</h4>
+                <p>INCLUIR AQUI AINDA</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2 data-i18n="index.contactTitle">Fale Conosco</h2>
+            <p class="contact-subtitle" data-i18n="index.contactSub">Tem alguma dúvida ou sugestão? Envie nos um e-mail.</p>
+            <div class="contact-content">
+                <div class="contact-form">
+                    <form id="contact-form">
+                        <div class="form-group">
+                            <label for="contact-name" data-i18n="contact.name">Nome</label>
+                            <input type="text" id="contact-name" name="name" data-i18n-ph="ph.yourName" placeholder="Seu Nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-email" data-i18n="contact.email">Email</label>
+                            <input type="email" id="contact-email" name="email" data-i18n-ph="ph.yourEmail" placeholder="Seu Email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-phone" data-i18n="contact.phone">Telefone</label>
+                            <input type="tel" id="contact-phone" name="phone" data-i18n-ph="ph.yourPhone" placeholder="Seu Telefone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-message" data-i18n="contact.message">Mensagem</label>
+                            <textarea id="contact-message" name="message" data-i18n-ph="ph.yourMessage" placeholder="Sua Mensagem" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-ctt contact-submit" data-i18n="contact.send">Enviar</button>
+                        <p class="form-feedback" aria-live="polite"></p>
+                    </form>
+                </div>
+            </div>
+            <div class="contact-info">
+                <ul class="contact-info-list">
+                    <li>
+                        <span class="contact-info-icon"></span>
+                        <div>
+                            <strong data-i18n="contact.support">Suporte</strong>
+                            <a href="mailto:contato@alphaprimetv.com">contato@alphaprimetv.com</a>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="contact-info-icon"></span>
+                        <div></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+<footer>
+    <div class="footer">
+        <p data-i18n="footer.rights">&copy; 2026 Alpha Prime. Todos os direitos reservados.</p>
+        <div class="footer-links">
+            <a href="legal.html" data-i18n="footer.terms">Termos de Uso e Politicas de Privacidade (Documentos Legais)</a>
+        </div>
+    </div>
+</footer>
+
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
+    <script src="auth-header.js"></script>
+    <script src="theme.js"></script>
+</body>
+</html>

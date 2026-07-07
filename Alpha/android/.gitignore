@@ -1,0 +1,63 @@
+# Gradle
+.gradle/
+build/
+*.apk
+*.aab
+*.ap_
+
+# Android
+.DS_Store
+.idea/
+*.iml
+local.properties
+.classpath
+.project
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Compiled Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle wrapper
+gradle/wrapper/gradle-wrapper.properties
+
+# Private signing key
+*.keystore
+*.jks
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+
+# Linux
+.directory
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+.ktlint-format

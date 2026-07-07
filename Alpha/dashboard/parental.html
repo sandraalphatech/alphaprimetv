@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Prime — Canais Bloqueados</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        (function(){var t=localStorage.getItem('velvet-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();
+    </script>
+    <style>
+        .page-area { padding-top: 80px; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, var(--secondary-color), var(--bg-dark) 70%); }
+        .page-hero { padding: 48px 20px 8px; text-align: center; }
+        .page-hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--text-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-hero p  { color: #9ca3af; margin-top: 8px; }
+        .pl-wrap { padding: 32px 16px 64px; }
+
+        .fl { width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 22px; }
+        .fl label { font-size: .82rem; color: #9ca3af; }
+        .fl-row { display: flex; align-items: center; gap: 8px; }
+        .fl input { background: transparent; border: none; border-bottom: 1px solid var(--border-color); border-radius: 0; padding: 8px 0; color: var(--text-light); font-size: .92rem; outline: none; transition: border-color .2s; width: 100%; }
+        .fl input:focus { border-color: var(--primary-color); }
+        .fl input::placeholder { color: #4b5563; }
+        .eye-toggle { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 1rem; padding: 4px; }
+        .eye-toggle:hover { color: var(--text-light); }
+
+        .user-dropdown hr { border: none; border-top: 1px solid var(--border-color); margin: 4px 0; }
+        .dd-danger { color: #ef4444!important; }
+
+        .not-logged-in { max-width: 460px; margin: 0 auto; text-align: center; padding: 56px 20px; }
+        .not-logged-in .icon { font-size: 3.5rem; margin-bottom: 16px; }
+        .not-logged-in h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+        .not-logged-in p { color: #9ca3af; font-size: .9rem; margin-bottom: 28px; line-height: 1.6; }
+        .btn-big-login { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity .2s; }
+        .btn-big-login:hover { opacity: .88; }
+
+        .pl-card { max-width: 640px; margin: 20px auto 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; }
+        .btn-carregar { display: block; margin: 24px auto 0; min-width: 200px; background: #7B35C4; color: #fff; border: none; border-radius: 8px; padding: 13px 32px; font-size: .95rem; font-weight: 800; letter-spacing: .5px; cursor: pointer; transition: background .2s; }
+        .btn-carregar:hover { background: #a78bfa; }
+        .btn-carregar:disabled { opacity: .5; cursor: not-allowed; }
+        .cbtn-link { background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: .85rem; font-weight: 700; padding: 0; text-decoration: none; text-align: center; }
+        .pl-feedback { text-align: center; font-size: .85rem; }
+        .pl-feedback.ok  { color: #10b981; }
+        .pl-feedback.err { color: #ef4444; }
+        .pin-fields { display: none; flex-direction: column; }
+        .pin-fields.show { display: flex; }
+
+        .dev-sel-wrap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 22px; }
+        .dev-sel-wrap label { font-size: .82rem; color: #9ca3af; }
+        .dev-sel-wrap select { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); padding: 9px 12px; font-size: .92rem; outline: none; }
+        .dev-sel-wrap select:focus { border-color: var(--primary-color); }
+
+        .parental-title { font-size: 1rem; color: var(--text-light); margin-bottom: 6px; }
+        .parental-sub { color: #9ca3af; font-size: .82rem; line-height: 1.5; margin-bottom: 18px; }
+        .parental-divider { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; }
+        .parental-locked-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
+        .parental-locked-name { display: flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 600; }
+        .btn-unlock { background: none; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: .78rem; font-weight: 700; }
+        .btn-unlock:hover { background: var(--primary-color); color: #fff; }
+        .device-empty { text-align: center; color: #9ca3af; font-size: .85rem; padding: 18px; }
+        .parental-forgot { text-align: start; font-size: .8rem; color: #9ca3af; margin-top: 16px; }
+        .parental-forgot a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
+
+        .parental-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
+        .parental-modal-overlay.open { display: flex; }
+        .parental-modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 28px; width: 100%; max-width: 360px; }
+        .parental-modal h3 { font-size: 1rem; margin-bottom: 16px; color: var(--text-light); }
+        .parental-modal h3 span { color: var(--primary-color); }
+        .parental-modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .parental-modal-actions .btn-carregar { margin: 0; flex: 1; min-width: 0; }
+        .cbtn-outline-btn { background: none; border: 1px solid var(--border-color); color: #9ca3af; border-radius: 8px; padding: 13px; cursor: pointer; font-size: .9rem; font-weight: 700; transition: all .15s; }
+        .cbtn-outline-btn:hover { border-color: var(--primary-color); color: var(--text-light); }
+
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 20px; font-size: .88rem; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all .3s; max-width: 300px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.ok  { border-color: #10b981; color: #10b981; }
+        .toast.err { border-color: #ef4444; color: #ef4444; }
+
+        @media(max-width:768px) { .page-hero h1 { font-size: 1.8rem; } .pl-card { padding: 20px; } }
+        @media(max-width:480px) { .page-hero { padding: 32px 16px 8px; } .pl-card { padding: 16px; } }
+    </style>
+</head>
+<body data-page-title="par.pageTitle">
+
+<nav class="navbar">
+    <div class="container">
+        <a href="index.html" class="logo">
+            <img src="icons/logoheader.png" class="logo">
+            <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav.home">Início</a></li>
+            <li><a href="index.html#features" data-i18n="nav.features">Funcionalidades</a></li>
+            <li><a href="index.html#download" data-i18n="nav.download">Download</a></li>
+            <li><a href="index.html#contact" data-i18n="nav.contact">Contato</a></li>
+        </ul>
+        <div class="nav-auth">
+            <button class="btn-nav-login" id="btn-header-login" onclick="window.location.href='login.html'" data-i18n="nav.login">Entrar</button>
+            <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
+                <button class="user-avatar-btn" id="nav-user-toggle">
+                    <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
+                    <span id="nav-username" data-i18n="nav.user"></span>
+                    <span style="font-size:.7rem;color:#9ca3af;">▾</span>
+                </button>
+                <div class="user-dropdown" id="user-dropdown">
+                    <a href="activate.html" data-i18n="nav.activateApp">🎬 Ativar App</a>
+                    <a href="playlists.html" data-i18n="nav.manageLists">📋 Gerir minhas listas</a>
+                    <a href="profile.html" data-i18n="nav.editProfile">👤 Alterar meus dados</a>
+                    <a href="parental.html" class="active" data-i18n="nav.parentalCtrl">🔒 Gerir canais bloqueados</a>
+                    <hr style="border:none;border-top:1px solid #2d2d4e;margin:4px 0;">
+                    <button id="dd-logout" style="color:#ef4444;" data-i18n="nav.logout">🚪 Deslogar</button>
+                </div>
+            </div>
+        </div>
+        <button class="theme-toggle" title="Modo claro">☀️</button>
+        <button class="menu-toggle">☰</button>
+    </div>
+</nav>
+
+<div class="page-area">
+    <div class="page-hero">
+        <h1 data-i18n="par.h1">Canais Bloqueados</h1>
+        <p data-i18n="par.sub">Gira a senha e desbloqueia categorias remotamente</p>
+    </div>
+
+    <div class="pl-wrap">
+
+        <div id="section-login" style="display:none">
+            <div class="not-logged-in">
+                <div class="icon">🔒</div>
+                <h2 data-i18n="par.restricted">Acesso restrito</h2>
+                <p data-i18n="par.loginRequired">Faça login para gerir o bloqueio de canais dos seus dispositivos.</p>
+                <button class="btn-big-login" onclick="window.location.href='login.html'" data-i18n="par.loginBtn">Entrar na minha conta</button>
+            </div>
+        </div>
+
+        <div id="section-app" style="display:none">
+            <div class="pl-card">
+                <h3 class="parental-title" data-i18n="par.blockTitle">Bloqueio de Canais por Senha</h3>
+                <p class="parental-sub" data-i18n="par.blockSub">O bloqueio acontece dentro do aplicativo — aqui gere a senha e desbloqueia categorias remotamente.</p>
+
+                <div class="dev-sel-wrap" id="parental-dev-sel-wrap">
+                    <label data-i18n="par.device">Dispositivo</label>
+                    <select id="parental-device-select" onchange="selectDevice(this.value)"></select>
+                </div>
+
+                <p id="parental-client-name" style="font-size:.82rem;color:#9ca3af;margin:-10px 0 14px;display:none;">Cliente: <span id="parental-client-name-val"></span></p>
+
+                <div id="parental-locked-wrap"><div class="device-empty" data-i18n="par.noBlocked">Sem canais bloqueados</div></div>
+                <hr class="parental-divider">
+
+                <div id="parental-set-wrap" style="display:none">
+                    <div class="fl"><label data-i18n="par.setPin">Definir senha</label><div class="fl-row"><input type="password" id="parental-new-pin" data-i18n-ph="ph.parPin" placeholder="Mínimo 4 dígitos" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('parental-new-pin',this)">👁</button></div></div>
+                    <div class="fl"><label data-i18n="par.confirmPin">Confirmar senha</label><div class="fl-row"><input type="password" id="parental-new-pin-confirm" data-i18n-ph="ph.parPinConfirm" placeholder="Repita a senha" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('parental-new-pin-confirm',this)">👁</button></div></div>
+                    <button type="button" class="btn-carregar" onclick="setParentalPin()" data-i18n="par.setPinBtn">Definir Senha</button>
+                </div>
+
+                <div id="parental-reset-wrap" style="display:none">
+                    <button type="button" class="cbtn-link" onclick="document.getElementById('parental-reset-form').classList.toggle('show')" data-i18n="par.resetPin">Redefinir senha</button>
+                    <div class="pin-fields" id="parental-reset-form">
+                        <div class="fl"><label data-i18n="par.currentPin">Senha atual</label><div class="fl-row"><input type="password" id="parental-current-pin" data-i18n-ph="ph.parPinCurrent" placeholder="Senha atual" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('parental-current-pin',this)">👁</button></div></div>
+                        <div class="fl"><label data-i18n="par.newPin">Nova senha</label><div class="fl-row"><input type="password" id="parental-reset-new-pin" data-i18n-ph="ph.parPinNew" placeholder="Mínimo 4 dígitos" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('parental-reset-new-pin',this)">👁</button></div></div>
+                        <div class="fl"><label data-i18n="par.confirmNewPin">Confirmar nova senha</label><div class="fl-row"><input type="password" id="parental-reset-new-pin-confirm" data-i18n-ph="ph.parPinConfirmNew" placeholder="Repita a nova senha" maxlength="6"><button type="button" class="eye-toggle" onclick="toggleEye('parental-reset-new-pin-confirm',this)">👁</button></div></div>
+                        <button type="button" class="btn-carregar" onclick="resetParentalPin()" data-i18n="par.savePinBtn">Salvar Nova Senha</button>
+                    </div>
+                </div>
+
+                <p class="pl-feedback" id="parental-feedback"></p>
+                <p class="parental-forgot"><span data-i18n="par.forgotPin">Esqueceu a senha?</span> <a href="index.html#contact" target="_blank" rel="noopener" data-i18n="par.contactSupport">Fale com o suporte</a></p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal: desbloquear categoria -->
+<div class="parental-modal-overlay" id="parental-unlock-overlay">
+    <div class="parental-modal">
+        <h3><span data-i18n="par.unlockModal">Desbloquear</span> "<span id="parental-unlock-name"></span>"</h3>
+        <div class="fl"><label data-i18n="par.enterPin">Digite a senha</label><div class="fl-row"><input type="password" id="parental-unlock-pin" data-i18n-ph="ph.parUnlockPin" placeholder="Senha" maxlength="6" onkeydown="if(event.key==='Enter')confirmUnlock()"><button type="button" class="eye-toggle" onclick="toggleEye('parental-unlock-pin',this)">👁</button></div></div>
+        <p class="pl-feedback" id="parental-unlock-feedback"></p>
+        <div class="parental-modal-actions">
+            <button type="button" class="cbtn-outline-btn" onclick="closeUnlockModal()" data-i18n="par.cancel">Cancelar</button>
+            <button type="button" class="btn-carregar" onclick="confirmUnlock()" data-i18n="par.confirm">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="footer">
+        <p data-i18n="footer.rights">&copy; 2026 Alpha Prime. Todos os direitos reservados.</p>
+        <div class="footer-links">
+            <a href="#" data-i18n="footer.terms">Termos de Uso</a>
+        </div>
+    </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="i18n.js"></script>
+<script src="script.js"></script>
+<script>
+let user    = JSON.parse(localStorage.getItem('ap_user')    || 'null');
+let account = JSON.parse(localStorage.getItem('ap_account') || 'null');
+
+let currentDevice  = null;
+let allDevices     = [];
+let unlockCategory = null;
+
+if (user || account) {
+    updateHeaderAuth();
+    document.getElementById('section-app').style.display = 'block';
+    loadDevices();
+} else {
+    document.getElementById('section-login').style.display = 'block';
+    updateHeaderAuth();
+}
+
+function updateHeaderAuth() {
+    const nick = (user?.nome || account?.nickname || '').split(' ')[0] || null;
+    if (nick) {
+        document.getElementById('btn-header-login').style.display = 'none';
+        document.getElementById('nav-user-wrap').style.display    = 'flex';
+        document.getElementById('nav-username').textContent       = nick;
+        document.getElementById('nav-avatar-letter').textContent  = nick[0].toUpperCase();
+    } else {
+        document.getElementById('btn-header-login').style.display = 'block';
+        document.getElementById('nav-user-wrap').style.display    = 'none';
+    }
+}
+
+document.getElementById('nav-user-toggle').addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('user-dropdown').classList.toggle('open');
+});
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('nav-user-wrap');
+    if (wrap && !wrap.contains(e.target))
+        document.getElementById('user-dropdown').classList.remove('open');
+});
+document.getElementById('dd-logout').addEventListener('click', async function() {
+    if (user?.token) {
+        try { await fetch('/api/auth/logout', { method:'POST', headers:{ Authorization:'Bearer '+user.token } }); } catch(_){}
+    }
+    localStorage.removeItem('ap_user');
+    localStorage.removeItem('ap_account');
+    window.location.href = 'login.html';
+});
+
+async function loadDevices() {
+    const t    = window.__i18n.t;
+    const wrap = document.getElementById('parental-dev-sel-wrap');
+    const sel  = document.getElementById('parental-device-select');
+
+    if (user?.token) {
+        try {
+            const res = await fetch('/api/user/devices', { headers:{ Authorization:'Bearer '+user.token } });
+            if (res.ok) {
+                const data = await res.json();
+                allDevices = (data || []).map(d => ({
+                    mac:    d.mac_address,
+                    key:    d.device_key,
+                    name:   d.nome_dispositivo || d.mac_address,
+                    client: d.nome_cliente || ''
+                }));
+            }
+        } catch(_) {}
+    }
+
+    if (!allDevices.length && account?.devices?.length) {
+        allDevices = (account.devices || []).map(d => ({
+            mac:  d.mac,
+            key:  d.deviceKey,
+            name: d.name || d.mac
+        }));
+    }
+
+    if (!allDevices.length) {
+        wrap.innerHTML = '<p style="color:#9ca3af;font-size:.88rem;">' + t('par.noDevice') + ' <a href="activate.html" style="color:var(--primary-color)">' + t('par.activateLink') + '</a></p>';
+        return;
+    }
+
+    sel.innerHTML = allDevices.map(d => `<option value="${esc(d.mac)}">${esc(d.name)} — ${esc(d.mac)}</option>`).join('');
+    wrap.style.display = allDevices.length <= 1 ? 'none' : 'block';
+
+    selectDevice(allDevices[0].mac);
+}
+
+function selectDevice(mac) {
+    currentDevice = allDevices.find(d => d.mac === mac) || null;
+    if (!currentDevice) return;
+    const clientEl  = document.getElementById('parental-client-name');
+    const clientVal = document.getElementById('parental-client-name-val');
+    if (currentDevice.client) {
+        clientVal.textContent = currentDevice.client;
+        clientEl.style.display = 'block';
+    } else {
+        clientEl.style.display = 'none';
+    }
+    loadParentalForDevice(currentDevice);
+}
+
+async function loadParentalForDevice(dev) {
+    const t = window.__i18n.t;
+    document.getElementById('parental-set-wrap').style.display   = 'none';
+    document.getElementById('parental-reset-wrap').style.display = 'none';
+    document.getElementById('parental-feedback').textContent     = '';
+    document.getElementById('parental-reset-form').classList.remove('show');
+    try {
+        const res = await fetch(`/api/parental?mac=${encodeURIComponent(dev.mac)}&deviceKey=${encodeURIComponent(dev.key)}`);
+        if (!res.ok) return;
+        renderParentalState(await res.json());
+    } catch(_) {}
+}
+
+function renderParentalState(data) {
+    const t = window.__i18n.t;
+    document.getElementById('parental-set-wrap').style.display   = data.hasPin ? 'none'  : 'block';
+    document.getElementById('parental-reset-wrap').style.display = data.hasPin ? 'block' : 'none';
+
+    const wrap = document.getElementById('parental-locked-wrap');
+    if (!data.lockedCategories || !data.lockedCategories.length) {
+        wrap.innerHTML = '<div class="device-empty">' + t('par.noBlocked') + '</div>';
+        return;
+    }
+    wrap.innerHTML = data.lockedCategories.map(cat => `
+        <div class="parental-locked-item">
+            <span class="parental-locked-name">🔒 ${esc(cat)}</span>
+            <button class="btn-unlock" onclick="openUnlockModal(${JSON.stringify(cat)})">${t('par.unlockBtn')}</button>
+        </div>`).join('');
+}
+
+function setParentalFeedback(text, type) {
+    const el = document.getElementById('parental-feedback');
+    el.textContent = text; el.className = 'pl-feedback ' + type;
+}
+
+async function setParentalPin() {
+    if (!currentDevice) return;
+    const t    = window.__i18n.t;
+    const pin  = document.getElementById('parental-new-pin').value.trim();
+    const conf = document.getElementById('parental-new-pin-confirm').value.trim();
+    if (pin.length < 4) { setParentalFeedback(t('par.errPinLen'), 'err'); return; }
+    if (pin !== conf)   { setParentalFeedback(t('par.errPinMatch'), 'err'); return; }
+    try {
+        const res  = await fetch('/api/parental/set-pin', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ mac: currentDevice.mac, deviceKey: currentDevice.key, newPin: pin }) });
+        const data = await res.json();
+        if (!res.ok) { setParentalFeedback(data.error || 'Erro', 'err'); return; }
+        document.getElementById('parental-new-pin').value         = '';
+        document.getElementById('parental-new-pin-confirm').value = '';
+        setParentalFeedback(t('par.pinSet'), 'ok');
+        loadParentalForDevice(currentDevice);
+    } catch(_) { setParentalFeedback(t('par.errNetwork'), 'err'); }
+}
+
+async function resetParentalPin() {
+    if (!currentDevice) return;
+    const t       = window.__i18n.t;
+    const current = document.getElementById('parental-current-pin').value.trim();
+    const pin     = document.getElementById('parental-reset-new-pin').value.trim();
+    const conf    = document.getElementById('parental-reset-new-pin-confirm').value.trim();
+    if (!current)       { setParentalFeedback(t('par.errCurrentPin'), 'err'); return; }
+    if (pin.length < 4) { setParentalFeedback(t('par.errNewPinLen'), 'err'); return; }
+    if (pin !== conf)   { setParentalFeedback(t('par.errPinMatch'), 'err'); return; }
+    try {
+        const res  = await fetch('/api/parental/set-pin', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ mac: currentDevice.mac, deviceKey: currentDevice.key, currentPin: current, newPin: pin }) });
+        const data = await res.json();
+        if (!res.ok) { setParentalFeedback(data.error || 'Erro', 'err'); return; }
+        document.getElementById('parental-current-pin').value           = '';
+        document.getElementById('parental-reset-new-pin').value         = '';
+        document.getElementById('parental-reset-new-pin-confirm').value = '';
+        document.getElementById('parental-reset-form').classList.remove('show');
+        setParentalFeedback(t('par.pinReset'), 'ok');
+    } catch(_) { setParentalFeedback(t('par.errNetwork'), 'err'); }
+}
+
+function openUnlockModal(cat) {
+    unlockCategory = cat;
+    document.getElementById('parental-unlock-name').textContent     = cat;
+    document.getElementById('parental-unlock-pin').value            = '';
+    document.getElementById('parental-unlock-feedback').textContent = '';
+    document.getElementById('parental-unlock-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('parental-unlock-pin').focus(), 100);
+}
+function closeUnlockModal() {
+    document.getElementById('parental-unlock-overlay').classList.remove('open');
+    unlockCategory = null;
+}
+async function confirmUnlock() {
+    if (!currentDevice) return;
+    const t        = window.__i18n.t;
+    const pin      = document.getElementById('parental-unlock-pin').value.trim();
+    const feedback = document.getElementById('parental-unlock-feedback');
+    if (!pin) { feedback.textContent = t('par.errUnlockPin'); feedback.className = 'pl-feedback err'; return; }
+    try {
+        const res  = await fetch('/api/parental/unlock', { method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ mac: currentDevice.mac, deviceKey: currentDevice.key, category: unlockCategory, pin }) });
+        const data = await res.json();
+        if (!res.ok) { feedback.textContent = data.error || t('par.errWrongPin'); feedback.className = 'pl-feedback err'; return; }
+        const cat = unlockCategory;
+        closeUnlockModal();
+        toast(`"${cat}" ${t('par.unlockBtn').toLowerCase()}!`, 'ok');
+        loadParentalForDevice(currentDevice);
+    } catch(_) { feedback.textContent = t('par.errNetwork'); feedback.className = 'pl-feedback err'; }
+}
+document.getElementById('parental-unlock-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeUnlockModal();
+});
+
+function toggleEye(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const hidden = input.type === 'password';
+    input.type = hidden ? 'text' : 'password';
+    btn.textContent = hidden ? '***' : '👁';
+}
+function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, type='ok') {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.className = 'toast ' + type + ' show';
+    setTimeout(() => el.classList.remove('show'), 3200);
+}
+</script>
+<script src="theme.js"></script>
+</body>
+</html>

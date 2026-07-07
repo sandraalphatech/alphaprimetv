@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1780850105188,
+    "mac": "000000000",
+    "deviceKey": "123456",
+    "activated": false,
+    "plan": "basic",
+    "activatedAt": null,
+    "expiresAt": null,
+    "notes": "",
+    "playlists": [
+      {
+        "id": 1780851384228,
+        "name": "Teste",
+        "url": "http://inter.ed10.top/get.php?username=Sandravelvet&password=94793577970&type=m3u_plus&output=ts",
+        "type": "m3u",
+        "server": "",
+        "username": "",
+        "password": "",
+        "createdAt": "2026-06-07T16:56:24.228Z"
+      }
+    ],
+    "createdAt": "2026-06-07T16:35:05.188Z"
+  }
+]
