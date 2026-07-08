@@ -103,7 +103,7 @@ app.post('/api/payments/pix/create', async (req, res) => {
 
   if (MOCK_PAYMENTS) {
     const paymentId = 'mock_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    payments.set(paymentId, { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null });
+    payments.set(paymentId, { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'pix' });
 
     setTimeout(() => {
       const payment = payments.get(paymentId);
@@ -149,7 +149,7 @@ app.post('/api/payments/pix/create', async (req, res) => {
     const charge = order.data.charges?.[0];
     const tx = charge?.last_transaction;
 
-    payments.set(order.data.id, { paymentId: order.data.id, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null });
+    payments.set(order.data.id, { paymentId: order.data.id, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'pix' });
 
     res.json({
       paymentId: order.data.id,
@@ -173,7 +173,7 @@ app.post('/api/payments/card/create', (req, res) => {
   }
 
   const paymentId = 'mock_card_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  const payment = { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'paid', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null };
+  const payment = { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'paid', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'cartao' };
   payments.set(paymentId, payment);
   activateDevice(payment);
 
@@ -213,12 +213,12 @@ app.post('/api/payments/pix/webhook', (req, res) => {
 });
 
 function activateDevice(payment) {
-  const { mac, deviceKey, plan, deviceName, deviceModel, userToken } = payment;
+  const { mac, deviceKey, plan, deviceName, deviceModel, userToken, tipoPagamento } = payment;
   const planInfo = PLANS[plan];
   const expiresAt = planInfo.days ? new Date(Date.now() + planInfo.days * 86400000).toISOString() : null;
   devices.set(mac, { active: true, plan, expiresAt, deviceKey });
   saveState();
-  saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, userToken, expiresAt, paymentId: payment.paymentId || null }).catch(e => console.error('Erro ao gravar ativação:', e));
+  saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, userToken, expiresAt, paymentId: payment.paymentId || null, tipoPagamento: tipoPagamento || null }).catch(e => console.error('Erro ao gravar ativação:', e));
 }
 
 const PLANO_MAP = { monthly: 'mensal', quarterly: 'trimestral', semiannual: 'semestral', yearly: 'anual', lifetime: 'vitalicio' };
@@ -263,27 +263,56 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
 
   const validade = expiresAt ? expiresAt.slice(0, 10) : 'vitalicio';
   const modelo = deviceModel || detectModelFromMac(mac);
+  const agora = new Date().toISOString();
 
-  const { error } = await supabase.from('ativacoes').insert({
-    plano: PLANO_MAP[plan] || 'anual',
-    mac_address: mac,
-    device_key: deviceKey || null,
-    nome_dispositivo: deviceName || null,
-    termo_aceite: true,
-    data_aceite: new Date().toISOString(),
-    versao_termo: '1.0',
-    nome_cliente,
-    usuario_id,
+  // Campos comuns a update e insert
+  const fields = {
+    plano:             PLANO_MAP[plan] || 'anual',
+    device_key:        deviceKey || null,
+    nome_dispositivo:  deviceName || null,
+    nome_cliente:      nome_cliente || null,
+    usuario_id:        usuario_id || null,
     validade,
-    pagamento_id: paymentId || null,
+    pagamento_id:      paymentId || null,
     modelo_dispositivo: modelo,
-    ativo: true,
-    revendedor_id,
-    nome_revendedor,
-    criado_em: new Date().toISOString()
-  });
+    ativo:             true,
+    atualizado_em:     agora,
+    ...(revendedor_id ? { revendedor_id, nome_revendedor } : {})
+  };
 
-  if (error) { console.error('Supabase ativacoes insert error:', error.message); return; }
+  // Tenta primeiro ATUALIZAR o registro existente (trial → pago)
+  const { data: existing } = await supabase
+    .from('ativacoes')
+    .select('id')
+    .eq('mac_address', mac)
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await supabase
+      .from('ativacoes')
+      .update(fields)
+      .eq('id', existing.id);
+    if (error) console.error('Supabase ativacoes update error:', error.message, '| mac:', mac);
+  } else {
+    const { error } = await supabase.from('ativacoes').insert({
+      ...fields,
+      mac_address:  mac,
+      termo_aceite: true,
+      data_aceite:  agora,
+      versao_termo: '1.0',
+      criado_em:    agora
+    });
+    if (error) console.error('Supabase ativacoes insert error:', error.message, '| mac:', mac);
+  }
+
+  // Atualiza usuarios.ativo = true para que o cliente veja o status correto no dashboard
+  if (usuario_id) {
+    await supabase.from('usuarios')
+      .update({ ativo: true, atualizado_em: agora })
+      .eq('id', usuario_id);
+  }
 
   // Registrar no histórico
   const criadoPor = revendedor_id ? 'revendedor' : (userToken ? 'cliente' : 'sistema');

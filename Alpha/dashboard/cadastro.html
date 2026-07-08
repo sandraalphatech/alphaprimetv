@@ -198,7 +198,7 @@
         <p class="form-error" id="form-error"></p>
 
         <div class="reg-footer">
-            <span data-i18n="reg.hasAccount">Já tem conta?</span> <a href="login.html" data-i18n="reg.loginLink">Entrar</a>
+            <span data-i18n="reg.hasAccount">Já tem conta?</span> <a href="login.html" id="link-login" data-i18n="reg.loginLink">Entrar</a>
         </div>
     </div>
 </div>
@@ -216,7 +216,13 @@
 <script src="i18n.js"></script>
 <script src="script.js"></script>
 <script>
-    if (localStorage.getItem('ap_user')) window.location.replace('playlists.html');
+    if (localStorage.getItem('ap_user')) {
+        // Já logado: vai direto para activate preservando mac/key
+        const _p = new URLSearchParams(location.search);
+        const _m = _p.get('mac'), _k = _p.get('key');
+        const _dest = _m ? `activate.html?mac=${encodeURIComponent(_m)}&key=${encodeURIComponent(_k||'')}` : 'activate.html';
+        window.location.replace(_dest);
+    }
 
     function toggleEye(id, btn) {
         const input = document.getElementById(id);
@@ -284,13 +290,26 @@
             if (!res.ok) { errEl.textContent = data.error || t('reg.errCreate'); return; }
 
             localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email }));
-            window.location.replace('activate.html');
+            const _qp = new URLSearchParams(location.search);
+            const _qm = _qp.get('mac'), _qk = _qp.get('key');
+            const _next = _qm ? `activate.html?mac=${encodeURIComponent(_qm)}&key=${encodeURIComponent(_qk||'')}` : 'activate.html';
+            window.location.replace(_next);
         } catch(e) {
             errEl.textContent = t('reg.errServer');
         } finally {
             btn.disabled = false; btn.textContent = t('reg.btn');
         }
     }
+
+    // Propaga mac/key para o link de login
+    (function() {
+        const _p = new URLSearchParams(location.search);
+        const _m = _p.get('mac'), _k = _p.get('key');
+        if (_m) {
+            const el = document.getElementById('link-login');
+            if (el) el.href = `login.html?mac=${encodeURIComponent(_m)}&key=${encodeURIComponent(_k||'')}`;
+        }
+    })();
 </script>
 </body>
 </html>

@@ -105,7 +105,7 @@
 
         <div class="divider" data-i18n="login.or">ou</div>
         <div class="login-footer">
-            <span data-i18n="login.noAccount">Terminou seu período de teste e ainda não tem Cadastro?</span> <br><a href="cadastro.html" data-i18n="login.createLink">CLIQUE AQUI e Crie sua conta</a>
+            <span data-i18n="login.noAccount">Terminou seu período de teste e ainda não tem Cadastro?</span> <br><a href="cadastro.html" id="link-cadastro" data-i18n="login.createLink">CLIQUE AQUI e Crie sua conta</a>
         </div>
     </div>
 </div>
@@ -203,7 +203,12 @@
 <script src="script.js"></script>
 <script>
     const existing = localStorage.getItem('ap_user');
-    if (existing) window.location.replace('playlists.html');
+    if (existing) {
+        const _lp = new URLSearchParams(location.search);
+        const _lm = _lp.get('mac'), _lk = _lp.get('key');
+        const _ldest = _lm ? `activate.html?mac=${encodeURIComponent(_lm)}&key=${encodeURIComponent(_lk||'')}` : 'playlists.html';
+        window.location.replace(_ldest);
+    }
 
     // Verifica se URL tem token de redefinição
     const resetToken = new URLSearchParams(window.location.search).get('reset');
@@ -366,7 +371,14 @@
 
             localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email }));
 
-            const next = new URLSearchParams(window.location.search).get('next') || 'activate.html';
+            const _lip = new URLSearchParams(window.location.search);
+            const _lim = _lip.get('mac'), _lik = _lip.get('key');
+            let next = _lip.get('next') || 'activate.html';
+            // Se viemos do QR code, garante que mac/key chegam ao activate.html
+            if (_lim && !next.includes('mac=')) {
+                const sep = next.includes('?') ? '&' : '?';
+                next = next + sep + `mac=${encodeURIComponent(_lim)}&key=${encodeURIComponent(_lik||'')}`;
+            }
             window.location.replace(next);
         } catch(e) {
             errEl.textContent = t('login.errServer');
@@ -374,6 +386,16 @@
             btn.disabled = false; btn.textContent = t('login.btn');
         }
     }
+
+    // Propaga mac/key para o link de cadastro
+    (function() {
+        const _p = new URLSearchParams(location.search);
+        const _m = _p.get('mac'), _k = _p.get('key');
+        if (_m) {
+            const el = document.getElementById('link-cadastro');
+            if (el) el.href = `cadastro.html?mac=${encodeURIComponent(_m)}&key=${encodeURIComponent(_k||'')}`;
+        }
+    })();
 </script>
 </body>
 </html>
