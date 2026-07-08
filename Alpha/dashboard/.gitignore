@@ -1,3 +1,44 @@
+# Dependências
 node_modules/
+
+# Variáveis de ambiente
 .env
+.env.*
+
+# Arquivos temporários
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dados locais
 data.json
+
+# IDEs
+.vscode/
+.idea/
+.claude/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Backups
+*.zip
+*.tar
+*.tar.gz
+
+# Pastas temporárias
+dreamtv_extracted/
+dreamtv_temp/
+
+# Build (caso exista)
+dist/
+build/
+
+# Coverage
+coverage/

@@ -1,6 +1,7 @@
 package com.velvetiptv.app.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import kotlinx.coroutines.flow.first
@@ -15,8 +16,9 @@ const val DEFAULT_LICENSE_VALIDITY_MS = 365L * 24 * 60 * 60 * 1000
 // validade da licença paga (recebida do backend em /api/device/check,
 // padronizada em 1 ano quando o servidor não devolve "expiresAt").
 object LicensePreferences {
-    private val INSTALL_DATE       = longPreferencesKey("install_date_ms")
-    private val LICENSE_EXPIRES_AT = longPreferencesKey("license_expires_at_ms")
+    private val INSTALL_DATE         = longPreferencesKey("install_date_ms")
+    private val LICENSE_EXPIRES_AT   = longPreferencesKey("license_expires_at_ms")
+    private val SUPABASE_REGISTERED  = booleanPreferencesKey("supabase_registered")
 
     suspend fun getOrInitInstallDate(context: Context): Long {
         val existing = context.iptvDataStore.data.first()[INSTALL_DATE]
@@ -76,4 +78,11 @@ object LicensePreferences {
 
     fun formatExpiresAt(millis: Long): String =
         SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")).format(millis)
+
+    suspend fun isSupabaseRegistered(context: Context): Boolean =
+        context.iptvDataStore.data.first()[SUPABASE_REGISTERED] == true
+
+    suspend fun setSupabaseRegistered(context: Context) {
+        context.iptvDataStore.edit { it[SUPABASE_REGISTERED] = true }
+    }
 }

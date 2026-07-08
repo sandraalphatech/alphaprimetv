@@ -23,6 +23,7 @@ class ChannelAdapter(
     private val onChannelClick      : (M3UChannel) -> Unit,
     private val onChannelDouble     : (M3UChannel) -> Unit,
     private val onChannelFocus      : (M3UChannel) -> Unit,
+    private val onChannelLongClick  : (M3UChannel) -> Unit = {},
     private val onCategoryClick     : (ChannelRow.Category) -> Unit,
     private val onCategoryLockToggle: (ChannelRow.Category) -> Unit
 ) : ListAdapter<ChannelRow, RecyclerView.ViewHolder>(DIFF) {
@@ -60,6 +61,18 @@ class ChannelAdapter(
     private val handler = Handler(Looper.getMainLooper())
     private var focusRunnable: Runnable? = null
 
+    var favoriteUrls: Set<String> = emptySet()
+        set(value) {
+            if (field == value) return
+            val old = field
+            field = value
+            currentList.forEachIndexed { i, row ->
+                if (row is ChannelRow.Item && (row.channel.url in old || row.channel.url in value)) {
+                    notifyItemChanged(i, PAYLOAD_FAV)
+                }
+            }
+        }
+
     var selectedUrl: String = ""
         set(value) {
             if (field == value) return
@@ -87,6 +100,7 @@ class ChannelAdapter(
         val indicator : View,
         val logo      : ImageView,
         val name      : TextView,
+        val star      : TextView,
         root          : View
     ) : RecyclerView.ViewHolder(root)
 
@@ -193,9 +207,17 @@ class ChannelAdapter(
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
 
+        val star = TextView(ctx).apply {
+            textSize    = 14f
+            isClickable = true
+            isFocusable = false
+            setPadding(dp(6f), 0, dp(2f), 0)
+        }
+
         row.addView(indicator)
         row.addView(logo)
         row.addView(name)
+        row.addView(star)
         root.addView(row)
 
         root.addView(View(ctx).apply {
@@ -203,15 +225,16 @@ class ChannelAdapter(
             setBackgroundColor(C_DIVIDER)
         })
 
-        return ItemVH(indicator, logo, name, root)
+        return ItemVH(indicator, logo, name, star, root)
     }
 
     // ─── Bind com suporte a payload (actualização parcial de selecção) ─────────
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: List<Any>) {
-        if (payloads.contains(PAYLOAD_SEL) && holder is ItemVH) {
-            applySelection(holder, getItem(position) as ChannelRow.Item)
-            return
+        if (holder is ItemVH) {
+            val row = getItem(position) as? ChannelRow.Item ?: return
+            if (payloads.contains(PAYLOAD_SEL)) { applySelection(holder, row); return }
+            if (payloads.contains(PAYLOAD_FAV)) { applyStar(holder, row.channel.url); return }
         }
         onBindViewHolder(holder, position)
     }
@@ -228,8 +251,9 @@ class ChannelAdapter(
         holder.count.text = "${row.count}"
         holder.lock.text  = if (row.locked) "🔒" else "🔓"
         holder.lock.alpha = if (row.locked) 1f else 0.35f
+        holder.lock.visibility = if (row.canLock) View.VISIBLE else View.GONE
         holder.card.setOnClickListener { onCategoryClick(row) }
-        holder.lock.setOnClickListener { onCategoryLockToggle(row) }
+        holder.lock.setOnClickListener { if (row.canLock) onCategoryLockToggle(row) }
         holder.card.setOnFocusChangeListener { _, hasFocus ->
             (holder.card.background as? GradientDrawable)?.setColor(if (hasFocus) C_CARD_FOCUS else C_CARD_BG)
         }
@@ -244,14 +268,21 @@ class ChannelAdapter(
             holder.logo.load(ch.logo) {
                 size(80, 80)
                 scale(Scale.FIT)
-                allowHardware(false)   // evita crash no RecyclerView em algumas ROM
+                allowHardware(false)
             }
         } else {
             holder.logo.setImageDrawable(null)
         }
 
         applySelection(holder, row)
+        applyStar(holder, ch.url)
         wireItemListeners(holder, ch)
+    }
+
+    private fun applyStar(holder: ItemVH, url: String) {
+        val fav = url in favoriteUrls
+        holder.star.text  = if (fav) "★" else "☆"
+        holder.star.setTextColor(if (fav) 0xFFFFD700.toInt() else 0x60E5E7EB.toInt())
     }
 
     private fun wireItemListeners(holder: ItemVH, ch: M3UChannel) {
@@ -263,6 +294,8 @@ class ChannelAdapter(
             lastClickUrl = ch.url
             if (isDouble) onChannelDouble(ch) else onChannelClick(ch)
         }
+        holder.itemView.setOnLongClickListener { onChannelLongClick(ch); true }
+        holder.star.setOnClickListener { onChannelLongClick(ch) }
 
         // Foco D-pad: debounce 450 ms (como Dream TV — evita trocar canal em cada
         // item ao percorrer a lista rapidamente com o controlo remoto)
@@ -307,6 +340,7 @@ class ChannelAdapter(
             holder.logo.setImageDrawable(null)
             holder.itemView.setOnFocusChangeListener(null)
             holder.itemView.setOnClickListener(null)
+            holder.star.setOnClickListener(null)
         }
     }
 
@@ -317,3 +351,4 @@ class ChannelAdapter(
 }
 
 private const val PAYLOAD_SEL = "sel"
+private const val PAYLOAD_FAV = "fav"

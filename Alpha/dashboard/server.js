@@ -324,6 +324,27 @@ function authenticateDevice(mac, deviceKey) {
   return device;
 }
 
+async function authenticateDeviceAsync(mac, deviceKey) {
+  if (!mac || !deviceKey) return null;
+  // Fast path: dispositivos pagos/ativados já carregados em memória
+  const local = devices.get(mac.toLowerCase());
+  if (local && local.deviceKey === deviceKey) return local;
+  // Fallback: trial e dispositivos registados apenas no Supabase
+  const { data } = await supabase
+    .from('ativacoes')
+    .select('mac_address, device_key, plano, validade, ativo')
+    .eq('mac_address', mac.toLowerCase())
+    .eq('device_key', deviceKey)
+    .eq('ativo', true)
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!data) return null;
+  const isVitalicio = !data.validade || data.validade === 'vitalicio';
+  if (!isVitalicio && new Date(data.validade) < new Date()) return null;
+  return { mac: data.mac_address, deviceKey: data.device_key, plan: data.plano, expiresAt: isVitalicio ? null : data.validade };
+}
+
 // ── Criptografia AES-256-CBC para senhas Xtream ───────────────────────────────
 // SHA-256 do secret → sempre 32 bytes, independente do comprimento da env var
 const PLAYLIST_SECRET = crypto.createHash('sha256')
@@ -367,9 +388,9 @@ function dbRowToPlaylist(row, includeSecrets = false) {
   };
 }
 
-app.post('/api/playlists/login', (req, res) => {
+app.post('/api/playlists/login', async (req, res) => {
   const { mac, deviceKey } = req.body;
-  const device = authenticateDevice(mac, deviceKey);
+  const device = await authenticateDeviceAsync(mac, deviceKey);
   if (!device) {
     return res.status(401).json({ error: 'MAC Address ou Device Key incorretos, ou dispositivo ainda não ativado.' });
   }
@@ -378,7 +399,7 @@ app.post('/api/playlists/login', (req, res) => {
 
 app.post('/api/playlists/create', async (req, res) => {
   const { mac, deviceKey, name, type } = req.body;
-  if (!authenticateDevice(mac, deviceKey)) {
+  if (!await authenticateDeviceAsync(mac, deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
   if (!name || !type) {
@@ -456,7 +477,7 @@ app.post('/api/playlists/create', async (req, res) => {
 
 // GET /api/playlists — Supabase como fonte de verdade
 app.get('/api/playlists', async (req, res) => {
-  if (!authenticateDevice(req.query.mac, req.query.deviceKey)) {
+  if (!await authenticateDeviceAsync(req.query.mac, req.query.deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
   const key = req.query.mac.toLowerCase();
@@ -474,7 +495,7 @@ app.get('/api/playlists', async (req, res) => {
 
 // GET /api/playlists/sync — com credenciais completas (usado pelo app TV)
 app.get('/api/playlists/sync', async (req, res) => {
-  if (!authenticateDevice(req.query.mac, req.query.deviceKey)) {
+  if (!await authenticateDeviceAsync(req.query.mac, req.query.deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida.' });
   }
   const key = req.query.mac.toLowerCase();
@@ -489,7 +510,7 @@ app.get('/api/playlists/sync', async (req, res) => {
 
 app.post('/api/playlists/:id/activate', async (req, res) => {
   const { mac, deviceKey } = req.body;
-  if (!authenticateDevice(mac, deviceKey)) {
+  if (!await authenticateDeviceAsync(mac, deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
 
@@ -524,7 +545,7 @@ app.post('/api/playlists/:id/activate', async (req, res) => {
 
 app.delete('/api/playlists/:id', async (req, res) => {
   const { mac, deviceKey } = req.body;
-  if (!authenticateDevice(mac, deviceKey)) {
+  if (!await authenticateDeviceAsync(mac, deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
 
@@ -560,31 +581,36 @@ async function getParentalRecord(mac) {
 }
 
 async function upsertParental(mac, fields) {
-  const existing = await getParentalRecord(mac);
-  if (existing) {
-    const { error } = await supabase.from('parental')
-      .update({ ...fields, atualizado_em: new Date().toISOString() })
-      .eq('mac_address', mac);
-    return error;
-  } else {
-    const { data: atv } = await supabase.from('ativacoes')
-      .select('nome_dispositivo, nome_cliente')
-      .eq('mac_address', mac).eq('ativo', true).limit(1);
-    const { error } = await supabase.from('parental').insert({
-      mac_address: mac,
-      nome_dispositivo: atv?.[0]?.nome_dispositivo || null,
-      nome_cliente:     atv?.[0]?.nome_cliente     || null,
-      canais_bloqueados: [],
-      ...fields,
-      criado_em:    new Date().toISOString(),
-      atualizado_em: new Date().toISOString()
-    });
-    return error;
-  }
+  // Preserva campos existentes (ex.: não apaga canais_bloqueados ao mudar pin)
+  const { data: existing } = await supabase
+    .from('parental').select('*').eq('mac_address', mac).limit(1).maybeSingle();
+
+  const { data: atv } = await supabase
+    .from('ativacoes').select('nome_dispositivo, nome_cliente')
+    .eq('mac_address', mac).eq('ativo', true)
+    .order('criado_em', { ascending: false }).limit(1).maybeSingle();
+
+  const record = {
+    mac_address:       mac,
+    nome_dispositivo:  existing?.nome_dispositivo || atv?.nome_dispositivo || null,
+    nome_cliente:      existing?.nome_cliente     || atv?.nome_cliente     || null,
+    canais_bloqueados: existing?.canais_bloqueados ?? [],
+    pin_hash:          existing?.pin_hash         ?? null,
+    criado_em:         existing?.criado_em        || new Date().toISOString(),
+    ...fields,
+    atualizado_em:     new Date().toISOString(),
+  };
+
+  const { error } = await supabase
+    .from('parental')
+    .upsert(record, { onConflict: 'mac_address' });
+
+  if (error) console.error('[parental] upsert erro:', error.message, '| fields:', JSON.stringify(fields));
+  return error;
 }
 
 app.get('/api/parental', async (req, res) => {
-  if (!authenticateDevice(req.query.mac, req.query.deviceKey)) {
+  if (!await authenticateDeviceAsync(req.query.mac, req.query.deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
   const record = await getParentalRecord(req.query.mac.toLowerCase());
@@ -592,7 +618,7 @@ app.get('/api/parental', async (req, res) => {
 });
 
 app.get('/api/parental/sync', async (req, res) => {
-  if (!authenticateDevice(req.query.mac, req.query.deviceKey)) {
+  if (!await authenticateDeviceAsync(req.query.mac, req.query.deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida.' });
   }
   const record = await getParentalRecord(req.query.mac.toLowerCase());
@@ -601,7 +627,7 @@ app.get('/api/parental/sync', async (req, res) => {
 
 app.post('/api/parental/set-pin', async (req, res) => {
   const { mac, deviceKey, currentPin, newPin } = req.body;
-  if (!authenticateDevice(mac, deviceKey)) {
+  if (!await authenticateDeviceAsync(mac, deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
   if (!newPin || newPin.length < 4) {
@@ -628,7 +654,7 @@ app.post('/api/parental/set-pin', async (req, res) => {
 
 app.post('/api/parental/unlock', async (req, res) => {
   const { mac, deviceKey, category, pin } = req.body;
-  if (!authenticateDevice(mac, deviceKey)) {
+  if (!await authenticateDeviceAsync(mac, deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
 
@@ -649,7 +675,7 @@ app.post('/api/parental/unlock', async (req, res) => {
 
 app.post('/api/parental/categories', async (req, res) => {
   const { mac, deviceKey, lockedCategories } = req.body;
-  if (!authenticateDevice(mac, deviceKey)) {
+  if (!await authenticateDeviceAsync(mac, deviceKey)) {
     return res.status(401).json({ error: 'Sessão inválida. Faça login novamente.' });
   }
 
@@ -664,15 +690,124 @@ app.post('/api/parental/categories', async (req, res) => {
   res.json({ success: true });
 });
 
-app.post('/api/device/check', (req, res) => {
-  const { mac } = req.body;
-  const device = devices.get((mac || '').toLowerCase());
+app.post('/api/device/check', async (req, res) => {
+  const { mac, deviceKey } = req.body;
+  const macNorm = (mac || '').toLowerCase();
 
-  if (!device) return res.json({ activated: false, reason: 'not_found' });
-  if (device.expiresAt && new Date(device.expiresAt) < new Date()) {
+  const { data, error } = await supabase
+    .from('ativacoes')
+    .select('plano, validade, ativo')
+    .eq('mac_address', macNorm)
+    .eq('ativo', true)
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) { console.error('[device/check] supabase error:', error.message); }
+
+  if (!data) return res.json({ activated: false, reason: 'not_found' });
+
+  const validade = data.validade;
+  const isVitalicio = !validade || validade === 'vitalicio';
+  if (!isVitalicio && new Date(validade) < new Date()) {
     return res.json({ activated: false, reason: 'expired' });
   }
-  res.json({ activated: true, plan: device.plan, expiresAt: device.expiresAt });
+
+  res.json({ activated: true, plan: data.plano, expiresAt: isVitalicio ? null : validade });
+});
+
+// ── Favoritos ─────────────────────────────────────────────────────────────────
+app.get('/api/favorites/sync', async (req, res) => {
+  if (!await authenticateDeviceAsync(req.query.mac, req.query.deviceKey)) {
+    return res.status(401).json({ error: 'Sessão inválida.' });
+  }
+  const { data, error } = await supabase
+    .from('favoritos')
+    .select('item_id, tipo, nome, url, logo, grupo')
+    .eq('mac_address', req.query.mac.toLowerCase())
+    .order('criado_em', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+app.post('/api/favorites/toggle', async (req, res) => {
+  const { mac, deviceKey, item_id, tipo, nome, url, logo, grupo } = req.body;
+  if (!await authenticateDeviceAsync(mac, deviceKey)) {
+    return res.status(401).json({ error: 'Sessão inválida.' });
+  }
+  if (!item_id || !tipo) return res.status(400).json({ error: 'item_id e tipo são obrigatórios' });
+
+  const key = mac.toLowerCase();
+  const { data: existing } = await supabase
+    .from('favoritos').select('id')
+    .eq('mac_address', key).eq('item_id', item_id).eq('tipo', tipo)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from('favoritos').delete().eq('id', existing.id);
+    return res.json({ action: 'removed' });
+  }
+
+  const { error } = await supabase.from('favoritos').insert({
+    mac_address: key, item_id, tipo,
+    nome: nome || null, url: url || null,
+    logo: logo || null, grupo: grupo || null,
+    criado_em: new Date().toISOString()
+  });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ action: 'added' });
+});
+
+// Registra um dispositivo novo no período de trial (chamado pelo app Android
+// na primeira abertura). Idempotente: se já existe registro trial para esse
+// mac_address, retorna o existente sem inserir duplicata.
+app.post('/api/device/register-trial', async (req, res) => {
+  const { mac_address, devicekey, modelo_dispositivo } = req.body;
+  if (!mac_address) {
+    return res.status(400).json({ error: 'mac_address é obrigatório' });
+  }
+
+  // Verifica se já existe trial registrado para este dispositivo
+  const { data: existing } = await supabase
+    .from('ativacoes')
+    .select('validade')
+    .eq('mac_address', mac_address)
+    .eq('plano', 'trial')
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    console.log('[register-trial] já registrado:', mac_address);
+    return res.json({ success: true, validade: existing.validade });
+  }
+
+  const validade = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+  const { error } = await supabase.from('ativacoes').insert({
+    mac_address,
+    device_key:         devicekey || null,
+    plano:              'trial',
+    validade,
+    criado_em:          new Date().toISOString(),
+    ativo:              true,
+    modelo_dispositivo: modelo_dispositivo || null,
+    nome_dispositivo:   null,
+    nome_cliente:       null,
+    usuario_id:         null,
+    pagamento_id:       null,
+    nome_revendedor:    null,
+    revendedor_id:      null,
+  });
+
+  if (error) {
+    console.error('[register-trial] erro:', error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  console.log('[register-trial] registrado:', mac_address, '| validade:', validade);
+  res.json({ success: true, validade });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -1688,7 +1823,7 @@ app.get('/api/reseller/parental', authReseller, async (req, res) => {
 });
 
 app.post('/api/reseller/parental/unlock-canal', authReseller, async (req, res) => {
-  const { mac, canal, pin } = req.body;
+  const { mac, canal } = req.body;
   if (!mac || !canal) return res.status(400).json({ error: 'mac e canal obrigatórios' });
   const isAdmin = req.reseller?.role === 'administrador';
   const check = await checkMacAcesso(mac.toLowerCase(), req.resellerId, isAdmin);
@@ -1696,10 +1831,6 @@ app.post('/api/reseller/parental/unlock-canal', authReseller, async (req, res) =
 
   const record = await getParentalRecord(mac.toLowerCase());
   if (!record) return res.status(404).json({ error: 'Nenhuma configuração parental encontrada' });
-  if (record.pin_hash) {
-    if (!pin) return res.status(400).json({ error: 'Senha necessária para desbloquear' });
-    if (hashPin(pin) !== record.pin_hash) return res.status(401).json({ error: 'Senha incorreta' });
-  }
 
   const novosCanais = (record.canais_bloqueados || []).filter(c => c !== canal);
   const err = await upsertParental(mac.toLowerCase(), { canais_bloqueados: novosCanais });
@@ -1708,18 +1839,12 @@ app.post('/api/reseller/parental/unlock-canal', authReseller, async (req, res) =
 });
 
 app.post('/api/reseller/parental/set-pin', authReseller, async (req, res) => {
-  const { mac, newPin, currentPin } = req.body;
+  const { mac, newPin } = req.body;
   if (!mac || !newPin || newPin.length < 4)
     return res.status(400).json({ error: 'Senha deve ter pelo menos 4 dígitos' });
   const isAdmin = req.reseller?.role === 'administrador';
   const check = await checkMacAcesso(mac.toLowerCase(), req.resellerId, isAdmin);
   if (check.erro) return res.status(check.status).json({ error: check.erro });
-
-  const record = await getParentalRecord(mac.toLowerCase());
-  if (record?.pin_hash) {
-    if (!currentPin || hashPin(currentPin) !== record.pin_hash)
-      return res.status(401).json({ error: 'Senha atual incorreta' });
-  }
 
   const err = await upsertParental(mac.toLowerCase(), { pin_hash: hashPin(newPin) });
   if (err) return res.status(500).json({ error: err.message });

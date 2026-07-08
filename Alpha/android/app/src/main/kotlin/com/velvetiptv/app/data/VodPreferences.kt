@@ -64,6 +64,54 @@ object VodPreferences {
             if (idx >= 0) current.removeAt(idx) else current.add(0, channel)
             prefs[FAVORITES] = encode(current)
         }
+        // Sync ao backend em background — falha silenciosa, sincroniza no próximo arranque
+        try {
+            val mac = DeviceUtils.getMacAddress()
+            val key = DeviceUtils.getDeviceKey(context)
+            val tipo = when (channel.type) {
+                ChannelType.TV     -> "canal"
+                ChannelType.MOVIE  -> "filme"
+                ChannelType.SERIES -> "serie"
+            }
+            ActivationApiClient.api.toggleFavoriteRemote(
+                FavoriteToggleRequest(
+                    mac = mac, deviceKey = key,
+                    item_id = channel.url,
+                    tipo = tipo,
+                    nome = channel.name.ifBlank { null },
+                    url = channel.url,
+                    logo = channel.logo.ifBlank { null },
+                    grupo = channel.group.ifBlank { null }
+                )
+            )
+        } catch (_: Exception) { /* sync no próximo arranque */ }
+    }
+
+    suspend fun syncFavoritesFromServer(context: Context) {
+        try {
+            val mac = DeviceUtils.getMacAddress()
+            val key = DeviceUtils.getDeviceKey(context)
+            val remote = ActivationApiClient.api.syncFavorites(mac, key)
+            if (remote.isEmpty()) return
+            val serverFavs = remote.mapNotNull { dto ->
+                val url = dto.url ?: dto.item_id
+                if (url.isBlank()) return@mapNotNull null
+                M3UChannel(
+                    name  = dto.nome  ?: "",
+                    url   = url,
+                    logo  = dto.logo  ?: "",
+                    group = dto.grupo ?: "",
+                    type  = when (dto.tipo) {
+                        "canal"  -> ChannelType.TV
+                        "serie"  -> ChannelType.SERIES
+                        else     -> ChannelType.MOVIE
+                    }
+                )
+            }
+            context.iptvDataStore.edit { prefs ->
+                prefs[FAVORITES] = encode(serverFavs)
+            }
+        } catch (_: Exception) { /* mantém local */ }
     }
 
     suspend fun addToContinueWatching(context: Context, channel: M3UChannel) {

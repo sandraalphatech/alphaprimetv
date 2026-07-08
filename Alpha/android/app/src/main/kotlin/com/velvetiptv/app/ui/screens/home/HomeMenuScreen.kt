@@ -30,6 +30,7 @@ import androidx.navigation.NavController
 import com.velvetiptv.app.data.ActivationApiClient
 import com.velvetiptv.app.data.DeviceCheckRequest
 import com.velvetiptv.app.data.LicensePreferences
+import com.velvetiptv.app.data.TRIAL_DURATION_MS
 import com.velvetiptv.app.ui.navigation.Screen
 import com.velvetiptv.app.ui.screens.activation.getDeviceKey
 import com.velvetiptv.app.ui.screens.activation.getMacAddress
@@ -56,8 +57,9 @@ fun HomeMenuScreen(navController: NavController) {
                 LicensePreferences.isLicenseValid(expiresAt) ->
                     "Acesso válido até ${LicensePreferences.formatExpiresAt(expiresAt!!)}"
                 LicensePreferences.isTrialActive(installDate) -> {
-                    val days = LicensePreferences.trialDaysLeft(installDate)
-                    "Teste grátis — $days dia${if (days == 1) "" else "s"} restante${if (days == 1) "" else "s"}"
+                    val trialEnd = installDate + TRIAL_DURATION_MS
+                    val formatted = LicensePreferences.formatExpiresAt(trialEnd)
+                    "Período de teste de 7 dias - Válido até: $formatted"
                 }
                 else -> null
             }

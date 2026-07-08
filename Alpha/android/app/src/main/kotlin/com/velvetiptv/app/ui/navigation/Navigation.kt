@@ -30,6 +30,11 @@ import androidx.navigation.navArgument
 import org.json.JSONArray
 import org.json.JSONObject
 import com.velvetiptv.app.data.LicensePreferences
+import com.velvetiptv.app.data.SupabaseRegistration
+import com.velvetiptv.app.data.VodPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.velvetiptv.app.ui.screens.activation.ActivationScreen
 import com.velvetiptv.app.ui.screens.home.HomeMenuScreen
 import com.velvetiptv.app.ui.screens.movies.MoviesScreen
@@ -102,6 +107,13 @@ fun AlphaPrimeNavigation() {
     LaunchedEffect(Unit) {
         val installDate = LicensePreferences.getOrInitInstallDate(context)
         val expiresAt   = LicensePreferences.getExpiresAt(context)
+
+        // Registra e sincroniza em background — não bloqueia a decisão de rota
+        CoroutineScope(Dispatchers.IO).launch {
+            SupabaseRegistration.registerIfNeeded(context, installDate)
+            VodPreferences.syncFavoritesFromServer(context)
+        }
+
         startDestination =
             if (LicensePreferences.isLicenseValid(expiresAt) || LicensePreferences.isTrialActive(installDate))
                 Screen.Home.route

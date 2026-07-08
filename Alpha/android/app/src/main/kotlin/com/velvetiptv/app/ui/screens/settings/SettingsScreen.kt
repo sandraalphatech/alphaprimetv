@@ -70,6 +70,8 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
     var deviceMac by remember { mutableStateOf("") }
     var deviceKeyVal by remember { mutableStateOf("") }
     var epgUrl by remember { mutableStateOf("") }
+    var protectPlaylist by remember { mutableStateOf(false) }
+    var playlistPin by remember { mutableStateOf("") }
     var pickedFileName by remember { mutableStateOf<String?>(null) }
     var pickedFileUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -236,6 +238,13 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                         leadingIcon = null
                     )
 
+                    PlaylistProtectToggle(
+                        protectPlaylist = protectPlaylist,
+                        pin = playlistPin,
+                        onProtectChange = { protectPlaylist = it; if (!it) playlistPin = "" },
+                        onPinChange = { playlistPin = it }
+                    )
+
                     Button(
                         onClick = {
                             scope.launch {
@@ -248,12 +257,14 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                         PlaylistCreateRequest(
                                             deviceMac, deviceKeyVal, name,
                                             type = if (selectedTab == 3) "other" else "url",
-                                            url = url, epgUrl = epg
+                                            url = url, epgUrl = epg,
+                                            protectPlaylist = protectPlaylist,
+                                            pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
                                         )
                                     )
                                     IPTVPreferences.adoptServerId(context, localId, response.playlist.id)
                                 } catch (_: Exception) { /* fica só local até a próxima sincronização */ }
-                                listName = ""; m3uUrl = ""; epgUrl = ""
+                                listName = ""; m3uUrl = ""; epgUrl = ""; protectPlaylist = false; playlistPin = ""
                                 saveSuccess = true
                             }
                         },
@@ -337,6 +348,13 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                         leadingIcon = null
                     )
 
+                    PlaylistProtectToggle(
+                        protectPlaylist = protectPlaylist,
+                        pin = playlistPin,
+                        onProtectChange = { protectPlaylist = it; if (!it) playlistPin = "" },
+                        onPinChange = { playlistPin = it }
+                    )
+
                     Button(
                         onClick = {
                             scope.launch {
@@ -349,12 +367,14 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                     val response = ActivationApiClient.api.createPlaylist(
                                         PlaylistCreateRequest(
                                             deviceMac, deviceKeyVal, name, "xtream",
-                                            server = server, username = user, password = xtreamPass, epgUrl = epg
+                                            server = server, username = user, password = xtreamPass, epgUrl = epg,
+                                            protectPlaylist = protectPlaylist,
+                                            pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
                                         )
                                     )
                                     IPTVPreferences.adoptServerId(context, localId, response.playlist.id)
                                 } catch (_: Exception) { /* fica só local até a próxima sincronização */ }
-                                listName = ""; xtreamServer = ""; xtreamUser = ""; xtreamPass = ""; epgUrl = ""
+                                listName = ""; xtreamServer = ""; xtreamUser = ""; xtreamPass = ""; epgUrl = ""; protectPlaylist = false; playlistPin = ""
                                 saveSuccess = true
                             }
                         },
@@ -492,6 +512,39 @@ private fun IPTVTextField(
             cursorColor = AccentPrimary
         )
     )
+}
+
+// ── Proteção de lista com senha ───────────────────────────────────────────────
+@Composable
+private fun PlaylistProtectToggle(
+    protectPlaylist: Boolean,
+    pin: String,
+    onProtectChange: (Boolean) -> Unit,
+    onPinChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text("Proteger lista com senha", color = TextLight, style = MaterialTheme.typography.bodyMedium)
+        Switch(
+            checked = protectPlaylist,
+            onCheckedChange = onProtectChange,
+            colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary, checkedTrackColor = AccentPrimary.copy(alpha = 0.4f))
+        )
+    }
+    if (protectPlaylist) {
+        IPTVTextField(
+            value = pin,
+            onValueChange = onPinChange,
+            label = "Senha da lista",
+            placeholder = "Mínimo 4 dígitos",
+            keyboardType = KeyboardType.NumberPassword,
+            visualTransformation = PasswordVisualTransformation(),
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = AccentPrimary) }
+        )
+    }
 }
 
 // ── Bloqueio de canais por senha ──────────────────────────────────────────────

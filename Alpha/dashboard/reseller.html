@@ -494,6 +494,8 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
       <div class="page-stats-bar" id="dev-stats-bar" style="display:none">
         <span>Ativos: <b id="dev-count-ativo">0</b></span>
         <span style="color:var(--border)">|</span>
+        <span>Trial: <b id="dev-count-trial" style="color:#f59e0b">0</b></span>
+        <span style="color:var(--border)">|</span>
         <span>Licença expirada: <b id="dev-count-exp" style="color:var(--error)">0</b></span>
       </div>
       <div class="table-wrap"><div class="table-scroll">
@@ -1892,20 +1894,23 @@ function renderDevices(list) {
   const now = new Date();
 
   // Contadores
-  let countAtivo = 0, countExp = 0;
+  let countAtivo = 0, countTrial = 0, countExp = 0;
   list.forEach(d => {
     const val = d.validade || d.activationExpires || null;
     const plan = d.plano || d.plan || 'yearly';
     const isLifetime = plan === 'vitalicio' || plan === 'lifetime' || val === 'lifetime';
+    const isTrial = plan === 'trial';
     const ativo = d.ativo !== undefined ? d.ativo : true;
     const expired = !isLifetime && val && new Date(val) < now;
-    if (ativo && !expired) countAtivo++;
-    else if (expired) countExp++;
+    if (expired) countExp++;
+    else if (isTrial && ativo) countTrial++;
+    else if (ativo) countAtivo++;
   });
   const bar = document.getElementById('dev-stats-bar');
   if (bar) {
     bar.style.display = list.length ? '' : 'none';
     document.getElementById('dev-count-ativo').textContent = countAtivo;
+    document.getElementById('dev-count-trial').textContent = countTrial;
     document.getElementById('dev-count-exp').textContent   = countExp;
   }
 

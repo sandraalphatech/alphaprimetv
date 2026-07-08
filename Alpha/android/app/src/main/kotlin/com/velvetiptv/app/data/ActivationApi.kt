@@ -13,6 +13,14 @@ import retrofit2.http.Query
 
 data class DeviceCheckRequest(val mac: String, val deviceKey: String)
 
+data class RegisterTrialRequest(
+    val mac_address: String,
+    val devicekey: String,
+    val modelo_dispositivo: String?
+)
+
+data class RegisterTrialResponse(val success: Boolean, val validade: String? = null)
+
 data class DeviceCheckResponse(
     val activated: Boolean,
     val reason: String? = null,
@@ -41,7 +49,10 @@ data class PlaylistCreateRequest(
     val server: String = "",
     val username: String = "",
     val password: String = "",
-    val epgUrl: String = ""
+    val epgUrl: String = "",
+    @com.google.gson.annotations.SerializedName("protected")
+    val protectPlaylist: Boolean = false,
+    val pin: String? = null
 )
 
 data class PlaylistDeleteRequest(val mac: String, val deviceKey: String)
@@ -52,6 +63,26 @@ data class PlaylistCreateResponse(val success: Boolean, val playlist: PlaylistDt
 
 data class ParentalSyncDto(val pinHash: String, val lockedCategories: List<String>)
 
+data class FavoriteDto(
+    val item_id: String,
+    val tipo: String,
+    val nome: String?,
+    val url: String?,
+    val logo: String?,
+    val grupo: String?
+)
+
+data class FavoriteToggleRequest(
+    val mac: String,
+    val deviceKey: String,
+    val item_id: String,
+    val tipo: String,
+    val nome: String?,
+    val url: String?,
+    val logo: String?,
+    val grupo: String?
+)
+
 data class ParentalCategoriesRequest(val mac: String, val deviceKey: String, val lockedCategories: List<String>)
 
 data class ParentalSetPinRequest(val mac: String, val deviceKey: String, val currentPin: String?, val newPin: String)
@@ -59,6 +90,9 @@ data class ParentalSetPinRequest(val mac: String, val deviceKey: String, val cur
 interface ActivationApi {
     @POST("api/device/check")
     suspend fun checkDevice(@Body body: DeviceCheckRequest): DeviceCheckResponse
+
+    @POST("api/device/register-trial")
+    suspend fun registerTrial(@Body body: RegisterTrialRequest): RegisterTrialResponse
 
     @GET("api/playlists/sync")
     suspend fun syncPlaylists(@Query("mac") mac: String, @Query("deviceKey") deviceKey: String): List<PlaylistDto>
@@ -80,6 +114,12 @@ interface ActivationApi {
 
     @POST("api/parental/set-pin")
     suspend fun setParentalPin(@Body body: ParentalSetPinRequest)
+
+    @GET("api/favorites/sync")
+    suspend fun syncFavorites(@Query("mac") mac: String, @Query("deviceKey") deviceKey: String): List<FavoriteDto>
+
+    @POST("api/favorites/toggle")
+    suspend fun toggleFavoriteRemote(@Body body: FavoriteToggleRequest): Map<String, String>
 }
 
 object ActivationApiClient {

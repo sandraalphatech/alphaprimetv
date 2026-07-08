@@ -55,6 +55,7 @@ import com.velvetiptv.app.data.M3UChannel
 import com.velvetiptv.app.data.M3URepository
 import com.velvetiptv.app.data.ParentalCategoriesRequest
 import com.velvetiptv.app.data.ParentalPreferences
+import com.velvetiptv.app.data.VodPreferences
 import com.velvetiptv.app.ui.navigation.Screen
 import com.velvetiptv.app.ui.screens.activation.AlphaLogoMini
 import com.velvetiptv.app.ui.screens.activation.getDeviceKey
@@ -394,10 +395,19 @@ fun TVScreen(navController: NavController? = null) {
     val all = (loadState as? LoadState.Success)?.channels ?: emptyList()
     var filtered by remember { mutableStateOf<List<M3UChannel>>(emptyList()) }
 
+    // Favoritos de TV — categoria especial no topo da lista
+    val favTvList by VodPreferences.favorites(context, ChannelType.TV).collectAsState(initial = emptyList())
+
     // Navegação em duas camadas: primeiro as categorias (group-title do M3U,
     // ex.: "GLOBO CAPITAIS", "PREMIERE"), depois os canais dentro da categoria
     // escolhida. selectedCategory == null → mostra a lista de categorias.
-    val categories = remember(all) { groupByCategory(all) }
+    val categories = remember(all, favTvList) {
+        val favUrls = favTvList.map { it.url }.toSet()
+        val favChannels = all.filter { it.url in favUrls }
+        val base = groupByCategory(all)
+        if (favChannels.isEmpty()) base
+        else listOf(ChannelCategory("⭐ Favoritos", favChannels, canLock = false)) + base
+    }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
 
     // Job explícito para filtro — substitui LaunchedEffect(search).
@@ -460,7 +470,7 @@ fun TVScreen(navController: NavController? = null) {
         search.isNotBlank()        -> filtered.map { ChannelRow.Item(it) }
         selectedCategory != null   -> categoryChannels.map { ChannelRow.Item(it) }
         else                       -> categories.map {
-            ChannelRow.Category(it.name, it.channels.size, locked = it.name.ifBlank { "Sem categoria" } in lockedCategories)
+            ChannelRow.Category(it.name, it.channels.size, locked = it.name.ifBlank { "Sem categoria" } in lockedCategories, canLock = it.canLock)
         }
     }
 
@@ -592,14 +602,14 @@ fun TVScreen(navController: NavController? = null) {
     LaunchedEffect(channelRV, all) {
         val rv = channelRV ?: return@LaunchedEffect
         delay(150)
+        // Só rola se já estiver dentro de uma categoria — ao abrir TV ao Vivo
+        // pela primeira vez, mostra sempre a lista de categorias no topo.
+        val cat = selectedCategory ?: return@LaunchedEffect
         val url = selectedChannel?.url?.takeIf { it.isNotBlank() }
                   ?: TVSessionState.selectedUrl.takeIf { it.isNotBlank() }
                   ?: return@LaunchedEffect
-        val ownerCategory = categories.firstOrNull { cat -> cat.channels.any { it.url == url } }
-        if (ownerCategory != null && selectedCategory != ownerCategory.name) {
-            selectedCategory = ownerCategory.name
-        }
-        val rows: List<ChannelRow> = ownerCategory?.channels?.map { ChannelRow.Item(it) } ?: emptyList()
+        val rows = categories.firstOrNull { it.name == cat }
+                   ?.channels?.map { ChannelRow.Item(it) } ?: return@LaunchedEffect
         val idx = rows.indexOfFirst { row -> row is ChannelRow.Item && row.channel.url == url }
         if (idx >= 0) (rv.layoutManager as? LinearLayoutManager)
             ?.scrollToPositionWithOffset(idx, 120)
@@ -684,6 +694,8 @@ fun TVScreen(navController: NavController? = null) {
                                     onChannelClick   = ::onChannelSingle,
                                     onChannelDouble  = ::onChannelDouble,
                                     onChannelFocused = { ch -> if (!isCategoryLocked(ch.group)) playChannel(ch) },
+                                    onChannelLongClick = { ch -> tvScope.launch { VodPreferences.toggleFavorite(context, ch) } },
+                                    favoriteUrls     = favTvList.map { it.url }.toSet(),
                                     onCategoryClick  = ::onCategoryClick,
                                     onCategoryLockToggle = ::onCategoryLockToggle,
                                     onBack           = ::onPanelBack,
@@ -712,6 +724,8 @@ fun TVScreen(navController: NavController? = null) {
                                 // Pré-visualização ao focar com D-pad — ignora canais de
                                 // categorias bloqueadas em vez de pedir a senha só de passagem.
                                 onChannelFocused = { ch -> if (!isCategoryLocked(ch.group)) playChannel(ch) },
+                                onChannelLongClick = { ch -> tvScope.launch { VodPreferences.toggleFavorite(context, ch) } },
+                                favoriteUrls     = favTvList.map { it.url }.toSet(),
                                 onCategoryClick  = ::onCategoryClick,
                                 onCategoryLockToggle = ::onCategoryLockToggle,
                                 onBack           = ::onPanelBack,
@@ -1032,6 +1046,8 @@ private fun ChannelPanel(
     onChannelClick   : (M3UChannel) -> Unit,
     onChannelDouble  : (M3UChannel) -> Unit,
     onChannelFocused : (M3UChannel) -> Unit,
+    onChannelLongClick: (M3UChannel) -> Unit = {},
+    favoriteUrls     : Set<String> = emptySet(),
     onCategoryClick  : (ChannelRow.Category) -> Unit,
     onCategoryLockToggle: (ChannelRow.Category) -> Unit,
     onBack           : () -> Unit,
@@ -1043,6 +1059,7 @@ private fun ChannelPanel(
             onChannelClick       = onChannelClick,
             onChannelDouble      = onChannelDouble,
             onChannelFocus       = onChannelFocused,
+            onChannelLongClick   = onChannelLongClick,
             onCategoryClick      = onCategoryClick,
             onCategoryLockToggle = onCategoryLockToggle
         )
@@ -1053,6 +1070,9 @@ private fun ChannelPanel(
 
     // Actualizar canal seleccionado sem rebind completo (payload parcial)
     LaunchedEffect(selectedUrl) { adapter.selectedUrl = selectedUrl }
+
+    // Actualizar estrelas sem rebind completo
+    LaunchedEffect(favoriteUrls) { adapter.favoriteUrls = favoriteUrls }
 
     Column(modifier.background(Color(0xFF0d0d1a))) {
 
