@@ -22,7 +22,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://www.alphaprimetv.com/\"")
         }
         release {
             isMinifyEnabled = true
@@ -30,7 +30,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://alphaprime.tv/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://www.alphaprimetv.com/\"")
         }
     }
 

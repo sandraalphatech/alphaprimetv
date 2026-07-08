@@ -171,6 +171,35 @@
                 </div>
             </div>
 
+            <!-- Excluir conta -->
+            <div class="pl-card" style="margin-top:16px; border-color:#7f1d1d;">
+                <h3 style="color:#ef4444;">⚠️ Zona de perigo</h3>
+                <p class="card-sub">A autoexclusão desativa a sua conta permanentemente. Esta ação não pode ser desfeita.</p>
+                <button type="button" class="cbtn-link" style="color:#ef4444; margin-top:12px;" onclick="openDeleteModal()">Excluir minha conta permanentemente</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div id="delete-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:var(--bg-secondary); border:1px solid #7f1d1d; border-radius:16px; padding:32px; max-width:440px; width:90%; margin:auto;">
+        <h3 style="color:#ef4444; font-size:1.1rem; margin-bottom:8px;">⚠️ Excluir conta permanentemente</h3>
+        <p style="color:#9ca3af; font-size:.88rem; margin-bottom:20px; line-height:1.6;">
+            A sua conta ficará inativa e não poderá fazer login. Confirme inserindo a sua senha atual.
+        </p>
+        <div class="fl">
+            <label>Senha atual <span style="color:#ef4444;">*</span></label>
+            <div class="fl-row">
+                <input type="password" id="delete-pw" placeholder="Digite a sua senha" maxlength="64">
+                <button type="button" class="eye-toggle" onclick="toggleEye('delete-pw',this)">👁</button>
+            </div>
+        </div>
+        <p class="feedback err" id="delete-feedback" style="min-height:1.2em; margin-top:8px;"></p>
+        <div style="display:flex; gap:12px; margin-top:20px;">
+            <button type="button" onclick="closeDeleteModal()" style="flex:1; background:var(--bg-dark); border:1px solid var(--border-color); color:var(--text-light); border-radius:8px; padding:11px; font-size:.9rem; cursor:pointer;">Cancelar</button>
+            <button type="button" id="delete-confirm-btn" onclick="confirmDeleteAccount()" style="flex:1; background:#ef4444; border:none; color:#fff; border-radius:8px; padding:11px; font-size:.9rem; font-weight:700; cursor:pointer;">Excluir conta</button>
         </div>
     </div>
 </div>
@@ -324,6 +353,36 @@ async function changePassword() {
         setTimeout(togglePwSection, 1500);
     } catch(_) { setFeedback(feedback, t('prof.errNetPw'), 'err'); }
     finally { btn.disabled = false; btn.textContent = t('prof.changePwBtn'); }
+}
+
+function openDeleteModal() {
+    if (!user?.token) return;
+    document.getElementById('delete-pw').value = '';
+    document.getElementById('delete-feedback').textContent = '';
+    document.getElementById('delete-modal').style.display = 'flex';
+}
+function closeDeleteModal() {
+    document.getElementById('delete-modal').style.display = 'none';
+}
+async function confirmDeleteAccount() {
+    const pw  = document.getElementById('delete-pw').value;
+    const fb  = document.getElementById('delete-feedback');
+    const btn = document.getElementById('delete-confirm-btn');
+    if (!pw) { fb.textContent = 'Insira a sua senha para confirmar.'; return; }
+    btn.disabled = true; btn.textContent = 'Aguarde...';
+    try {
+        const res  = await fetch('/api/auth/delete-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + user.token },
+            body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+        if (!res.ok) { fb.textContent = data.error || 'Erro ao excluir conta.'; return; }
+        localStorage.removeItem('ap_user');
+        localStorage.removeItem('ap_account');
+        window.location.href = 'login.html';
+    } catch(_) { fb.textContent = 'Erro de conexão. Tente novamente.'; }
+    finally { btn.disabled = false; btn.textContent = 'Excluir conta'; }
 }
 
 function setFeedback(el, msg, type) {

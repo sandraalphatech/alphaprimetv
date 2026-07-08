@@ -1048,7 +1048,7 @@ app.post('/api/reseller/forgot-password', async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     resetTokens.set(token, { email: user.email, expiresAt: Date.now() + 3600_000 });
 
-    const resetLink = `${APP_BASE_URL}/reseller.html?reset=${token}`;
+    const resetLink = `${APP_BASE_URL}/painel.html?reset=${token}`;
 
     await resend.emails.send({
       from: 'Alpha Prime Suporte <suporte@alphaprimetv.com>',
@@ -2946,6 +2946,38 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   } catch (err) {
     console.error('[forgot-password] Erro:', err.message);
     res.status(500).json({ error: 'Erro ao processar solicitação. Tente novamente.' });
+  }
+});
+
+app.post('/api/auth/delete-account', async (req, res) => {
+  const token = (req.headers.authorization || '').replace('Bearer ', '');
+  const session = sessions.get(token);
+  if (!session) return res.status(401).json({ error: 'Não autenticado' });
+
+  const { password } = req.body;
+  if (!password) return res.status(400).json({ error: 'Senha é obrigatória para confirmar a exclusão' });
+
+  try {
+    const { data: user, error: fetchErr } = await supabase
+      .from('usuarios').select('senha_hash').eq('id', session.userId).single();
+    if (fetchErr || !user) return res.status(500).json({ error: 'Erro ao verificar utilizador' });
+
+    const ok = await bcrypt.compare(password, user.senha_hash);
+    if (!ok) return res.status(401).json({ error: 'Senha incorreta' });
+
+    const now = new Date().toISOString();
+    const { error: updateErr } = await supabase
+      .from('usuarios')
+      .update({ ativo: false, data_autoexclusao: now })
+      .eq('id', session.userId);
+    if (updateErr) throw updateErr;
+
+    sessions.delete(token);
+    saveState();
+    res.json({ success: true });
+  } catch (err) {
+    console.error('[delete-account] Erro:', err.message);
+    res.status(500).json({ error: 'Erro interno. Tente novamente.' });
   }
 });
 

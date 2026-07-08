@@ -1552,7 +1552,7 @@ function showView(name) {
   const token = new URLSearchParams(window.location.search).get('reset');
   if (!token) return;
   window._resellerResetToken = token;
-  history.replaceState(null, '', 'reseller.html');
+  history.replaceState(null, '', 'painel.html');
   // Aguarda DOM estar pronto
   document.addEventListener('DOMContentLoaded', () => showView('reset'), { once: true });
   if (document.readyState !== 'loading') showView('reset');

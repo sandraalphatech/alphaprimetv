@@ -346,7 +346,7 @@
       'prof.btnSave':       'GUARDAR',
       'pl.btnRemove':       'Remover',
 
-      // ── reseller.html ──
+      // ── painel.html ──
       'res.pageTitle':      'Alpha Prime — Painel',
       'res.panelSub':       'PAINEL',
       'res.loginBtn':       'Entrar',
@@ -1147,7 +1147,7 @@
       'prof.btnSave':       'SAVE',
       'pl.btnRemove':       'Remove',
 
-      // ── reseller.html ──
+      // ── painel.html ──
       'res.pageTitle':      'Alpha Prime — Panel',
       'res.panelSub':       'PANEL',
       'res.loginBtn':       'Sign In',
@@ -1948,7 +1948,7 @@
       'prof.btnSave':       'GUARDAR',
       'pl.btnRemove':       'Eliminar',
 
-      // ── reseller.html ──
+      // ── painel.html ──
       'res.pageTitle':      'Alpha Prime — Panel',
       'res.panelSub':       'PANEL',
       'res.loginBtn':       'Entrar',
