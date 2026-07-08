@@ -760,8 +760,67 @@ html[data-theme="light"] .tv::after {
 }
 
 .system-requirements h4 {
-    margin-bottom: 0.5rem;
+    margin-bottom: 1.2rem;
     color: var(--text-light);
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: .5px;
+}
+
+.req-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.req-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.req-card .req-icon {
+    font-size: 1.4rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.req-card strong {
+    display: block;
+    color: var(--text-light);
+    font-size: .9rem;
+    margin-bottom: 10px;
+}
+
+.req-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.req-card ul li {
+    font-size: .82rem;
+    color: var(--text-muted);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
+}
+
+.req-card ul li::before {
+    content: '·';
+    position: absolute;
+    left: 2px;
+    color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .req-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Contact Section */
