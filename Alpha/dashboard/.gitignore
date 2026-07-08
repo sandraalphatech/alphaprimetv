@@ -32,13 +32,19 @@ Thumbs.db
 *.tar
 *.tar.gz
 
+# APKs Android
+*.apk
+*.aab
+
+# Build Android
+**/build/
+.gradle/
+local.properties
+
 # Pastas temporárias
 dreamtv_extracted/
 dreamtv_temp/
 
-# Build (caso exista)
+# Build Web
 dist/
-build/
-
-# Coverage
 coverage/

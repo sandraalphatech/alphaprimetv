@@ -26,7 +26,7 @@
         .btn-submit:hover { opacity: .88; }
         .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
         .form-error { color: #ef4444; font-size: .85rem; text-align: center; min-height: 1.2em; margin-top: 10px; }
-        .login-footer { text-align: center; margin-top: 24px; font-size: .88rem; color: var(--text-muted); }
+        .login-footer { text-align: center; margin-top: 24px; font-size: 1rem; color: var(--text-muted); }
         .login-footer a { color: var(--primary-color); text-decoration: none; font-weight: 700; }
         .login-footer a:hover { text-decoration: underline; }
         .divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--text-muted); font-size: .8rem; }
@@ -105,7 +105,7 @@
 
         <div class="divider" data-i18n="login.or">ou</div>
         <div class="login-footer">
-            <span data-i18n="login.noAccount">Não tem Cadastro?</span> <a href="cadastro.html" data-i18n="login.createLink">Crie sua conta</a>
+            <span data-i18n="login.noAccount">Terminou seu período de teste e ainda não tem Cadastro?</span> <br><a href="cadastro.html" data-i18n="login.createLink">CLIQUE AQUI e Crie sua conta</a>
         </div>
     </div>
 </div>
@@ -366,7 +366,7 @@
 
             localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email }));
 
-            const next = new URLSearchParams(window.location.search).get('next') || 'playlists.html';
+            const next = new URLSearchParams(window.location.search).get('next') || 'activate.html';
             window.location.replace(next);
         } catch(e) {
             errEl.textContent = t('login.errServer');

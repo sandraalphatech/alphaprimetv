@@ -284,7 +284,7 @@
             if (!res.ok) { errEl.textContent = data.error || t('reg.errCreate'); return; }
 
             localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email }));
-            window.location.replace('playlists.html');
+            window.location.replace('activate.html');
         } catch(e) {
             errEl.textContent = t('reg.errServer');
         } finally {

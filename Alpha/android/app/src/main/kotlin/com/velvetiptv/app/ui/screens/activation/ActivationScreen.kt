@@ -40,7 +40,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.net.NetworkInterface
 
-const val ACTIVATION_URL = "https://spiffy-mochi-c2fbdc.netlify.app/activate"
+const val ACTIVATION_URL  = "https://www.alphaprimetv.com/cadastro.html"
+const val ACTIVATION_SITE = "www.alphaprimetv.com"
 
 fun generateQrBitmap(content: String, size: Int = 512): Bitmap {
     val hints = mapOf(EncodeHintType.MARGIN to 1)
@@ -165,7 +166,13 @@ private fun TVActivationLayout(
             AlphaLogoMini(size = 150.dp)
 
             Spacer(Modifier.height(4.dp))
-            InfoLine("Acesse para ativar:", ACTIVATION_URL, Color.White, 12, 13)
+            Text(
+                "Crie sua conta ou faça login para desbloquear todas as funcionalidades. " +
+                "Ative sua licença pelo site e o aplicativo será liberado automaticamente.",
+                fontSize = 12.sp, color = Color.White.copy(0.65f), lineHeight = 17.sp
+            )
+            Spacer(Modifier.height(2.dp))
+            InfoLine("Acesse para ativar:", ACTIVATION_SITE, Color.White, 12, 13)
             InfoLine("Mac Address", macAddress, Color(0xFFD4A843), 12, 20)
             InfoLine("Device Key", deviceKey, Color(0xFFD4A843), 12, 28)
             Spacer(Modifier.height(4.dp))
@@ -187,7 +194,7 @@ private fun TVActivationLayout(
                     Spacer(Modifier.width(10.dp))
                 }
                 Text(
-                    if (isActivated) "Ativado! Entrando…" else "Aguardando pagamento…",
+                    if (isActivated) "Ativado! Entrando…" else "Aguardando ativação",
                     fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White
                 )
             }
@@ -222,11 +229,11 @@ private fun TVActivationLayout(
                 }
             }
             Text(
-                "Leia o QR Code para\nacessar a página de ativação",
-                fontSize = 12.sp,
+                "Leia o QR Code para acessar a página de cadastro ou login e concluir a ativação da sua licença.",
+                fontSize = 11.sp,
                 color = Color(0xFFD4A843),
                 textAlign = TextAlign.Center,
-                lineHeight = 17.sp
+                lineHeight = 16.sp
             )
         }
     }
@@ -251,9 +258,14 @@ private fun MobileActivationLayout(
     ) {
         AlphaLogoMini(size = 180.dp)
 
-        Spacer(Modifier.height(4.dp))
+        Text(
+            "Crie sua conta ou faça login para desbloquear todas as funcionalidades. " +
+            "Ative sua licença pelo site e o aplicativo será liberado automaticamente.",
+            fontSize = 13.sp, color = Color.White.copy(0.65f),
+            textAlign = TextAlign.Center, lineHeight = 19.sp
+        )
+
         Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(0.07f)))
-        Spacer(Modifier.height(4.dp))
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -261,7 +273,7 @@ private fun MobileActivationLayout(
         ) {
             Text("Acesse para ativar:", fontSize = 12.sp,
                 color = Color.White.copy(0.5f), textAlign = TextAlign.Center)
-            Text(ACTIVATION_URL, fontSize = 13.sp,
+            Text(ACTIVATION_SITE, fontSize = 13.sp,
                 fontWeight = FontWeight.Medium, color = Color.White, textAlign = TextAlign.Center)
         }
 
@@ -304,7 +316,7 @@ private fun MobileActivationLayout(
         }
 
         Text(
-            "Leia o QR Code para\nacessar a página de ativação",
+            "Leia o QR Code para acessar a página de cadastro ou login e concluir a ativação da sua licença.",
             fontSize = 12.sp,
             color = Color(0xFFD4A843),
             textAlign = TextAlign.Center,
@@ -329,7 +341,7 @@ private fun MobileActivationLayout(
                 Spacer(Modifier.width(10.dp))
             }
             Text(
-                if (isActivated) "Ativado! Entrando…" else "Aguardando pagamento…",
+                if (isActivated) "Ativado! Entrando…" else "Aguardando ativação",
                 fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White
             )
         }

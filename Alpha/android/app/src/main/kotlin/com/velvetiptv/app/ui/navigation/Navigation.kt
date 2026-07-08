@@ -29,6 +29,9 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import org.json.JSONArray
 import org.json.JSONObject
+import com.velvetiptv.app.data.ActivationApiClient
+import com.velvetiptv.app.data.DeviceCheckRequest
+import com.velvetiptv.app.data.DeviceUtils
 import com.velvetiptv.app.data.LicensePreferences
 import com.velvetiptv.app.data.SupabaseRegistration
 import com.velvetiptv.app.data.VodPreferences
@@ -98,27 +101,38 @@ fun AlphaPrimeNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // Decide o ecrã inicial: clientes em teste grátis (7 dias desde a
-    // instalação) ou com licença paga ainda válida vão direto ao menu;
-    // caso contrário caem na tela de ativação. Cálculo é local/offline
-    // (baseado no que foi guardado na última verificação com o backend),
-    // para não depender de rede no arranque.
     var startDestination by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         val installDate = LicensePreferences.getOrInitInstallDate(context)
-        val expiresAt   = LicensePreferences.getExpiresAt(context)
 
-        // Registra e sincroniza em background — não bloqueia a decisão de rota
-        CoroutineScope(Dispatchers.IO).launch {
-            SupabaseRegistration.registerIfNeeded(context, installDate)
-            VodPreferences.syncFavoritesFromServer(context)
+        // Garante que o dispositivo está registado no Supabase antes de verificar
+        SupabaseRegistration.registerIfNeeded(context, installDate)
+
+        // A fonte de verdade é o Supabase — verifica status real no backend.
+        // Fallback para estado local apenas se não houver rede.
+        val isActive = try {
+            val mac      = DeviceUtils.getMacAddress()
+            val key      = DeviceUtils.getDeviceKey(context)
+            val response = ActivationApiClient.api.checkDevice(DeviceCheckRequest(mac, key))
+            if (response.activated && response.expiresAt != null) {
+                LicensePreferences.setExpiresAt(
+                    context, LicensePreferences.parseExpiresAt(response.expiresAt)
+                )
+            }
+            response.activated
+        } catch (_: Exception) {
+            // Sem rede: usa cache local
+            val expiresAt = LicensePreferences.getExpiresAt(context)
+            LicensePreferences.isLicenseValid(expiresAt) || LicensePreferences.isTrialActive(installDate)
         }
 
-        startDestination =
-            if (LicensePreferences.isLicenseValid(expiresAt) || LicensePreferences.isTrialActive(installDate))
-                Screen.Home.route
-            else
-                Screen.Activation.route
+        if (isActive) {
+            CoroutineScope(Dispatchers.IO).launch {
+                VodPreferences.syncFavoritesFromServer(context)
+            }
+        }
+
+        startDestination = if (isActive) Screen.Home.route else Screen.Activation.route
     }
 
     val resolvedStart = startDestination
