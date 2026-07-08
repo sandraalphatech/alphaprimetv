@@ -283,11 +283,20 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
   // Tenta primeiro ATUALIZAR o registro existente (trial → pago)
   const { data: existing } = await supabase
     .from('ativacoes')
-    .select('id')
+    .select('id, revendedor_id, nome_revendedor')
     .eq('mac_address', mac)
     .order('criado_em', { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  // Se o caller não forneceu revendedor_id mas o registro existente tem um, herda-o
+  if (existing && !revendedor_id && existing.revendedor_id) {
+    revendedor_id = existing.revendedor_id;
+    if (!nome_revendedor) nome_revendedor = existing.nome_revendedor;
+    // Atualiza fields com o revendedor herdado
+    fields.revendedor_id  = revendedor_id;
+    fields.nome_revendedor = nome_revendedor;
+  }
 
   if (existing) {
     const { error } = await supabase
@@ -307,11 +316,12 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
     if (error) console.error('Supabase ativacoes insert error:', error.message, '| mac:', mac);
   }
 
-  // Atualiza usuarios.ativo = true para que o cliente veja o status correto no dashboard
+  // Atualiza usuarios.ativo = true
   if (usuario_id) {
-    await supabase.from('usuarios')
-      .update({ ativo: true, atualizado_em: agora })
+    const { error: userErr } = await supabase.from('usuarios')
+      .update({ ativo: true })
       .eq('id', usuario_id);
+    if (userErr) console.error('Supabase usuarios update error:', userErr.message, '| usuario_id:', usuario_id);
   }
 
   // Registrar no histórico
@@ -796,18 +806,19 @@ app.post('/api/device/register-trial', async (req, res) => {
     return res.status(400).json({ error: 'mac_address é obrigatório' });
   }
 
-  // Verifica se já existe trial registrado para este dispositivo
+  // Verifica se já existe QUALQUER registro para este dispositivo (trial ou pago)
+  // Se existir (mesmo plano='anual'), não insere trial para não criar duplicata
+  // que causaria o app voltar à tela de ativação após pagamento.
   const { data: existing } = await supabase
     .from('ativacoes')
-    .select('validade')
+    .select('validade, plano')
     .eq('mac_address', mac_address)
-    .eq('plano', 'trial')
     .order('criado_em', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (existing) {
-    console.log('[register-trial] já registrado:', mac_address);
+    console.log('[register-trial] dispositivo já registrado (plano:', existing.plano, '):', mac_address);
     return res.json({ success: true, validade: existing.validade });
   }
 
