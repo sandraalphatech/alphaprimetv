@@ -170,7 +170,7 @@ html[data-theme="light"] .navbar.navbar-scrolled {
     display: flex;
     align-items: center;
     flex-direction: column;
-    margin-top: 60px;
+    margin-top: 10px;
 }
 
 .hero .container {
@@ -205,6 +205,7 @@ html[data-theme="light"] .navbar.navbar-scrolled {
     letter-spacing: 0.05em;
     text-align: center;
 }
+
 
 .hero-buttons {
     display: flex;
@@ -269,6 +270,7 @@ html[data-theme="light"] .navbar.navbar-scrolled {
     flex-direction: column;
     width: 100%;
     margin-top: 40px;
+    padding: 1rem;
 }
 
 .tv {
@@ -396,6 +398,19 @@ html[data-theme="light"] .tv::after {
     animation: pulse 2s infinite;
 }
 
+.req-card1 {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 50px;
+    font-size: 1.2rem;
+}
+
+.req-card1 p {
+    text-align: center;
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
@@ -409,8 +424,8 @@ html[data-theme="light"] .tv::after {
 
 .features h2 {
     text-align: center;
-    font-size: 3rem;
-    margin-bottom: 2rem;
+    font-size: 2rem;
+    margin-bottom: 1rem;
     background: linear-gradient(135deg, var(--primary-color), var(--text-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -425,7 +440,7 @@ html[data-theme="light"] .tv::after {
 
 .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(460px, 2fr));
     gap: 2rem;
 }
 
@@ -488,11 +503,11 @@ html[data-theme="light"] .tv::after {
     background: linear-gradient(135deg,#7C3AED,#A855F7);
     color:#fff;
     font-size:1.1rem;
-    font-weight:700;
+    font-weight:500;
     text-decoration:none;
     box-shadow:0 10px 30px rgba(124,58,237,.35);
     transition:.3s;
-    margin-top: 2rem;
+    margin-top: 0.1rem;
 }
 
 .trial-note {
@@ -518,7 +533,7 @@ html[data-theme="light"] .tv::after {
 
 .screenshots h2{
     text-align:center;
-    font-size:3rem;
+    font-size:2rem;
     margin-bottom:4rem;
     background:linear-gradient(135deg,var(--primary-color),var(--text-light));
     -webkit-background-clip: text;
@@ -613,7 +628,7 @@ html[data-theme="light"] .tv::after {
 
 .pricing h2 {
     text-align: center;
-    font-size: 3rem;
+    font-size: 2rem;
     margin-bottom: 4rem;
     background: linear-gradient(135deg, var(--primary-color), var(--text-light));
     -webkit-background-clip: text;
@@ -696,7 +711,7 @@ html[data-theme="light"] .tv::after {
 }
 
 .download h2 {
-    font-size: 3rem;
+    font-size: 2rem;
     margin-bottom: 1rem;
     background: linear-gradient(135deg, var(--primary-color), var(--text-light));
     -webkit-background-clip: text;
@@ -769,7 +784,7 @@ html[data-theme="light"] .tv::after {
 
 .req-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
 }
 
@@ -831,7 +846,7 @@ html[data-theme="light"] .tv::after {
 
 .contact h2 {
     text-align: center;
-    font-size: 3rem;
+    font-size: 2rem;
     margin-bottom: 1rem;
     background: linear-gradient(135deg, var(--primary-color), var(--text-light));
     -webkit-background-clip: text;
@@ -1086,7 +1101,7 @@ footer .container {
     .user-avatar-btn #nav-username { display: none; }
 
     .btn { margin-top: 3rem; }
-    .hero-buttons { gap: 50px; margin-bottom: 0; padding: 30px; }
+    .hero-buttons { gap: 50px; margin-bottom: 0; padding: 0px; }
 }
 
 @media (max-width: 480px) {
@@ -1146,7 +1161,7 @@ footer .container {
     .hero-buttons {
         gap: 50px;
         margin-bottom: 0;
-        padding: 30px;
+        padding: 0px;
     }
 
     footer .container {
@@ -1173,7 +1188,7 @@ footer .container {
         width: 100%;
         gap:0;
         margin-bottom: 0;
-        padding: 30px;
+        padding: 0px;
     }
 
     .hero-buttons .btn {
@@ -1208,16 +1223,21 @@ footer .container {
     }
 
     .tv-content .hero-content img {
-        max-width: 220px;
+        max-width: 80px;
         max-height: 40%;
     }
 
     .subtitle {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 
     .description {
-        font-size: 0.72rem;
+        font-size: 0.9rem;
+    }
+
+    .req-card1 {
+    text-align: center;
+    font-size: 1rem;
     }
 }
 
