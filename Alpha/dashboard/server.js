@@ -8,6 +8,7 @@ const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const { Resend } = require('resend');
+const QRCode = require('qrcode');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_BASE_URL = (process.env.APP_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -149,12 +150,25 @@ app.post('/api/payments/pix/create', async (req, res) => {
     const charge = order.data.charges?.[0];
     const tx = charge?.last_transaction;
 
+    console.log('[PagarME] charge:', JSON.stringify(charge, null, 2));
+
+    const pixCode = tx?.qr_code;
+    if (!pixCode) {
+      console.error('[PagarME] qr_code ausente na transação:', JSON.stringify(tx));
+      return res.status(502).json({ error: 'QR Code não retornado pelo PagarME' });
+    }
+
+    const qrDataUri = await QRCode.toDataURL(pixCode, {
+      width: 220, margin: 1,
+      color: { dark: '#000000', light: '#ffffff' }
+    });
+
     payments.set(order.data.id, { paymentId: order.data.id, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'pix' });
 
     res.json({
       paymentId: order.data.id,
-      qrCodeBase64: tx?.qr_code_url,
-      qrCodeText: tx?.qr_code
+      qrCodeBase64: qrDataUri,
+      qrCodeText: pixCode
     });
   } catch (err) {
     console.error('Erro ao criar cobrança Pix:', err.response?.data || err.message);
