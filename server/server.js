@@ -1,13 +1,24 @@
+require('dotenv').config();
+
 const express  = require('express');
 const bcrypt   = require('bcryptjs');
 const jwt      = require('jsonwebtoken');
 const cors     = require('cors');
 const fs       = require('fs');
 const path     = require('path');
+const https    = require('https');
+const QRCode   = require('qrcode');
 
 const app    = express();
 const PORT   = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || 'alphaprime-secret-2024';
+
+// ─── PAGARME CONFIG ───────────────────────────────────────────────────────────
+const PAGARME_KEY = process.env.PAGARME_SECRET_KEY || '';
+const PLAN_PRICES = {
+  yearly:   { amount: 2500, days: 365,  label: 'Licença Anual Alpha Prime' },
+  lifetime: { amount: 6500, days: null, label: 'Licença Vitalícia Alpha Prime' }
+};
 const DATA   = path.join(__dirname, 'data');
 
 // ─── STORAGE (JSON files) ─────────────────────────────────────────────────────
@@ -279,10 +290,207 @@ app.get('/api/admin/stats', authRequired, (req, res) => {
   });
 });
 
+// ─── PAGARME HELPERS ─────────────────────────────────────────────────────────
+
+function pagarmeRequest(method, urlPath, body) {
+  return new Promise((resolve, reject) => {
+    if (!PAGARME_KEY || PAGARME_KEY.startsWith('sk_test_COLOQUE')) {
+      return reject(new Error('PAGARME_SECRET_KEY não configurada no .env'));
+    }
+    const auth = Buffer.from(PAGARME_KEY + ':').toString('base64');
+    const data = body ? JSON.stringify(body) : null;
+    const options = {
+      hostname: 'api.pagar.me',
+      path: '/core/v5' + urlPath,
+      method,
+      headers: {
+        'Authorization': 'Basic ' + auth,
+        'Content-Type': 'application/json',
+        ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {})
+      }
+    };
+    const req = https.request(options, res => {
+      let raw = '';
+      res.on('data', c => (raw += c));
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, data: JSON.parse(raw) }); }
+        catch { reject(new Error('PagarME parse error: ' + raw.slice(0, 200))); }
+      });
+    });
+    req.on('error', reject);
+    if (data) req.write(data);
+    req.end();
+  });
+}
+
+function getPending() { return readJson('pending_payments.json'); }
+function savePending(p) { writeJson('pending_payments.json', p); }
+
+async function activateLicenseFromPayment(entry) {
+  const devices = getDevices();
+  let idx = devices.findIndex(d => d.mac === entry.mac);
+
+  if (idx === -1) {
+    devices.push({
+      id: Date.now(),
+      mac: entry.mac,
+      deviceKey: entry.deviceKey || '',
+      activated: false,
+      plan: entry.plan,
+      activatedAt: null,
+      expiresAt: null,
+      notes: '',
+      playlists: [],
+      createdAt: new Date().toISOString()
+    });
+    idx = devices.length - 1;
+  }
+
+  const info = PLAN_PRICES[entry.plan] || PLAN_PRICES.yearly;
+  let expiresAt = null;
+  if (info.days) {
+    const exp = new Date();
+    exp.setDate(exp.getDate() + info.days);
+    expiresAt = exp.toISOString();
+  }
+
+  devices[idx] = {
+    ...devices[idx],
+    activated: true,
+    plan: entry.plan,
+    activatedAt: new Date().toISOString(),
+    expiresAt,
+    nome_dispositivo: entry.deviceName || devices[idx].nome_dispositivo || '',
+    deviceModel: entry.deviceModel || devices[idx].deviceModel || ''
+  };
+  saveDevices(devices);
+  console.log(`✅ Licença ativada via Pix: ${entry.mac} (${entry.plan})`);
+}
+
+// ─── PAYMENTS — PIX ───────────────────────────────────────────────────────────
+
+app.post('/api/payments/pix/create', async (req, res) => {
+  const { mac, deviceKey, plan, deviceName, deviceModel } = req.body;
+
+  if (!mac || !plan || !PLAN_PRICES[plan]) {
+    return res.status(400).json({ error: 'mac e plan obrigatórios' });
+  }
+
+  const info = PLAN_PRICES[plan];
+
+  try {
+    const { status, data } = await pagarmeRequest('POST', '/orders', {
+      code: 'AP-' + Date.now(),
+      items: [{ amount: info.amount, description: info.label, quantity: 1 }],
+      customer: {
+        name: deviceName || 'Cliente Alpha Prime',
+        email: 'pagamento@alphaprime.app',
+        type: 'individual',
+        document: '00000000191'
+      },
+      payments: [{ payment_method: 'pix', pix: { expires_in: 3600 } }]
+    });
+
+    if (status !== 201 || !data?.charges?.[0]) {
+      console.error('PagarME create error:', JSON.stringify(data).slice(0, 300));
+      return res.status(502).json({ error: 'Erro ao criar cobrança PagarME' });
+    }
+
+    const charge = data.charges[0];
+    const pixCode = charge.last_transaction?.qr_code;
+    const orderId = data.id;
+
+    if (!pixCode) {
+      console.error('PagarME: qr_code ausente', JSON.stringify(charge).slice(0, 300));
+      return res.status(502).json({ error: 'QR Code não retornado pelo PagarME' });
+    }
+
+    const qrDataUri = await QRCode.toDataURL(pixCode, {
+      width: 220, margin: 1,
+      color: { dark: '#000000', light: '#ffffff' }
+    });
+
+    const pending = getPending();
+    pending.push({
+      paymentId: orderId,
+      mac: mac.toLowerCase(),
+      deviceKey: deviceKey || '',
+      plan,
+      deviceName: deviceName || '',
+      deviceModel: deviceModel || '',
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    savePending(pending);
+
+    res.json({ paymentId: orderId, qrCodeBase64: qrDataUri, qrCodeText: pixCode });
+  } catch (e) {
+    console.error('pix/create exception:', e.message);
+    res.status(500).json({ error: e.message || 'Erro interno ao gerar Pix' });
+  }
+});
+
+app.get('/api/payments/pix/status', async (req, res) => {
+  const { id } = req.query;
+  if (!id) return res.status(400).json({ error: 'id obrigatório' });
+
+  const pending = getPending();
+  const entry = pending.find(p => p.paymentId === id);
+  if (!entry) return res.json({ status: 'unknown' });
+  if (entry.status === 'paid') return res.json({ status: 'paid' });
+
+  try {
+    const { data } = await pagarmeRequest('GET', '/orders/' + id, null);
+    const orderStatus = data.status;
+
+    if (orderStatus === 'paid') {
+      await activateLicenseFromPayment(entry);
+      const all = getPending();
+      const idx = all.findIndex(p => p.paymentId === id);
+      if (idx !== -1) { all[idx].status = 'paid'; savePending(all); }
+      return res.json({ status: 'paid' });
+    }
+    if (orderStatus === 'canceled' || orderStatus === 'failed') {
+      return res.json({ status: 'failed' });
+    }
+    return res.json({ status: 'pending' });
+  } catch (e) {
+    console.error('pix/status exception:', e.message);
+    res.json({ status: 'pending' });
+  }
+});
+
+// Webhook PagarME — configure a URL pública deste endpoint no painel PagarME
+app.post('/api/payments/webhook', express.json(), async (req, res) => {
+  res.json({ received: true }); // Responde imediatamente para o PagarME não retentar
+
+  const event = req.body;
+  if (event?.type !== 'order.paid') return;
+
+  const orderId = event.data?.id;
+  if (!orderId) return;
+
+  const pending = getPending();
+  const entry = pending.find(p => p.paymentId === orderId && p.status !== 'paid');
+  if (!entry) return;
+
+  try {
+    await activateLicenseFromPayment(entry);
+    const all = getPending();
+    const idx = all.findIndex(p => p.paymentId === orderId);
+    if (idx !== -1) { all[idx].status = 'paid'; savePending(all); }
+  } catch (e) {
+    console.error('webhook activate error:', e.message);
+  }
+});
+
 // ─── START ────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
+  const keyOk = PAGARME_KEY && !PAGARME_KEY.startsWith('sk_test_COLOQUE');
   console.log(`\n🚀 Alpha Prime Server → http://localhost:${PORT}`);
   console.log(`📋 Painel Admin      → http://localhost:${PORT}/admin.html`);
   console.log(`📱 Página Ativar     → http://localhost:${PORT}/activate.html`);
-  console.log(`🔑 Login: admin / admin123\n`);
+  console.log(`💳 Webhook PagarME   → POST /api/payments/webhook`);
+  console.log(`🔑 PagarME Key       → ${keyOk ? '✅ configurada' : '⚠️  NÃO configurada — edite .env'}`);
+  console.log(`🔑 Login admin: admin / admin123\n`);
 });
