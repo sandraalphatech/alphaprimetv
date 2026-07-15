@@ -12,19 +12,19 @@
         .page-area { padding-top: 80px; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, var(--secondary-color), var(--bg-dark) 70%); }
         .page-hero { padding: 48px 20px 8px; text-align: center; }
         .page-hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--text-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .page-hero p  { color: #9ca3af; margin-top: 8px; }
+        .page-hero p  { color: var(--text-muted); margin-top: 8px; }
         .nav-links a.active { color: var(--primary-color); }
         .pl-wrap { padding: 32px 16px 64px; }
 
         /* ── Campos ── */
         .fl { width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 22px; }
-        .fl label { font-size: .82rem; color: #9ca3af; }
+        .fl label { font-size: .82rem; color: var(--text-muted); }
         .fl label span { color: #ef4444; }
         .fl-row { display: flex; align-items: center; gap: 8px; }
         .fl input { background: transparent; border: none; border-bottom: 1px solid var(--border-color); border-radius: 0; padding: 8px 0; color: var(--text-light); font-size: .92rem; outline: none; transition: border-color .2s; width: 100%; }
         .fl input:focus { border-color: var(--primary-color); }
         .fl input::placeholder { color: #4b5563; }
-        .eye-toggle { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 1rem; padding: 4px; }
+        .eye-toggle { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1rem; padding: 4px; }
         .eye-toggle:hover { color: var(--text-light); }
 
         .user-dropdown hr { border: none; border-top: 1px solid var(--border-color); margin: 4px 0; }
@@ -34,12 +34,12 @@
         .auth-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 3000; align-items: center; justify-content: center; padding: 16px; }
         .auth-modal-overlay.open { display: flex; }
         .auth-modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; width: 100%; max-width: 440px; position: relative; max-height: 90vh; overflow-y: auto; }
-        .auth-modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 4px 8px; }
+        .auth-modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; line-height: 1; padding: 4px 8px; }
         .auth-modal-close:hover { color: var(--text-light); }
         .auth-modal h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
-        .auth-modal p.auth-sub { color: #9ca3af; font-size: .85rem; margin-bottom: 24px; }
+        .auth-modal p.auth-sub { color: var(--text-muted); font-size: .85rem; margin-bottom: 24px; }
         .auth-divider { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; }
-        .auth-section-label { font-size: .75rem; color: #9ca3af; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; display: block; }
+        .auth-section-label { font-size: .75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; display: block; }
         #auth-error { color: #ef4444; font-size: .85rem; text-align: center; display: none; margin-bottom: 12px; }
         .btn-login { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 8px; padding: 13px; width: 100%; font-size: 1rem; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: opacity .2s; }
         .btn-login:hover { opacity: .88; }
@@ -49,7 +49,7 @@
         .not-logged-in { max-width: 460px; margin: 0 auto; text-align: center; padding: 56px 20px; }
         .not-logged-in .icon { font-size: 3.5rem; margin-bottom: 16px; }
         .not-logged-in h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
-        .not-logged-in p { color: #9ca3af; font-size: .9rem; margin-bottom: 28px; line-height: 1.6; }
+        .not-logged-in p { color: var(--text-muted); font-size: .9rem; margin-bottom: 28px; line-height: 1.6; }
         .btn-big-login { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity .2s; }
         .btn-big-login:hover { opacity: .88; }
 
@@ -63,7 +63,7 @@
         .device-section-header { display: flex; align-items: center; justify-content: space-between; background: rgba(124,58,237,.12); border-bottom: 1px solid var(--border-color); padding: 14px 18px; gap: 10px; flex-wrap: wrap; }
         .device-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .device-dot { width: 9px; height: 9px; border-radius: 50%; background: #10b981; flex-shrink: 0; }
-        .device-mac { font-size: .78rem; color: #9ca3af; font-family: monospace; display: block; }
+        .device-mac { font-size: .78rem; color: var(--text-muted); font-family: monospace; display: block; }
         .device-name-display { font-weight: 700; color: var(--text-light); font-size: .95rem; }
         .rename-input { background: transparent; border: none; border-bottom: 1px solid var(--primary-color); color: var(--text-light); font-size: .95rem; font-weight: 700; outline: none; padding: 2px 0; min-width: 120px; }
         .device-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -72,7 +72,7 @@
         .btn-remove-dev { background:#ef4444; border: 1px solid var(--border-color); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: .70rem; cursor: pointer; transition: all .15s; }
         .btn-remove-dev:hover { border-color: #dc2626; color: #fff; }
         .device-playlists { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
-        .device-empty { text-align: center; color: #9ca3af; font-size: .85rem; padding: 18px; }
+        .device-empty { text-align: center; color: var(--text-muted); font-size: .85rem; padding: 18px; }
 
         /* ── Playlist item ── */
         .pl-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: border-color .2s; }
@@ -83,7 +83,7 @@
         .pl-item-row { display: flex; align-items: flex-start; gap: 10px; min-width: 0; flex: 1; }
         .pl-item-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
         .pl-item-name { font-weight: 600; font-size: .9rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .pl-item-meta { color: #9ca3af; font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+        .pl-item-meta { color: var(--text-muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
         .pl-item-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .68rem; font-weight: 700; background: rgba(124,58,237,.2); color: #a78bfa; }
         .pl-item-active-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .68rem; font-weight: 700; background: rgba(16,185,129,.2); color: #10b981; }
         .pl-item-del { background: #ef4444; border: none; color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: .8rem; flex-shrink: 0; }
@@ -94,7 +94,7 @@
         .add-device-card:hover { border-color: var(--primary-color); }
         .add-device-card .adc-icon { color: var(--primary-color); font-size: 1.8rem; line-height: 1; }
         .add-device-card strong { color: var(--text-light); font-size: .95rem; display: block; margin-top: 4px; }
-        .add-device-card p { color: #9ca3af; font-size: .84rem; margin-top: 3px; }
+        .add-device-card p { color: var(--text-muted); font-size: .84rem; margin-top: 3px; }
 
         /* ── Cards de formulário ── */
         .pl-card { max-width: 640px; margin: 20px auto 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; }
@@ -102,7 +102,7 @@
         .btn-carregar { display: block; margin: 24px auto 0; min-width: 200px; background: #7B35C4; color: #fff; border: none; border-radius: 8px; padding: 13px 32px; font-size: .95rem; font-weight: 800; letter-spacing: .5px; cursor: pointer; transition: background .2s; }
         .btn-carregar:hover { background: #a78bfa; }
         .btn-carregar:disabled { opacity: .5; cursor: not-allowed; }
-        .cbtn-outline-btn { background: none; border: 1px solid var(--border-color); color: #9ca3af; border-radius: 8px; padding: 13px; cursor: pointer; font-size: .9rem; font-weight: 700; transition: all .15s; }
+        .cbtn-outline-btn { background: none; border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 8px; padding: 13px; cursor: pointer; font-size: .9rem; font-weight: 700; transition: all .15s; }
         .cbtn-outline-btn:hover { border-color: var(--primary-color); color: var(--text-light); }
         .pl-feedback { text-align: center; font-size: .85rem; margin-top: 14px; min-height: 1.2em; }
         .pl-feedback.ok  { color: #10b981; }
@@ -110,7 +110,7 @@
 
         /* Device selector dentro de forms */
         .dev-sel-wrap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 22px; }
-        .dev-sel-wrap label { font-size: .82rem; color: #9ca3af; }
+        .dev-sel-wrap label { font-size: .82rem; color: var(--text-muted); }
         .dev-sel-wrap select { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); padding: 9px 12px; font-size: .92rem; outline: none; }
         .dev-sel-wrap select:focus { border-color: var(--primary-color); }
 
@@ -120,7 +120,7 @@
         .activation-picker-box select { width: 100%; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); padding: 9px 12px; font-size: .92rem; outline: none; }
         .activation-picker-box select:focus { border-color: var(--primary-color); }
         .activation-picker-box select option { background: #1e293b; }
-        .activation-picker-hint { font-size: .8rem; color: #9ca3af; margin-top: 8px; }
+        .activation-picker-hint { font-size: .8rem; color: var(--text-muted); margin-top: 8px; }
         .activation-picker-hint a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
         .activation-picker-hint a:hover { text-decoration: underline; }
         .activation-divider { display: flex; align-items: center; gap: 10px; color: #4b5563; font-size: .78rem; margin-bottom: 20px; }
@@ -128,7 +128,7 @@
 
         /* Abas tipo playlist */
         .pl-tabs { display: flex; justify-content: center; gap: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 26px; }
-        .pl-tab { background: none; border: none; cursor: pointer; padding: 0 0 12px; font-size: .9rem; font-weight: 600; color: #9ca3af; border-bottom: 2px solid transparent; transition: all .2s; }
+        .pl-tab { background: none; border: none; cursor: pointer; padding: 0 0 12px; font-size: .9rem; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; transition: all .2s; }
         .pl-tab:hover { color: var(--text-light); }
         .pl-tab.active { color: var(--primary-color); border-bottom-color: var(--primary-color); }
         .pl-checkbox { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: .9rem; font-weight: 600; color: var(--text-light); margin-bottom: 18px; }
@@ -139,14 +139,14 @@
         /* Parental */
         .parental-card { margin-top: 24px; }
         .parental-title { font-size: 1rem; color: var(--text-light); margin-bottom: 6px; }
-        .parental-sub { color: #9ca3af; font-size: .82rem; line-height: 1.5; margin-bottom: 18px; }
+        .parental-sub { color: var(--text-muted); font-size: .82rem; line-height: 1.5; margin-bottom: 18px; }
         .parental-divider { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; }
         .parental-locked-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
         .parental-locked-name { display: flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 600; }
         .btn-unlock { background: none; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: .78rem; font-weight: 700; }
         .btn-unlock:hover { background: var(--primary-color); color: #fff; }
         .cbtn-link { background: none; border: none; color: var(--primary-color); cursor: pointer; font-size: .85rem; font-weight: 700; padding: 0; text-decoration: none; }
-        .parental-forgot { text-align: center; font-size: .8rem; color: #9ca3af; margin-top: 16px; }
+        .parental-forgot { text-align: center; font-size: .8rem; color: var(--text-muted); margin-top: 16px; }
         .parental-forgot a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
         .parental-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
         .parental-modal-overlay.open { display: flex; }
@@ -203,8 +203,8 @@
             <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
                 <button class="user-avatar-btn" id="nav-user-toggle">
                     <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
-                    <span id="nav-username" data-i18n="nav.user"></span>
-                    <span style="font-size:.7rem; color:#9ca3af;">▾</span>
+                    <span id="nav-username"></span>
+                    <span style="font-size:.7rem; color:var(--text-muted);">▾</span>
                 </button>
                 <div class="user-dropdown" id="user-dropdown">
                     <a href="activate.html" data-i18n="nav.activateApp">🎬 Ativar App</a>
@@ -286,7 +286,7 @@
 
                 <!-- Secção de lista de reprodução -->
                 <div style="border-top:1px solid var(--border-color); margin:20px 0 24px;"></div>
-                <p style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#9ca3af; margin-bottom:18px;" data-i18n="pl.plSection">Lista de reprodução (opcional)</p>
+                <p style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--text-muted); margin-bottom:18px;" data-i18n="pl.plSection">Lista de reprodução (opcional)</p>
 
                 <div class="pl-tabs" style="margin-bottom:20px;">
                     <button class="pl-tab active" id="ndpltab-url"    onclick="ndSwitchType('url')">URL</button>
@@ -666,8 +666,12 @@ async function enterApp() {
                 const dbDevices = await res.json();
                 if (!account) { account = { nickname: user.nome, devices: [] }; }
                 dbDevices.forEach(d => {
-                    if (!account.devices.some(x => x.mac === d.mac_address)) {
-                        account.devices.push({ mac: d.mac_address, deviceKey: d.device_key, name: d.nome_dispositivo || d.mac_address });
+                    const existing = account.devices.find(x => x.mac === d.mac_address);
+                    if (existing) {
+                        existing.validade = d.validade;
+                        existing.plano    = d.plano;
+                    } else {
+                        account.devices.push({ mac: d.mac_address, deviceKey: d.device_key, name: d.nome_dispositivo || d.mac_address, validade: d.validade, plano: d.plano });
                     }
                 });
                 localStorage.setItem('ap_account', JSON.stringify(account));
@@ -748,6 +752,7 @@ function renderDeviceSection(device, list) {
                     <div style="display:flex;align-items:center;gap:6px;margin-top:2px;" id="dname-wrap-${macId}">
                         <span class="device-name-display">${esc(device.name || t('pl.noName'))}</span>
                     </div>
+                    ${formatValidade(device)}
                 </div>
             </div>
             <div class="device-header-right">
@@ -1046,6 +1051,22 @@ function toggleEye(inputId, btn) {
 }
 function esc(s) {
     return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function formatValidade(device) {
+    const plano = device.plano || '';
+    if (plano === 'vitalicio') {
+        return '<span style="font-size:.73rem;color:#10b981;margin-top:3px;display:block;">&#9679; Vitalício</span>';
+    }
+    if (device.validade) {
+        const d = new Date(device.validade);
+        const now = new Date();
+        const expired = d < now;
+        const label = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const color = expired ? '#ef4444' : '#a78bfa';
+        const prefix = expired ? '&#9888; Expirado' : '&#9679; Válido até';
+        return `<span style="font-size:.73rem;color:${color};margin-top:3px;display:block;">${prefix} ${label}</span>`;
+    }
+    return '';
 }
 function toast(msg, type='ok') {
     const el = document.getElementById('toast');

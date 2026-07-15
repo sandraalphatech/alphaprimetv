@@ -176,27 +176,153 @@ app.post('/api/payments/pix/create', async (req, res) => {
   }
 });
 
-app.post('/api/payments/card/create', (req, res) => {
-  const { mac, deviceKey, plan, deviceName, deviceModel, userToken } = req.body;
-  if (!mac || !PLANS[plan]) {
-    return res.status(400).json({ error: 'mac e plan são obrigatórios' });
-  }
-
-  if (!MOCK_PAYMENTS) {
-    return res.status(501).json({ error: 'Pagamento com cartão real ainda não configurado. Use PAYMENT_PROVIDER=mock para testes.' });
-  }
-
-  const paymentId = 'mock_card_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-  const payment = { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'paid', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'cartao' };
-  payments.set(paymentId, payment);
-  activateDevice(payment);
-
-  res.json({ paymentId, status: 'paid' });
+app.get('/api/config/public-key', (req, res) => {
+  res.json({ publicKey: process.env.PAGARME_PUBLIC_KEY || '' });
 });
 
-app.get('/api/payments/pix/status', (req, res) => {
-  const payment = payments.get(req.query.id);
+app.post('/api/payments/card/create', async (req, res) => {
+  const { mac, deviceKey, plan, deviceName, deviceModel, userToken, cardToken, customerEmail, customerDocument, installments: rawInst } = req.body;
+
+  if (!mac || !PLANS[plan] || !cardToken) {
+    return res.status(400).json({ error: 'mac, plan e cardToken são obrigatórios' });
+  }
+
+  const INST_FEES = {
+    yearly:   { 1: 0.06, 2: 0.10, 3: 0.12 },
+    lifetime: { 1: 0.08, 2: 0.12, 3: 0.12 }
+  };
+  const installments = [1, 2, 3].includes(Number(rawInst)) ? Number(rawInst) : 1;
+  const planInfo     = PLANS[plan];
+  const planFees     = INST_FEES[plan] || INST_FEES.yearly;
+  const totalAmount  = Math.round(planInfo.amount * (1 + planFees[installments]));
+  const returnUrl    = `${process.env.APP_BASE_URL || 'http://localhost:3000'}/activate.html`;
+
+  try {
+    const order = await axios.post(`${PAGARME_API}/orders`, {
+      code: 'AP-CARD-' + Date.now(),
+      items: [{ amount: totalAmount, description: planInfo.description, quantity: 1, code: plan }],
+      customer: {
+        name: deviceName || 'Cliente Alpha Prime',
+        email: customerEmail || `${mac.replace(/[^a-z0-9]/gi,'')}@alphaprime.tv`,
+        type: 'individual',
+        document: customerDocument || '11144477735',
+        document_type: 'CPF',
+        phones: { mobile_phone: { country_code: '55', area_code: '11', number: '999999999' } }
+      },
+      payments: [{
+        payment_method: 'credit_card',
+        credit_card: {
+          card_token: cardToken,
+          installments,
+          statement_descriptor: 'ALPHA PRIME',
+          threed_d_secure: {
+            mpi: 'pagarme',
+            mode: 'with_fallback',
+            success_url: returnUrl,
+            failure_url: returnUrl
+          }
+        }
+      }],
+      metadata: { mac, deviceKey: deviceKey || '', plan, deviceName: deviceName || '' }
+    }, { headers: { Authorization: authHeader } });
+
+    const charge   = order.data.charges?.[0];
+    const tx       = charge?.last_transaction;
+    const orderId  = order.data.id;
+
+    const paymentData = {
+      paymentId: orderId,
+      mac: mac.toLowerCase(),
+      deviceKey: deviceKey || '',
+      plan,
+      deviceName: deviceName || '',
+      deviceModel: deviceModel || '',
+      userToken: userToken || null,
+      tipoPagamento: 'cartao',
+      status: 'pending'
+    };
+    payments.set(orderId, paymentData);
+    saveState();
+
+    // 3DS — banco exige autenticação
+    const authUrl = tx?.threed_d_secure?.authentication_url || tx?.authentication_url;
+    if (authUrl) {
+      return res.json({ status: 'pending_3ds', paymentId: orderId, redirectUrl: authUrl });
+    }
+
+    // Aprovado imediatamente (autenticação silenciosa)
+    if (charge.status === 'paid') {
+      paymentData.status = 'paid';
+      saveState();
+      activateDevice(paymentData);
+      return res.json({ status: 'paid', paymentId: orderId });
+    }
+
+    // Recusado
+    if (charge.status === 'failed') {
+      paymentData.status = 'failed';
+      saveState();
+      const reason = tx?.gateway_response?.errors?.[0]?.message || 'Pagamento recusado pela operadora';
+      return res.status(402).json({ error: reason });
+    }
+
+    return res.json({ status: charge.status, paymentId: orderId });
+  } catch (err) {
+    console.error('Erro ao processar cartão (full):', JSON.stringify(err.response?.data, null, 2) || err.message);
+    res.status(502).json({ error: 'Erro ao processar pagamento com cartão' });
+  }
+});
+
+app.get('/api/payments/card/status', async (req, res) => {
+  const { id } = req.query;
+  const payment = payments.get(id);
   if (!payment) return res.status(404).json({ error: 'Pagamento não encontrado' });
+  if (payment.status === 'paid') return res.json({ status: 'paid' });
+
+  try {
+    const { data } = await axios.get(`${PAGARME_API}/orders/${id}`, {
+      headers: { Authorization: authHeader }
+    });
+    if (data.status === 'paid' && payment.status !== 'paid') {
+      payment.status = 'paid';
+      saveState();
+      activateDevice(payment);
+    }
+    return res.json({ status: data.status === 'paid' ? 'paid' : payment.status });
+  } catch (e) {
+    return res.json({ status: payment.status });
+  }
+});
+
+app.get('/api/payments/pix/status', async (req, res) => {
+  const { id } = req.query;
+  const payment = payments.get(id);
+  if (!payment) return res.status(404).json({ error: 'Pagamento não encontrado' });
+
+  // Se já confirmado localmente, responde direto
+  if (payment.status === 'paid')   return res.json({ status: 'paid' });
+  if (payment.status === 'failed') return res.json({ status: 'failed' });
+
+  // Consulta PagarME como fallback (garante confirmação mesmo sem webhook)
+  try {
+    const { data } = await axios.get(`${PAGARME_API}/orders/${id}`, {
+      headers: { Authorization: authHeader }
+    });
+    if (data.status === 'paid' && payment.status !== 'paid') {
+      payment.status = 'paid';
+      saveState();
+      activateDevice(payment);
+      return res.json({ status: 'paid' });
+    }
+    if (data.status === 'canceled' || data.status === 'failed') {
+      payment.status = 'failed';
+      saveState();
+      return res.json({ status: 'failed' });
+    }
+  } catch (e) {
+    console.error('[pix/status] fallback PagarME error:', e.message);
+  }
+
   res.json({ status: payment.status });
 });
 
@@ -212,18 +338,47 @@ app.post('/api/payments/pix/simulate/:id', (req, res) => {
 });
 
 app.post('/api/payments/pix/webhook', (req, res) => {
-  const event = req.body;
-  const orderId = event.data?.id || event.data?.order?.id;
-  const payment = orderId && payments.get(orderId);
+  res.sendStatus(200); // responde imediatamente para o PagarME não retentar
 
-  if (payment && (event.type === 'order.paid' || event.type === 'charge.paid')) {
-    payment.status = 'paid';
-    activateDevice(payment);
-  } else if (payment && (event.type === 'order.payment_failed' || event.type === 'charge.payment_failed')) {
-    payment.status = 'failed';
+  const event = req.body;
+  const isPaid   = event.type === 'order.paid'   || event.type === 'charge.paid';
+  const isFailed = event.type === 'order.payment_failed' || event.type === 'charge.payment_failed';
+
+  const orderId = event.data?.id || event.data?.order?.id;
+  if (!orderId) return;
+
+  // Tenta recuperar do Map em memória (caso normal)
+  let payment = payments.get(orderId);
+
+  // Fallback: reconstrói o pagamento a partir do metadata do evento (após redeploy)
+  if (!payment && isPaid) {
+    const meta = event.data?.metadata || event.data?.charges?.[0]?.metadata || {};
+    if (meta.mac && meta.plan) {
+      payment = {
+        paymentId: orderId,
+        mac: meta.mac,
+        deviceKey: meta.deviceKey || '',
+        plan: meta.plan,
+        deviceName: meta.deviceName || '',
+        deviceModel: meta.deviceModel || '',
+        userToken: null,
+        tipoPagamento: 'pix',
+        status: 'pending'
+      };
+      payments.set(orderId, payment);
+    }
   }
 
-  res.sendStatus(200);
+  if (!payment) return;
+
+  if (isPaid && payment.status !== 'paid') {
+    payment.status = 'paid';
+    saveState();
+    activateDevice(payment);
+  } else if (isFailed) {
+    payment.status = 'failed';
+    saveState();
+  }
 });
 
 function activateDevice(payment) {
@@ -275,39 +430,47 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
     }
   }
 
-  const validade = expiresAt ? expiresAt.slice(0, 10) : 'vitalicio';
+  // Para planos vitalícios, validade fica NULL no BD (coluna timestamp não aceita 'vitalicio')
+  const validade = expiresAt ? expiresAt.slice(0, 10) : null;
   const modelo = deviceModel || detectModelFromMac(mac);
   const agora = new Date().toISOString();
+  const macNorm = (mac || '').toLowerCase();
+  const isGenericMac = GENERIC_MACS.has(macNorm);
 
   // Campos comuns a update e insert
   const fields = {
-    plano:             PLANO_MAP[plan] || 'anual',
-    device_key:        deviceKey || null,
-    nome_dispositivo:  deviceName || null,
-    nome_cliente:      nome_cliente || null,
-    usuario_id:        usuario_id || null,
+    plano:              PLANO_MAP[plan] || 'anual',
+    device_key:         deviceKey || null,
+    nome_dispositivo:   deviceName || null,
+    nome_cliente:       nome_cliente || null,
+    usuario_id:         usuario_id || null,
     validade,
-    pagamento_id:      paymentId || null,
+    pagamento_id:       paymentId || null,
     modelo_dispositivo: modelo,
-    ativo:             true,
-    atualizado_em:     agora,
+    ativo:              true,
+    atualizado_em:      agora,
     ...(revendedor_id ? { revendedor_id, nome_revendedor } : {})
   };
 
-  // Tenta primeiro ATUALIZAR o registro existente (trial → pago)
-  const { data: existing } = await supabase
+  // Localiza o registro existente para fazer update (trial → pago).
+  // Para MACs genéricos usa device_key como chave; para MACs reais usa mac_address.
+  let existingQuery = supabase
     .from('ativacoes')
     .select('id, revendedor_id, nome_revendedor')
-    .eq('mac_address', mac)
     .order('criado_em', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  // Se o caller não forneceu revendedor_id mas o registro existente tem um, herda-o
+  existingQuery = (isGenericMac && deviceKey)
+    ? existingQuery.eq('device_key', deviceKey)
+    : existingQuery.eq('mac_address', macNorm);
+
+  const { data: existing } = await existingQuery;
+
+  // Herda revendedor_id do registro existente se não foi fornecido
   if (existing && !revendedor_id && existing.revendedor_id) {
     revendedor_id = existing.revendedor_id;
     if (!nome_revendedor) nome_revendedor = existing.nome_revendedor;
-    // Atualiza fields com o revendedor herdado
     fields.revendedor_id  = revendedor_id;
     fields.nome_revendedor = nome_revendedor;
   }
@@ -321,7 +484,7 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
   } else {
     const { error } = await supabase.from('ativacoes').insert({
       ...fields,
-      mac_address:  mac,
+      mac_address:  macNorm,
       termo_aceite: true,
       data_aceite:  agora,
       versao_termo: '1.0',
@@ -379,19 +542,37 @@ function authenticateDevice(mac, deviceKey) {
 
 async function authenticateDeviceAsync(mac, deviceKey) {
   if (!mac || !deviceKey) return null;
+  const macNorm = mac.toLowerCase();
+  const isGenericMac = GENERIC_MACS.has(macNorm);
+
   // Fast path: dispositivos pagos/ativados já carregados em memória
-  const local = devices.get(mac.toLowerCase());
+  const local = devices.get(macNorm);
   if (local && local.deviceKey === deviceKey) return local;
-  // Fallback: trial e dispositivos registados apenas no Supabase
-  const { data } = await supabase
+
+  // Busca no Supabase: para MACs genéricos (Android 6+), usa device_key como
+  // identificador; para MACs reais (Smart TVs, Fire TV), usa mac_address + device_key.
+  let q = supabase
     .from('ativacoes')
     .select('mac_address, device_key, plano, validade, ativo')
-    .eq('mac_address', mac.toLowerCase())
     .eq('device_key', deviceKey)
     .eq('ativo', true)
     .order('criado_em', { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (!isGenericMac) {
+    q = supabase
+      .from('ativacoes')
+      .select('mac_address, device_key, plano, validade, ativo')
+      .eq('mac_address', macNorm)
+      .eq('device_key', deviceKey)
+      .eq('ativo', true)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+  }
+
+  const { data } = await q;
   if (!data) return null;
   const isVitalicio = !data.validade || data.validade === 'vitalicio';
   if (!isVitalicio && new Date(data.validade) < new Date()) return null;
@@ -743,19 +924,36 @@ app.post('/api/parental/categories', async (req, res) => {
   res.json({ success: true });
 });
 
+// MACs genéricos que o Android 6+ retorna quando o acesso real ao endereço
+// de hardware é bloqueado por privacidade — todos os dispositivos Android
+// modernos acabam reportando o mesmo valor, tornando o MAC inútil como
+// identificador único neste contexto.
+const GENERIC_MACS = new Set(['00:00:00:00:00:00', '02:00:00:00:00:00']);
+
 app.post('/api/device/check', async (req, res) => {
   const { mac, deviceKey } = req.body;
   const macNorm = (mac || '').toLowerCase();
+  const isGenericMac = GENERIC_MACS.has(macNorm);
 
-  const { data, error } = await supabase
+  // Quando o MAC é genérico, usa o device_key (ANDROID_ID) como identificador
+  // único — é o único campo que distingue dispositivos Android 6+ entre si.
+  // Para MACs reais (Smart TVs, Fire TV, etc.), mantém o comportamento original.
+  let q = supabase
     .from('ativacoes')
     .select('plano, validade, ativo')
-    .eq('mac_address', macNorm)
     .eq('ativo', true)
     .order('criado_em', { ascending: false })
     .limit(1)
     .maybeSingle();
 
+  if (isGenericMac && deviceKey) {
+    q = q.eq('device_key', deviceKey);
+  } else {
+    q = q.eq('mac_address', macNorm);
+    if (deviceKey) q = q.eq('device_key', deviceKey);
+  }
+
+  const { data, error } = await q;
   if (error) { console.error('[device/check] supabase error:', error.message); }
 
   if (!data) return res.json({ activated: false, reason: 'not_found' });
@@ -812,27 +1010,43 @@ app.post('/api/favorites/toggle', async (req, res) => {
 });
 
 // Registra um dispositivo novo no período de trial (chamado pelo app Android
-// na primeira abertura). Idempotente: se já existe registro trial para esse
-// mac_address, retorna o existente sem inserir duplicata.
+// na primeira abertura). Idempotente: se já existe registro para esse
+// device_key ou mac_address, retorna o existente sem inserir duplicata.
 app.post('/api/device/register-trial', async (req, res) => {
   const { mac_address, devicekey, modelo_dispositivo } = req.body;
   if (!mac_address) {
     return res.status(400).json({ error: 'mac_address é obrigatório' });
   }
 
-  // Verifica se já existe QUALQUER registro para este dispositivo (trial ou pago)
-  // Se existir (mesmo plano='anual'), não insere trial para não criar duplicata
-  // que causaria o app voltar à tela de ativação após pagamento.
-  const { data: existing } = await supabase
-    .from('ativacoes')
-    .select('validade, plano')
-    .eq('mac_address', mac_address)
-    .order('criado_em', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const isGenericMac = GENERIC_MACS.has(mac_address.toLowerCase());
+  let existing = null;
+
+  // 1ª busca: por device_key (identificador único por dispositivo Android)
+  if (devicekey) {
+    const { data } = await supabase
+      .from('ativacoes')
+      .select('validade, plano')
+      .eq('device_key', devicekey)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    existing = data;
+  }
+
+  // 2ª busca: por mac_address — apenas quando não é um MAC genérico do Android
+  if (!existing && !isGenericMac) {
+    const { data } = await supabase
+      .from('ativacoes')
+      .select('validade, plano')
+      .eq('mac_address', mac_address)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    existing = data;
+  }
 
   if (existing) {
-    console.log('[register-trial] dispositivo já registrado (plano:', existing.plano, '):', mac_address);
+    console.log('[register-trial] dispositivo já registrado (plano:', existing.plano, '):', mac_address, '| key:', devicekey);
     return res.json({ success: true, validade: existing.validade });
   }
 
@@ -840,7 +1054,7 @@ app.post('/api/device/register-trial', async (req, res) => {
     .toISOString().slice(0, 10); // "YYYY-MM-DD"
 
   const { error } = await supabase.from('ativacoes').insert({
-    mac_address,
+    mac_address:        mac_address.toLowerCase(),
     device_key:         devicekey || null,
     plano:              'trial',
     validade,
@@ -853,14 +1067,23 @@ app.post('/api/device/register-trial', async (req, res) => {
     pagamento_id:       null,
     nome_revendedor:    null,
     revendedor_id:      null,
+    termo_aceite:       true,
+    data_aceite:        new Date().toISOString(),
+    versao_termo:       '1.0',
   });
 
   if (error) {
+    // Conflito de unique em device_key (race condition): busca e retorna o registro existente
+    if (error.code === '23505' && devicekey) {
+      const { data: race } = await supabase
+        .from('ativacoes').select('validade').eq('device_key', devicekey).maybeSingle();
+      if (race) return res.json({ success: true, validade: race.validade });
+    }
     console.error('[register-trial] erro:', error.message);
     return res.status(500).json({ error: error.message });
   }
 
-  console.log('[register-trial] registrado:', mac_address, '| validade:', validade);
+  console.log('[register-trial] registrado:', mac_address, '| key:', devicekey, '| validade:', validade);
   res.json({ success: true, validade });
 });
 
@@ -1227,9 +1450,9 @@ app.get('/api/reseller/dashboard', authReseller, async (req, res) => {
       const soma = (rows) => (rows || []).reduce((s, r) => s + (parseFloat(r.valor_pago) || 0), 0);
 
       const [{ data: rHoje }, { data: rMes }, { data: rPrev }] = await Promise.all([
-        supabase.from('transacoes').select('valor_pago').gte('data', todayIso).lt('data', nextIso),
-        supabase.from('transacoes').select('valor_pago').gte('data', monthIso).lt('data', nextIso),
-        supabase.from('transacoes').select('valor_pago').gte('data', prevStart).lt('data', monthIso),
+        supabase.from('transacoes_ativacao').select('valor_pago').gte('data', todayIso).lt('data', nextIso),
+        supabase.from('transacoes_ativacao').select('valor_pago').gte('data', monthIso).lt('data', nextIso),
+        supabase.from('transacoes_ativacao').select('valor_pago').gte('data', prevStart).lt('data', monthIso),
       ]);
 
       return { mes: soma(rMes), anterior: soma(rPrev), hoje: soma(rHoje) };
@@ -1246,7 +1469,7 @@ app.get('/api/reseller/devices/historico', authReseller, async (req, res) => {
   if (!mac) return res.status(400).json({ error: 'MAC obrigatório' });
 
   const isAdmin = req.reseller?.role === 'administrador';
-  let q = supabase.from('historico_ativacoes')
+  let q = supabase.from('historico_ativacoes_iptv')
     .select('id, evento, plano, validade_inicio, validade_fim, revendedor_id, nome_revendedor, nome_cliente, pagamento_id, tipo_pagamento, valor_pago, criado_por, observacao, criado_em')
     .eq('mac_address', mac)
     .order('criado_em', { ascending: false });
@@ -1937,7 +2160,7 @@ async function insertSaldo({ revendedorId, nomeRevendedor, tipo, quantidade, ref
 
 // ── TRANSACOES ────────────────────────────────────────────────────────────────
 async function insertTransacao({ pagamentoId, origem, data, status = 'pago', tipoPagamento, identificador, nome, valorPago, revendedorId }) {
-  const { error } = await supabase.from('transacoes').upsert({
+  const { error } = await supabase.from('transacoes_ativacao').upsert({
     pagamento_id:   pagamentoId,
     origem,
     data:           data || new Date().toISOString(),
@@ -1957,7 +2180,7 @@ async function insertHistoricoAtivacao({
   revendedorId, nomeRevendedor, nomeCliente, deviceKey,
   pagamentoId, tipoPagamento, valorPago, criadoPor, observacao
 }) {
-  const { error } = await supabase.from('historico_ativacoes').insert({
+  const { error } = await supabase.from('historico_ativacoes_iptv').insert({
     mac_address:     mac,
     evento,
     plano:           plano || null,
@@ -2214,7 +2437,7 @@ function mesRange(mes) {
 
 async function fetchFatTransacoes(mes, filtro, revId) {
   const { inicio, fim } = mesRange(mes);
-  let q = supabase.from('transacoes')
+  let q = supabase.from('transacoes_ativacao')
     .select('pagamento_id, origem, valor_pago, revendedor_id, data, status, tipo_pagamento, identificador, nome, criado_em')
     .eq('status', 'pago')
     .gte('data', inicio).lt('data', fim);
@@ -2331,7 +2554,7 @@ app.get('/api/reseller/faturamento/historico', authReseller, async (req, res) =>
 
     // Tenta transacoes primeiro; se vazio, usa direto
     const { data: txData, error: txErr } = await supabase
-      .from('transacoes').select('origem, valor_pago')
+      .from('transacoes_ativacao').select('origem, valor_pago')
       .eq('status', 'pago').gte('data', inicio).lt('data', fim);
 
     let atv = 0, crd = 0;
@@ -2353,7 +2576,7 @@ app.get('/api/reseller/faturamento/grafico-mes', authReseller, async (req, res) 
   const { inicio, fim } = mesRange(mes);
 
   const { data, error } = await supabase
-    .from('transacoes')
+    .from('transacoes_ativacao')
     .select('origem, valor_pago')
     .gte('data', inicio).lt('data', fim);
 
@@ -2375,7 +2598,7 @@ app.get('/api/reseller/faturamento/transacoes', authReseller, async (req, res) =
   const revId  = req.query.revendedor_id || null;
   const { inicio, fim } = mesRange(mes);
 
-  let q = supabase.from('transacoes')
+  let q = supabase.from('transacoes_ativacao')
     .select('pagamento_id, origem, data, status, tipo_pagamento, identificador, nome, valor_pago, revendedor_id, criado_em')
     .gte('data', inicio).lt('data', fim)
     .order('data', { ascending: false });
@@ -2407,7 +2630,7 @@ app.get('/api/reseller/faturamento/por-revendedor', authReseller, async (req, re
 
   // Tenta tabela transacoes primeiro
   const { data: txRows, error: txErr } = await supabase
-    .from('transacoes')
+    .from('transacoes_ativacao')
     .select('revendedor_id, valor_pago')
     .eq('origem', 'ativacao').eq('status', 'pago')
     .gte('data', inicio).lt('data', fim);

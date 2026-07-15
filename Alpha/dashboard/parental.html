@@ -12,16 +12,16 @@
         .page-area { padding-top: 80px; min-height: 100vh; background: radial-gradient(ellipse at 50% 0%, var(--secondary-color), var(--bg-dark) 70%); }
         .page-hero { padding: 48px 20px 8px; text-align: center; }
         .page-hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--text-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .page-hero p  { color: #9ca3af; margin-top: 8px; }
+        .page-hero p  { color: var(--text-muted); margin-top: 8px; }
         .pl-wrap { padding: 32px 16px 64px; }
 
         .fl { width: 100%; display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 22px; }
-        .fl label { font-size: .82rem; color: #9ca3af; }
+        .fl label { font-size: .82rem; color: var(--text-muted); }
         .fl-row { display: flex; align-items: center; gap: 8px; }
         .fl input { background: transparent; border: none; border-bottom: 1px solid var(--border-color); border-radius: 0; padding: 8px 0; color: var(--text-light); font-size: .92rem; outline: none; transition: border-color .2s; width: 100%; }
         .fl input:focus { border-color: var(--primary-color); }
         .fl input::placeholder { color: #4b5563; }
-        .eye-toggle { background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 1rem; padding: 4px; }
+        .eye-toggle { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1rem; padding: 4px; }
         .eye-toggle:hover { color: var(--text-light); }
 
         .user-dropdown hr { border: none; border-top: 1px solid var(--border-color); margin: 4px 0; }
@@ -30,7 +30,7 @@
         .not-logged-in { max-width: 460px; margin: 0 auto; text-align: center; padding: 56px 20px; }
         .not-logged-in .icon { font-size: 3.5rem; margin-bottom: 16px; }
         .not-logged-in h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
-        .not-logged-in p { color: #9ca3af; font-size: .9rem; margin-bottom: 28px; line-height: 1.6; }
+        .not-logged-in p { color: var(--text-muted); font-size: .9rem; margin-bottom: 28px; line-height: 1.6; }
         .btn-big-login { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: opacity .2s; }
         .btn-big-login:hover { opacity: .88; }
 
@@ -46,19 +46,19 @@
         .pin-fields.show { display: flex; }
 
         .dev-sel-wrap { display: flex; flex-direction: column; gap: 4px; margin-bottom: 22px; }
-        .dev-sel-wrap label { font-size: .82rem; color: #9ca3af; }
+        .dev-sel-wrap label { font-size: .82rem; color: var(--text-muted); }
         .dev-sel-wrap select { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-light); padding: 9px 12px; font-size: .92rem; outline: none; }
         .dev-sel-wrap select:focus { border-color: var(--primary-color); }
 
         .parental-title { font-size: 1rem; color: var(--text-light); margin-bottom: 6px; }
-        .parental-sub { color: #9ca3af; font-size: .82rem; line-height: 1.5; margin-bottom: 18px; }
+        .parental-sub { color: var(--text-muted); font-size: .82rem; line-height: 1.5; margin-bottom: 18px; }
         .parental-divider { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; }
         .parental-locked-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
         .parental-locked-name { display: flex; align-items: center; gap: 8px; font-size: .88rem; font-weight: 600; }
         .btn-unlock { background: none; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: .78rem; font-weight: 700; }
         .btn-unlock:hover { background: var(--primary-color); color: #fff; }
-        .device-empty { text-align: center; color: #9ca3af; font-size: .85rem; padding: 18px; }
-        .parental-forgot { text-align: start; font-size: .8rem; color: #9ca3af; margin-top: 16px; }
+        .device-empty { text-align: center; color: var(--text-muted); font-size: .85rem; padding: 18px; }
+        .parental-forgot { text-align: start; font-size: .8rem; color: var(--text-muted); margin-top: 16px; }
         .parental-forgot a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
 
         .parental-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 2000; align-items: center; justify-content: center; padding: 16px; }
@@ -68,7 +68,7 @@
         .parental-modal h3 span { color: var(--primary-color); }
         .parental-modal-actions { display: flex; gap: 10px; margin-top: 16px; }
         .parental-modal-actions .btn-carregar { margin: 0; flex: 1; min-width: 0; }
-        .cbtn-outline-btn { background: none; border: 1px solid var(--border-color); color: #9ca3af; border-radius: 8px; padding: 13px; cursor: pointer; font-size: .9rem; font-weight: 700; transition: all .15s; }
+        .cbtn-outline-btn { background: none; border: 1px solid var(--border-color); color: var(--text-muted); border-radius: 8px; padding: 13px; cursor: pointer; font-size: .9rem; font-weight: 700; transition: all .15s; }
         .cbtn-outline-btn:hover { border-color: var(--primary-color); color: var(--text-light); }
 
         .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 20px; font-size: .88rem; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all .3s; max-width: 300px; }
@@ -99,8 +99,8 @@
             <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
                 <button class="user-avatar-btn" id="nav-user-toggle">
                     <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
-                    <span id="nav-username" data-i18n="nav.user"></span>
-                    <span style="font-size:.7rem;color:#9ca3af;">▾</span>
+                    <span id="nav-username"></span>
+                    <span style="font-size:.7rem;color:var(--text-muted);">▾</span>
                 </button>
                 <div class="user-dropdown" id="user-dropdown">
                     <a href="activate.html" data-i18n="nav.activateApp">🎬 Ativar App</a>
@@ -144,7 +144,7 @@
                     <select id="parental-device-select" onchange="selectDevice(this.value)"></select>
                 </div>
 
-                <p id="parental-client-name" style="font-size:.82rem;color:#9ca3af;margin:-10px 0 14px;display:none;">Cliente: <span id="parental-client-name-val"></span></p>
+                <p id="parental-client-name" style="font-size:.82rem;color:var(--text-muted);margin:-10px 0 14px;display:none;">Cliente: <span id="parental-client-name-val"></span></p>
 
                 <div id="parental-locked-wrap"><div class="device-empty" data-i18n="par.noBlocked">Sem canais bloqueados</div></div>
                 <hr class="parental-divider">
@@ -276,7 +276,7 @@ async function loadDevices() {
     }
 
     if (!allDevices.length) {
-        wrap.innerHTML = '<p style="color:#9ca3af;font-size:.88rem;">' + t('par.noDevice') + ' <a href="activate.html" style="color:var(--primary-color)">' + t('par.activateLink') + '</a></p>';
+        wrap.innerHTML = '<p style="color:var(--text-muted);font-size:.88rem;">' + t('par.noDevice') + ' <a href="activate.html" style="color:var(--primary-color)">' + t('par.activateLink') + '</a></p>';
         return;
     }
 

@@ -12,10 +12,10 @@
     .page-area { padding-top: 80px; min-height: 100vh; background: var(--bg-dark); }
     .page-hero { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--secondary-color) 100%); padding: 48px 20px 32px; text-align: center; border-bottom: 1px solid var(--border-color); }
     .page-hero h1 { font-size: 3rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--text-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .page-hero p  { color: #9ca3af; margin-top: 8px; }
+    .page-hero p  { color: var(--text-muted); margin-top: 8px; }
 
     .fl { width: 100%; display: flex; flex-direction: column; gap: 6px; text-align: left; }
-    .fl label { font-size: .82rem; color: #9ca3af; }
+    .fl label { font-size: .82rem; color: var(--text-muted); }
     .fl input { background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 11px 14px; color: var(--text-light); font-size: .9rem; outline: none; transition: border .2s; width: 100%; }
     .fl input:focus { border-color: var(--primary-color); }
     .fl input::placeholder { color: #4b5563; }
@@ -49,10 +49,10 @@
     .price-card .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--primary-color); margin: 0 auto 14px; box-shadow: 0 0 0 6px rgba(124,58,237,.15); }
     .price-card .plan-discount-badge { position: absolute; top: -12px; right: -12px; background: #66078b; color: #fff; font-size: .78rem; font-weight: 800; padding: 5px 10px; border-radius: 999px; box-shadow: 0 4px 10px rgba(236,72,153,.4); }
     .price-card .plan-discount-badge:empty { display: none; }
-    .price-card .plan-old-price { color: #9ca3af; font-size: .95rem; text-decoration: line-through; margin-bottom: -4px; }
+    .price-card .plan-old-price { color: var(--text-muted); font-size: .95rem; text-decoration: line-through; margin-bottom: -4px; }
     .price-card .plan-old-price:empty { display: none; }
     .price-card .plan-name { font-size: 1.4rem; font-weight: 800; color: var(--text-light); }
-    .price-card .plan-period { color: #9ca3af; font-size: .9rem; margin-bottom: 16px; }
+    .price-card .plan-period { color: var(--text-muted); font-size: .9rem; margin-bottom: 16px; }
     .price-card .plan-price { font-size: 2.2rem; font-weight: 800; color: var(--primary-color); }
     .price-card .plan-price span { font-size: 1.1rem; color: var(--text-light); margin-right: 4px; }
 
@@ -70,7 +70,12 @@
     .pix-qr { width: 220px; height: 220px; border-radius: 10px; background: #fff; padding: 8px; margin: 0 auto 16px; display: block; }
     .pix-copy { display: flex; gap: 8px; margin-bottom: 14px; }
     .pix-copy input { flex: 1; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px 12px; color: var(--text-light); font-size: .78rem; }
-    .pix-note { color: #9ca3af; font-size: .8rem; line-height: 1.5; }
+    .pix-note { color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
+    .payment-suspended-notice { background: rgba(124,58,237,.08); border: 1px solid rgba(124,58,237,.3); border-radius: 12px; padding: 24px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .payment-suspended-notice .psn-icon { font-size: 2rem; line-height: 1; }
+    .payment-suspended-notice strong { font-size: .95rem; color: var(--text-light); }
+    .payment-suspended-notice p { font-size: .83rem; color: var(--text-muted); line-height: 1.55; margin: 0; }
+    .psn-badge { display: inline-block; background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.35); color: #f59e0b; border-radius: 20px; padding: 4px 14px; font-size: .75rem; font-weight: 700; letter-spacing: .4px; }
 
     .pix-success { display: none; max-width: 420px; margin: 24px auto 0; background: rgba(16,185,129,.08); border: 1px solid #10b981; border-radius: 14px; padding: 32px; text-align: center; }
     .pix-success-icon { font-size: 2.6rem; margin-bottom: 8px; }
@@ -80,12 +85,19 @@
     .card-panel { display: none; max-width: 360px; margin: 24px auto 0; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 28px; text-align: center; flex-direction: column; gap: 14px; }
     .card-row { display: flex; gap: 12px; width: 100%; }
     .card-row .fl { flex: 1; }
+    .inst-options { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+    .inst-option { display: flex; align-items: center; gap: 10px; background: var(--bg-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 11px 14px; cursor: pointer; transition: border .2s; }
+    .inst-option:has(input:checked) { border-color: var(--primary-color); background: rgba(124,58,237,.07); }
+    .inst-option input[type=radio] { accent-color: var(--primary-color); width: 16px; height: 16px; flex-shrink: 0; }
+    .inst-main { flex: 1; font-size: .88rem; font-weight: 700; color: var(--text-light); }
+    .inst-sub  { font-size: .75rem; color: var(--text-muted); font-weight: 400; }
+    .inst-fee  { font-size: .75rem; color: #f59e0b; font-weight: 700; }
 
     .support-wrap { padding: 48px 16px 0; }
     .support-card { max-width: 520px; margin: 0 auto 30px; text-align: center; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 14px; padding: 32px; }
     .support-icon { font-size: 2.2rem; margin-bottom: 8px; }
     .support-card h3 { color: var(--text-light); font-size: 1.1rem; margin-bottom: 8px; }
-    .support-card p { color: #9ca3af; font-size: .9rem; line-height: 1.6; margin-bottom: 18px; }
+    .support-card p { color: var(--text-muted); font-size: .9rem; line-height: 1.6; margin-bottom: 18px; }
     .nav-links a.active { color: var(--primary-color); }
     .footer {text-align: center; font-size: 0.8rem;}
     .footer-links {display: flex; gap: 2rem; align-content: center; flex-wrap: nowrap; justify-content: center;}
@@ -100,13 +112,13 @@
     .my-lic-card.expired .my-lic-dot { background: #6b7280; }
     .my-lic-info { flex: 1; min-width: 0; }
     .my-lic-name { font-weight: 700; font-size: .95rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .my-lic-mac  { font-size: .75rem; color: #9ca3af; font-family: monospace; }
+    .my-lic-mac  { font-size: .75rem; color: var(--text-muted); font-family: monospace; }
     .my-lic-badges { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
     .my-lic-badge { font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
     .badge-plan   { background: rgba(124,58,237,.2); color: var(--primary-color); border: 1px solid rgba(124,58,237,.3); }
     .badge-active { background: rgba(16,185,129,.15); color: #10b981; border: 1px solid rgba(16,185,129,.3); }
     .badge-expired{ background: rgba(107,114,128,.15); color: #6b7280; border: 1px solid rgba(107,114,128,.3); }
-    .my-lic-dates { font-size: .78rem; color: #9ca3af; text-align: right; flex-shrink: 0; line-height: 1.6; }
+    .my-lic-dates { font-size: .78rem; color: var(--text-muted); text-align: right; flex-shrink: 0; line-height: 1.6; }
     .my-lic-divider { max-width: 700px; margin: 36px auto 0; border: none; border-top: 1px solid var(--border-color); }
 
     @media (max-width: 768px) { .page-hero h1 { font-size: 2.2rem; } .license-banner { font-size: .95rem; } .license-sell { padding: 20px; } .plan-toggle button { padding: 9px 20px; font-size: .85rem; } .my-lic-list {margin: 30px 40px; gap: 8px;} .my-lic-card {padding: 14px 16px; gap: 12px;} .my-lic-dates {text-align: left;} }
@@ -132,7 +144,7 @@
             <div class="nav-user-wrap" id="nav-user-wrap" style="display:none">
                 <button class="user-avatar-btn" id="nav-user-toggle">
                     <div class="user-avatar-icon" id="nav-avatar-letter">U</div>
-                    <span style="font-size:.7rem;color:#9ca3af;">▾</span>
+                    <span style="font-size:.7rem;color:var(--text-muted);">▾</span>
                 </button>
                 <div class="user-dropdown" id="user-dropdown">
                     <a href="activate.html" class="active" data-i18n="nav.activateApp">🎬 Ativar App</a>
@@ -212,7 +224,14 @@
                 <strong><b data-i18n="act.ackText">Estou ciente que esta compra refere-se apenas à licença de uso do aplicativo Alpha Prime, e que nenhuma lista de canais, código ou senha será fornecida.</b></strong>
             </label>
 
-            <div class="payment-options">
+            <!-- PAGAMENTOS DESATIVADOS — remover este bloco quando aprovado na Play Store -->
+            <div class="payment-suspended-notice">
+                <div class="psn-icon">🔒</div>
+                <strong data-i18n="act.suspendedTitle">Pagamentos temporariamente suspensos</strong>
+                <p data-i18n="act.suspendedDesc">O Alpha Prime está em período de análise e homologação na Google Play. Os pagamentos serão habilitados assim que o aplicativo for aprovado e publicado oficialmente.</p>
+                <span class="psn-badge" data-i18n="act.suspendedBadge">⏳ Em período de testes</span>
+            </div>
+            <div class="payment-options" style="display:none">
                 <button class="cbtn cbtn-primary cbtn-check" id="buy-btn" onclick="startPixPayment()" disabled data-i18n="act.payPix">Pagar com Pix</button>
                 <button class="cbtn cbtn-outline cbtn-check" id="buy-card-btn" onclick="showCardForm()" disabled data-i18n="act.payCard">Pagar com Cartão</button>
             </div>
@@ -228,9 +247,20 @@
             </div>
             <p class="pix-note" data-i18n="act.pixNote">Abra o app do seu banco, escolha pagar com Pix e leia o QR Code ou cole o código acima.</p>
         </div>
+        <div id="pix-back-btn" style="display:none;max-width:360px;margin:10px auto 0;text-align:center;">
+            <button type="button" class="cbtn cbtn-outline" style="width:100%;font-size:.82rem;" onclick="switchToCard()" data-i18n="act.backToCard">← Voltar e pagar com Cartão</button>
+        </div>
 
         <!-- Painel Cartão -->
         <div class="card-panel" id="card-panel">
+            <div class="fl">
+                <label data-i18n="act.cardEmail">E-mail</label>
+                <input type="email" id="card-email" placeholder="seuemail@exemplo.com" autocomplete="email">
+            </div>
+            <div class="fl">
+                <label data-i18n="act.cardCPF">CPF</label>
+                <input type="text" id="card-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+            </div>
             <div class="fl">
                 <label data-i18n="act.cardNumber">Número do Cartão</label>
                 <input type="text" id="card-number" data-i18n-ph="ph.cardNumber" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19">
@@ -249,8 +279,15 @@
                     <input type="text" id="card-cvv" data-i18n-ph="ph.cardCVV" placeholder="123" inputmode="numeric" maxlength="4">
                 </div>
             </div>
+            <div class="fl">
+                <label data-i18n="act.installments">Parcelamento</label>
+                <div class="inst-options" id="inst-options"></div>
+            </div>
             <button class="cbtn cbtn-primary cbtn-check" id="card-pay-btn" onclick="payWithCard()" data-i18n="act.confirmPay">Confirmar Pagamento</button>
-            <p class="pix-note" data-i18n="act.cardNote">Pagamento processado com segurança. Os dados do cartão não são armazenados.</p>
+            <p class="pix-note" data-i18n="act.cardNote">Pagamento processado com segurança. Os dados do cartão não são armazenados pelo servidor.</p>
+        </div>
+        <div id="card-back-btn" style="display:none;max-width:360px;margin:10px auto 0;text-align:center;">
+            <button type="button" class="cbtn cbtn-outline" style="width:100%;font-size:.82rem;" onclick="switchToPix()" data-i18n="act.backToPix">← Voltar e pagar com Pix</button>
         </div>
 
         <!-- Sucesso -->
@@ -387,6 +424,27 @@ function selectPlan(plan) {
   document.getElementById('price-badge').textContent = p.discount;
   document.getElementById('price-old').textContent = p.oldPrice;
   document.getElementById('price-value').innerHTML = `<span>${p.price.split(' ')[0]}</span>${p.price.split(' ')[1]}`;
+
+  // Se o painel Cartão estiver aberto, atualiza as parcelas com o novo plano
+  const cardPanel = document.getElementById('card-panel');
+  if (cardPanel && cardPanel.style.display === 'flex') {
+    updateInstallmentOptions();
+  }
+
+  // Se o painel Pix estiver aberto, cancela e volta ao formulário para novo QR
+  const pixPanel = document.getElementById('pix-panel');
+  if (pixPanel && pixPanel.style.display !== 'none' && pixPanel.style.display !== '') {
+    if (pixPollTimer) { clearInterval(pixPollTimer); pixPollTimer = null; }
+    pixPanel.style.display = 'none';
+    document.getElementById('pix-back-btn').style.display = 'none';
+    document.getElementById('pix-copy-input').value = '';
+    document.getElementById('pix-qr').src = '';
+    setPixStatus('loading', '');
+    const btn = document.getElementById('buy-btn');
+    btn.disabled = !document.getElementById('license-ack').checked;
+    btn.textContent = window.__i18n?.t('act.payPix') || 'Pagar com Pix';
+    document.getElementById('license-confirm').style.display = 'flex';
+  }
 }
 
 selectPlan('yearly');
@@ -396,9 +454,44 @@ document.getElementById('license-ack').addEventListener('change', function() {
   document.getElementById('buy-card-btn').disabled = !this.checked;
 });
 
+const INST_FEES = {
+  yearly:   { 1: 0.06, 2: 0.10, 3: 0.12 },
+  lifetime: { 1: 0.08, 2: 0.12, 3: 0.12 }
+};
+
+function fmtBRL(centavos) {
+  return (centavos / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function updateInstallmentOptions() {
+  const basePrices = { yearly: 2500, lifetime: 6500 };
+  const base = basePrices[selectedPlan] || 2500;
+  const fees = INST_FEES[selectedPlan] || INST_FEES.yearly;
+  const wrap = document.getElementById('inst-options');
+  if (!wrap) return;
+
+  wrap.innerHTML = [1, 2, 3].map(n => {
+    const total    = Math.round(base * (1 + fees[n]));
+    const perInst  = Math.ceil(total / n);
+    const feePct   = Math.round(fees[n] * 100);
+    const checked  = n === 1 ? 'checked' : '';
+    const subtext  = n === 1
+      ? `Total R$ ${fmtBRL(total)} — à vista`
+      : `Total R$ ${fmtBRL(total)}`;
+    return `
+    <label class="inst-option">
+      <input type="radio" name="card-inst" value="${n}" ${checked}>
+      <span class="inst-main">${n}x de R$ ${fmtBRL(perInst)}<br><span class="inst-sub">${subtext}</span></span>
+      <span class="inst-fee">+${feePct}%</span>
+    </label>`;
+  }).join('');
+}
+
 function showCardForm() {
   document.getElementById('license-confirm').style.display = 'none';
   document.getElementById('card-panel').style.display = 'flex';
+  document.getElementById('card-back-btn').style.display = 'block';
+  updateInstallmentOptions();
 }
 
 async function startPixPayment() {
@@ -426,6 +519,7 @@ async function startPixPayment() {
 
     document.getElementById('license-confirm').style.display = 'none';
     document.getElementById('pix-panel').style.display = 'block';
+    document.getElementById('pix-back-btn').style.display = 'block';
     document.getElementById('pix-qr').src = data.qrCodeBase64;
     document.getElementById('pix-copy-input').value = data.qrCodeText;
     setPixStatus('loading', t('act.waitingPayment'));
@@ -461,51 +555,162 @@ function setPixStatus(type, text) {
   el.textContent = text;
 }
 
+function switchToCard() {
+  if (pixPollTimer) { clearInterval(pixPollTimer); pixPollTimer = null; }
+  document.getElementById('pix-panel').style.display = 'none';
+  document.getElementById('pix-back-btn').style.display = 'none';
+  document.getElementById('pix-copy-input').value = '';
+  document.getElementById('pix-qr').src = '';
+  setPixStatus('loading', '');
+  document.getElementById('card-panel').style.display = 'flex';
+  document.getElementById('card-back-btn').style.display = 'block';
+  updateInstallmentOptions();
+}
+
+function switchToPix() {
+  document.getElementById('card-panel').style.display = 'none';
+  document.getElementById('card-back-btn').style.display = 'none';
+  const btn = document.getElementById('buy-btn');
+  btn.disabled = !document.getElementById('license-ack').checked;
+  btn.textContent = window.__i18n?.t('act.payPix') || 'Pagar com Pix';
+  document.getElementById('license-confirm').style.display = 'flex';
+}
+
 function copyPixCode() {
   const input = document.getElementById('pix-copy-input');
   input.select();
   navigator.clipboard?.writeText(input.value);
 }
 
+// Máscaras de input
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('card-number')?.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim();
+  });
+  document.getElementById('card-expiry')?.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g,'').slice(0,4);
+    if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+    e.target.value = v;
+  });
+  document.getElementById('card-cpf')?.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g,'').slice(0,11);
+    if (v.length > 9) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+    else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+    else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+    e.target.value = v;
+  });
+});
+
 async function payWithCard() {
   const t = window.__i18n.t;
-  const mac = document.getElementById('buy-mac-input').value.trim().toLowerCase();
-  const key = document.getElementById('buy-key-input').value.trim();
+  const mac        = document.getElementById('buy-mac-input').value.trim().toLowerCase();
+  const key        = document.getElementById('buy-key-input').value.trim();
   const deviceName = document.getElementById('buy-device-name').value.trim();
   const deviceModel = detectDeviceModel();
-  const apUser = JSON.parse(localStorage.getItem('ap_user') || 'null');
-  const number = document.getElementById('card-number').value.trim();
-  const name   = document.getElementById('card-name').value.trim();
+  const apUser     = JSON.parse(localStorage.getItem('ap_user') || 'null');
+
+  const email  = document.getElementById('card-email').value.trim();
+  const cpf    = document.getElementById('card-cpf').value.replace(/\D/g,'');
+  const number = document.getElementById('card-number').value.replace(/\s/g,'');
+  const name   = document.getElementById('card-name').value.trim().toUpperCase();
   const expiry = document.getElementById('card-expiry').value.trim();
   const cvv    = document.getElementById('card-cvv').value.trim();
 
-  if (!number || !name || !expiry || !cvv) { alert(t('act.errCardFields')); return; }
+  if (!email || !cpf || !number || !name || !expiry || !cvv) {
+    alert(t('act.errCardFields') || 'Preencha todos os campos do cartão.');
+    return;
+  }
+
+  const [expMonth, expYear] = expiry.split('/');
+  if (!expMonth || !expYear) { alert('Validade inválida.'); return; }
 
   const btn = document.getElementById('card-pay-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> ' + t('act.processingCard');
+  btn.innerHTML = '<span class="spinner"></span> Tokenizando cartão...';
 
   try {
+    // 1. Busca public key do servidor
+    const cfgRes = await fetch('/api/config/public-key');
+    const { publicKey } = await cfgRes.json();
+
+    // 2. Tokeniza o cartão direto na PagarME (dados nunca passam pelo servidor)
+    const tokenRes = await fetch(`https://api.pagar.me/core/v5/tokens?appId=${publicKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'card',
+        card: {
+          number,
+          holder_name: name,
+          exp_month: parseInt(expMonth, 10),
+          exp_year:  parseInt('20' + expYear, 10),
+          cvv
+        }
+      })
+    });
+    const tokenData = await tokenRes.json();
+    if (!tokenData.id) throw new Error(tokenData.message || 'Falha ao tokenizar cartão');
+
+    btn.innerHTML = '<span class="spinner"></span> Processando pagamento...';
+
+    // 3. Envia token ao servidor
+    const installments = parseInt(document.querySelector('input[name="card-inst"]:checked')?.value || '1', 10);
     const res = await fetch('/api/payments/card/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel, userToken: apUser?.token || null, card: { number, name, expiry, cvv } })
+      body: JSON.stringify({
+        mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel,
+        userToken: apUser?.token || null,
+        cardToken: tokenData.id,
+        customerEmail: email,
+        customerDocument: cpf,
+        installments
+      })
     });
-    if (!res.ok) throw new Error('charge-failed');
-    const data = await res.json();
 
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Pagamento recusado');
+
+    // 4. 3DS — redireciona para autenticação do banco
+    if (data.status === 'pending_3ds' && data.redirectUrl) {
+      sessionStorage.setItem('pending_card_payment', JSON.stringify({
+        paymentId: data.paymentId, mac, key: key
+      }));
+      window.location.href = data.redirectUrl;
+      return;
+    }
+
+    // 5. Aprovado imediatamente
     if (data.status === 'paid') {
       document.getElementById('card-panel').style.display = 'none';
       document.getElementById('payment-success').style.display = 'block';
-    } else {
-      throw new Error('not-paid');
+      return;
     }
+
+    throw new Error('not-paid');
   } catch (e) {
-    alert(t('act.errCard'));
+    alert(e.message || t('act.errCard') || 'Erro ao processar cartão.');
     btn.disabled = false;
-    btn.textContent = t('act.confirmPay');
+    btn.textContent = t('act.confirmPay') || 'Confirmar Pagamento';
   }
 }
+
+// Retorno após 3DS — verifica status quando volta do banco
+(async function checkCardReturn() {
+  const raw = sessionStorage.getItem('pending_card_payment');
+  if (!raw) return;
+  const { paymentId, mac, key } = JSON.parse(raw);
+  if (!paymentId) return;
+  sessionStorage.removeItem('pending_card_payment');
+
+  const res = await fetch(`/api/payments/card/status?id=${encodeURIComponent(paymentId)}`).catch(() => null);
+  if (!res) return;
+  const data = await res.json();
+  if (data.status === 'paid') {
+    document.getElementById('license-confirm').style.display = 'none';
+    document.getElementById('payment-success').style.display = 'block';
+  }
+})();
 
 // Support form
 document.getElementById('support-form').addEventListener('submit', async function(e) {

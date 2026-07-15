@@ -19,13 +19,13 @@
 }
 
 html[data-theme="light"] {
-    --secondary-color: #ede9fe;
+    --secondary-color: #c4b5fd;
     --text-light: #1e293b;
     --text-dark: #0f172a;
-    --text-muted: #64748b;
-    --bg-dark: #f1f5f9;
+    --text-muted: #475569;
+    --bg-dark: #edf2f7;
     --bg-secondary: #ffffff;
-    --border-color: #e2e8f0;
+    --border-color: #94a3b8;
     --navbar-bg: rgba(248, 250, 252, 0.95);
     --navbar-mobile-bg: rgba(248, 250, 252, 0.98);
 }
@@ -1097,8 +1097,7 @@ footer .container {
         font-size: .82rem;
         gap: 6px;
     }
-    /* esconder o nome e mostrar só avatar + seta no mobile */
-    .user-avatar-btn #nav-username { display: none; }
+    /* nome do utilizador — sempre visível */
 
     .btn { margin-top: 3rem; }
     .hero-buttons { gap: 50px; margin-bottom: 0; padding: 0px; }
@@ -1308,3 +1307,124 @@ footer .container {
     .i18n-btn { padding: 5px 8px; font-size: .75rem; }
     .i18n-dropdown { right: 0; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   LIGHT MODE — inner-page / dashboard component overrides
+   ══════════════════════════════════════════════════════════════ */
+
+/* Cards / panels need shadows to lift off the light background */
+html[data-theme="light"] .pl-card,
+html[data-theme="light"] .device-section,
+html[data-theme="light"] .add-device-card,
+html[data-theme="light"] .not-logged-in {
+    box-shadow: 0 2px 14px rgba(0,0,0,.09);
+}
+
+html[data-theme="light"] .auth-modal,
+html[data-theme="light"] .parental-modal {
+    box-shadow: 0 8px 32px rgba(0,0,0,.14);
+}
+
+/* Nested bg-dark elements inside white cards need contrast */
+html[data-theme="light"] .pl-item,
+html[data-theme="light"] .parental-locked-item {
+    background: #f1f5f9;
+}
+html[data-theme="light"] .pl-item:hover { background: #ede9fe; }
+html[data-theme="light"] .pl-item.is-active { background: rgba(16,185,129,.06); }
+
+/* Select elements inside cards */
+html[data-theme="light"] .dev-sel-wrap select,
+html[data-theme="light"] .activation-picker-box select,
+html[data-theme="light"] .form-group input,
+html[data-theme="light"] .form-group textarea {
+    background: #f8fafc;
+    color: #1e293b;
+}
+html[data-theme="light"] .form-group input,
+html[data-theme="light"] .form-group textarea {
+    border-color: #94a3b8;
+}
+
+/* Device section header more distinct */
+html[data-theme="light"] .device-section-header {
+    background: rgba(124,58,237,.08);
+}
+
+/* Feature / pricing / download cards */
+html[data-theme="light"] .feature-card,
+html[data-theme="light"] .pricing-card,
+html[data-theme="light"] .download-btn {
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+}
+
+/* Contact blocks */
+html[data-theme="light"] .contact-form,
+html[data-theme="light"] .contact-info {
+    background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+/* Fix muted / secondary text that is hardcoded #9ca3af (too light on white) */
+html[data-theme="light"] .pl-item-meta,
+html[data-theme="light"] .device-mac,
+html[data-theme="light"] .device-empty,
+html[data-theme="light"] .activation-picker-hint,
+html[data-theme="light"] .not-logged-in p,
+html[data-theme="light"] .parental-sub,
+html[data-theme="light"] .parental-title,
+html[data-theme="light"] .cbtn-outline-btn,
+html[data-theme="light"] .auth-sub,
+html[data-theme="light"] .section-header-row h2 {
+    color: #475569;
+}
+
+/* Input placeholders */
+html[data-theme="light"] .fl input::placeholder,
+html[data-theme="light"] input::placeholder {
+    color: #94a3b8;
+}
+html[data-theme="light"] .fl input {
+    border-bottom-color: #94a3b8;
+    color: #1e293b;
+}
+
+/* Outline button in light mode */
+html[data-theme="light"] .cbtn-outline-btn {
+    border-color: #94a3b8;
+    color: #475569;
+}
+html[data-theme="light"] .cbtn-outline-btn:hover {
+    border-color: var(--primary-color);
+    color: #1e293b;
+}
+
+/* User dropdown shadow */
+html[data-theme="light"] .user-dropdown {
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+html[data-theme="light"] .user-dropdown a:hover,
+html[data-theme="light"] .user-dropdown button:hover {
+    background: rgba(0,0,0,.04);
+}
+
+/* Activation picker box */
+html[data-theme="light"] .activation-picker-box {
+    background: rgba(124,58,237,.05);
+    border-color: rgba(124,58,237,.25);
+}
+
+/* Toast */
+html[data-theme="light"] .toast {
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+}
+
+/* req-card in download section */
+html[data-theme="light"] .req-card,
+html[data-theme="light"] .req-card1 {
+    background: #f8fafc;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+html[data-theme="light"] .req-card strong,
+html[data-theme="light"] .req-card1 { color: #1e293b; }
+html[data-theme="light"] .req-card ul li { color: #475569; }
