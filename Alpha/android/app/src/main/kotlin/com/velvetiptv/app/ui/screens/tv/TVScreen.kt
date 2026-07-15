@@ -223,9 +223,9 @@ fun TVScreen(navController: NavController? = null) {
             "--no-drop-late-frames",
             "--no-skip-frames",
             "--rtsp-tcp",
-            "--network-caching=1500",
-            "--live-caching=1500",
-            "--audio-time-stretch"   // sincronização de áudio suave em streams live
+            "--network-caching=300",
+            "--live-caching=300",
+            "--audio-time-stretch"
         ))
     }
     val mediaPlayer = remember {
@@ -238,6 +238,30 @@ fun TVScreen(navController: NavController? = null) {
     // Scope e holder para debounce de 100ms em trocas rápidas com D-pad
     val tvScope      = rememberCoroutineScope()
     val switchHolder = remember { object { var job: kotlinx.coroutines.Job? = null } }
+
+    // Referência ao VLCVideoLayout para re-attachar após minimizar a app
+    val vlcLayoutHolder = remember { object { var layout: VLCVideoLayout? = null } }
+
+    // Quando o app volta ao primeiro plano, re-attach da surface VLC para
+    // restaurar o vídeo. O LifecycleRegistry dispara ON_RESUME retroactivo
+    // imediatamente ao registar o observer (a composição já está em RESUMED),
+    // mas nesse ponto o AndroidView.factory já correu e attachViews já foi
+    // chamado — chamar de novo lançaria IllegalStateException. Por isso
+    // saltamos o primeiro ON_RESUME e só agimos nos seguintes (genuínos).
+    DisposableEffect(lifecycleOwner) {
+        var isInitial = true
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (isInitial) { isInitial = false; return@LifecycleEventObserver }
+                vlcLayoutHolder.layout?.let { layout ->
+                    try { mediaPlayer.detachViews() } catch (_: Throwable) {}
+                    mediaPlayer.attachViews(layout, null, false, false)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // Listener de eventos VLC — entregues na main thread pelo LibVLC
     DisposableEffect(mediaPlayer) {
@@ -288,8 +312,8 @@ fun TVScreen(navController: NavController? = null) {
                 delay(100)   // debounce: ignora canais intermédios em navegação rápida
                 mediaPlayer.stop()
                 val media = Media(libVLC, android.net.Uri.parse(ch.url)).apply {
-                    addOption(":network-caching=1500")
-                    addOption(":live-caching=1500")
+                    addOption(":network-caching=300")
+                    addOption(":live-caching=300")
                 }
                 mediaPlayer.media = media
                 media.release()   // libVLC fez a sua própria cópia — libertar a nossa
@@ -648,6 +672,7 @@ fun TVScreen(navController: NavController? = null) {
         AndroidView(
             factory = { ctx ->
                 VLCVideoLayout(ctx).also { layout ->
+                    vlcLayoutHolder.layout = layout
                     mediaPlayer.attachViews(layout, null, false, false)
                 }
             },

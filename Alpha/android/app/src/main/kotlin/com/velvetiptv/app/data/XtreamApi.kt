@@ -54,8 +54,8 @@ object XtreamApi {
     private val http = OkHttpClient.Builder()
         .sslSocketFactory(ssl.socketFactory, trustAll[0] as X509TrustManager)
         .hostnameVerifier { _, _ -> true }
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(20, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
         .build()
 
     // Resolve as credenciais Xtream a partir da configuração guardada —
@@ -161,7 +161,7 @@ object XtreamApi {
             val episodes = (0 until arr.length()).mapNotNull mapEpisode@{ i ->
                 val o = arr.optJSONObject(i) ?: return@mapEpisode null
                 val id = o.optInt("id", -1)
-                if (id < 0) return@mapEpisode null
+                if (id <= 0) return@mapEpisode null
                 XtreamEpisode(
                     id                  = id,
                     title                = o.optString("title"),

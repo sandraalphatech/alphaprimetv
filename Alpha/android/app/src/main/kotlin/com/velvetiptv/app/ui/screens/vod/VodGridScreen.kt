@@ -59,6 +59,8 @@ import com.velvetiptv.app.ui.theme.DarkBackground
 import com.velvetiptv.app.ui.theme.SurfaceDark
 import com.velvetiptv.app.ui.theme.TextLight
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -391,9 +393,12 @@ private suspend fun tryLoadMoviesFromXtreamApi(
     val creds = XtreamApi.resolveCreds(connType, m3uUrl, xtreamServer, xtreamUser, xtreamPass) ?: return null
 
     return try {
-        val streams = XtreamApi.getVodStreams(creds)
+        val (streams, categories) = coroutineScope {
+            val s = async { XtreamApi.getVodStreams(creds) }
+            val c = async { XtreamApi.getVodCategories(creds) }
+            s.await() to c.await()
+        }
         if (streams.isEmpty()) return null
-        val categories = XtreamApi.getVodCategories(creds)
         streams.map { item ->
             M3UChannel(
                 name  = item.name,
@@ -419,9 +424,14 @@ private suspend fun tryLoadSeriesFromXtreamApi(
     val creds = XtreamApi.resolveCreds(connType, m3uUrl, xtreamServer, xtreamUser, xtreamPass) ?: return null
 
     return try {
-        val series = XtreamApi.getSeries(creds)
+        // Paralelizar as duas chamadas — reduz o tempo de espera para o máximo
+        // das duas em vez da soma (get_series + get_series_categories sequencial).
+        val (series, categories) = coroutineScope {
+            val s = async { XtreamApi.getSeries(creds) }
+            val c = async { XtreamApi.getSeriesCategories(creds) }
+            s.await() to c.await()
+        }
         if (series.isEmpty()) return null
-        val categories = XtreamApi.getSeriesCategories(creds)
         series.map { item ->
             M3UChannel(
                 name  = item.name,
@@ -591,19 +601,27 @@ private fun PosterCard(
                 SubcomposeAsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(channel.logo)
-                        .crossfade(true)
+                        .crossfade(200)
+                        .size(260, 370)   // 2× o tamanho dp para ecrãs de alta densidade
                         .build(),
                     contentDescription = channel.name,
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val state = painter.state
-                    if (state is AsyncImagePainter.State.Error) {
-                        // O fornecedor da lista bloqueia o pedido da capa (ex.: geo-bloqueio
-                        // do CDN de imagens) — mostra o título em vez de uma caixa vazia.
-                        PosterFallback(channel.name)
-                    } else {
-                        SubcomposeAsyncImageContent()
+                    when (painter.state) {
+                        is AsyncImagePainter.State.Loading -> {
+                            // Shimmer enquanto carrega — melhor que caixa vazia
+                            Box(
+                                Modifier.fillMaxSize()
+                                    .background(
+                                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                                            listOf(SurfaceDark, SurfaceDark.copy(alpha = 0.4f), SurfaceDark)
+                                        )
+                                    )
+                            )
+                        }
+                        is AsyncImagePainter.State.Error -> PosterFallback(channel.name)
+                        else -> SubcomposeAsyncImageContent()
                     }
                 }
             } else {

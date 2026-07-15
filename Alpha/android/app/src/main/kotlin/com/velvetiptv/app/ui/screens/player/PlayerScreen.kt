@@ -23,6 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,8 +107,9 @@ fun PlayerScreen(
     episodeQueue: List<PlayQueueItem> = emptyList(),
     queueIndex: Int = 0
 ) {
-    val context = LocalContext.current
-    val scope   = rememberCoroutineScope()
+    val context       = LocalContext.current
+    val scope         = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
     val nextEpisode = episodeQueue.getOrNull(queueIndex + 1)
     val prevEpisode = episodeQueue.getOrNull(queueIndex - 1)
     var isBuffering by remember { mutableStateOf(true) }
@@ -149,10 +153,32 @@ fun PlayerScreen(
             "--no-skip-frames",
             "--rtsp-tcp",
             "--network-caching=1500",
-            "--live-caching=1500"
+            "--live-caching=1500",
+            "--file-caching=1500"
         ))
     }
     val mediaPlayer = remember { org.videolan.libvlc.MediaPlayer(libVLC) }
+
+    // Referência ao VLCVideoLayout para re-attachar após minimizar a app
+    val vlcLayoutHolder = remember { object { var layout: VLCVideoLayout? = null } }
+
+    // Quando o app volta ao primeiro plano, re-attach da surface VLC para
+    // restaurar o vídeo. Salta o primeiro ON_RESUME (retroactivo do Lifecycle
+    // ao registar o observer) para evitar IllegalStateException: Already attached.
+    DisposableEffect(lifecycleOwner) {
+        var isInitial = true
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (isInitial) { isInitial = false; return@LifecycleEventObserver }
+                vlcLayoutHolder.layout?.let { layout ->
+                    try { mediaPlayer.detachViews() } catch (_: Throwable) {}
+                    mediaPlayer.attachViews(layout, null, false, false)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // Carrega as faixas disponíveis a partir do LibVLC e actualiza o estado local.
     // Chamado quando o buffering termina (stream pronto) e ao abrir o diálogo.
@@ -170,6 +196,17 @@ fun PlayerScreen(
             ?: emptyList()
         selectedAudioId = mediaPlayer.audioTrack
         selectedSubtitleId = mediaPlayer.spuTrack
+    }
+
+    // Timeout da ligação inicial — se após 20s ainda estiver em buffering
+    // sem qualquer erro (VLC pendurou silenciosamente), mostra o erro para o
+    // utilizador poder tentar de novo em vez de ficar preso para sempre.
+    LaunchedEffect(streamUrl) {
+        delay(20_000L)
+        if (isBuffering && !hasError) {
+            isBuffering = false
+            hasError = true
+        }
     }
 
     LaunchedEffect(streamUrl) {
@@ -375,14 +412,15 @@ fun PlayerScreen(
         AndroidView(
             factory = { ctx ->
                 VLCVideoLayout(ctx).also { layout ->
+                    vlcLayoutHolder.layout = layout
                     mediaPlayer.attachViews(layout, null, false, false)
                     // Iniciar playback DEPOIS de attachViews — VLC precisa de uma
                     // surface para emitir Event.Playing; sem ela o evento nunca chega
                     // e o overlay "A ligar ao stream..." ficava eterno.
                     try {
                         val media = Media(libVLC, android.net.Uri.parse(streamUrl)).apply {
-                            addOption(":network-caching=1500")
-                            addOption(":live-caching=1500")
+                            addOption(":network-caching=800")
+                            addOption(":live-caching=800")
                         }
                         mediaPlayer.media = media
                         media.release()
