@@ -1035,78 +1035,85 @@ app.post('/api/favorites/toggle', async (req, res) => {
 // na primeira abertura). Idempotente: se já existe registro para esse
 // device_key ou mac_address, retorna o existente sem inserir duplicata.
 app.post('/api/device/register-trial', async (req, res) => {
-  const { mac_address, devicekey, modelo_dispositivo } = req.body;
-  if (!mac_address) {
-    return res.status(400).json({ error: 'mac_address é obrigatório' });
-  }
-
-  const isGenericMac = GENERIC_MACS.has(mac_address.toLowerCase());
-  let existing = null;
-
-  // 1ª busca: por device_key (identificador único por dispositivo Android)
-  if (devicekey) {
-    const { data } = await supabase
-      .from('ativacoes')
-      .select('validade, plano')
-      .eq('device_key', devicekey)
-      .order('criado_em', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    existing = data;
-  }
-
-  // 2ª busca: por mac_address — apenas quando não é um MAC genérico do Android
-  if (!existing && !isGenericMac) {
-    const { data } = await supabase
-      .from('ativacoes')
-      .select('validade, plano')
-      .eq('mac_address', mac_address)
-      .order('criado_em', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    existing = data;
-  }
-
-  if (existing) {
-    console.log('[register-trial] dispositivo já registrado (plano:', existing.plano, '):', mac_address, '| key:', devicekey);
-    return res.json({ success: true, validade: existing.validade });
-  }
-
-  const validade = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-    .toISOString().slice(0, 10); // "YYYY-MM-DD"
-
-  const { error } = await supabase.from('ativacoes').insert({
-    mac_address:        mac_address.toLowerCase(),
-    device_key:         devicekey || null,
-    plano:              'trial',
-    validade,
-    criado_em:          new Date().toISOString(),
-    ativo:              true,
-    modelo_dispositivo: modelo_dispositivo || null,
-    nome_dispositivo:   null,
-    nome_cliente:       null,
-    usuario_id:         null,
-    pagamento_id:       null,
-    nome_revendedor:    null,
-    revendedor_id:      null,
-    termo_aceite:       true,
-    data_aceite:        new Date().toISOString(),
-    versao_termo:       '1.0',
-  });
-
-  if (error) {
-    // Conflito de unique em device_key (race condition): busca e retorna o registro existente
-    if (error.code === '23505' && devicekey) {
-      const { data: race } = await supabase
-        .from('ativacoes').select('validade').eq('device_key', devicekey).maybeSingle();
-      if (race) return res.json({ success: true, validade: race.validade });
+  try {
+    const { mac_address, devicekey, modelo_dispositivo } = req.body;
+    if (!mac_address) {
+      return res.status(400).json({ error: 'mac_address é obrigatório' });
     }
-    console.error('[register-trial] erro:', error.message);
-    return res.status(500).json({ error: error.message });
-  }
 
-  console.log('[register-trial] registrado:', mac_address, '| key:', devicekey, '| validade:', validade);
-  res.json({ success: true, validade });
+    const isGenericMac = GENERIC_MACS.has(mac_address.toLowerCase());
+    let existing = null;
+
+    // 1ª busca: por device_key (identificador único por dispositivo Android)
+    if (devicekey) {
+      const { data, error: e1 } = await supabase
+        .from('ativacoes')
+        .select('validade, plano')
+        .eq('device_key', devicekey)
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (e1) console.warn('[register-trial] busca device_key erro:', e1.message);
+      else existing = data;
+    }
+
+    // 2ª busca: por mac_address — apenas quando não é um MAC genérico do Android
+    if (!existing && !isGenericMac) {
+      const { data, error: e2 } = await supabase
+        .from('ativacoes')
+        .select('validade, plano')
+        .eq('mac_address', mac_address)
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (e2) console.warn('[register-trial] busca mac erro:', e2.message);
+      else existing = data;
+    }
+
+    if (existing) {
+      console.log('[register-trial] dispositivo já registrado (plano:', existing.plano, '):', mac_address, '| key:', devicekey);
+      return res.json({ success: true, validade: existing.validade });
+    }
+
+    const validade = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+    const { error } = await supabase.from('ativacoes').insert({
+      mac_address:        mac_address.toLowerCase(),
+      device_key:         devicekey || null,
+      plano:              'trial',
+      validade,
+      criado_em:          new Date().toISOString(),
+      ativo:              true,
+      modelo_dispositivo: modelo_dispositivo || null,
+      nome_dispositivo:   null,
+      nome_cliente:       null,
+      usuario_id:         null,
+      pagamento_id:       null,
+      nome_revendedor:    null,
+      revendedor_id:      null,
+      termo_aceite:       true,
+      data_aceite:        new Date().toISOString(),
+      versao_termo:       '1.0',
+    });
+
+    if (error) {
+      // Conflito de unique em device_key (race condition): busca e retorna o registro existente
+      if (error.code === '23505' && devicekey) {
+        const { data: race } = await supabase
+          .from('ativacoes').select('validade').eq('device_key', devicekey).maybeSingle();
+        if (race) return res.json({ success: true, validade: race.validade });
+      }
+      console.error('[register-trial] erro insert:', error.message);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log('[register-trial] registrado:', mac_address, '| key:', devicekey, '| validade:', validade);
+    res.json({ success: true, validade });
+  } catch (err) {
+    console.error('[register-trial] erro inesperado:', err.message);
+    res.status(500).json({ error: 'Erro interno no servidor' });
+  }
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
