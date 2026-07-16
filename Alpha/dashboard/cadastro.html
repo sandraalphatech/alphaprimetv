@@ -281,10 +281,14 @@
         btn.disabled = true; btn.textContent = t('reg.loading');
 
         try {
+            const _regQp  = new URLSearchParams(location.search);
+            const _regMac = _regQp.get('mac') || null;
+            const _regKey = _regQp.get('key') || null;
+
             const res  = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, email, senha, email_secundario: email_secundario || null, pais: pais || null, telefone: telefone || null, data_nascimento: data_nascimento || null })
+                body: JSON.stringify({ nome, email, senha, email_secundario: email_secundario || null, pais: pais || null, telefone: telefone || null, data_nascimento: data_nascimento || null, mac: _regMac, deviceKey: _regKey })
             });
             const data = await res.json();
             if (!res.ok) { errEl.textContent = data.error || t('reg.errCreate'); return; }

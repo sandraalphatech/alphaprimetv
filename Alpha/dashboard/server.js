@@ -448,6 +448,9 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
     pagamento_id:       paymentId || null,
     modelo_dispositivo: modelo,
     ativo:              true,
+    termo_aceite:       true,
+    data_aceite:        agora,
+    versao_termo:       '1.0',
     atualizado_em:      agora,
     ...(revendedor_id ? { revendedor_id, nome_revendedor } : {})
   };
@@ -528,7 +531,10 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
       identificador: mac,
       nome:          nome_cliente,
       valorPago,
-      revendedorId:  revendedor_id
+      revendedorId:  revendedor_id,
+      deviceKey:     deviceKey || null,
+      plano:         PLANO_MAP[plan] || plan,
+      usuarioId:     usuario_id || null
     }).catch(e => console.error('[transacoes] ativacao:', e.message));
   }
 }
@@ -682,7 +688,8 @@ app.post('/api/playlists/create', async (req, res) => {
                          : null,
     criado_em:         new Date().toISOString(),
     expira_em:         new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
-    status
+    status,
+    atualizado_em:     new Date().toISOString()
   };
 
   const { error } = await supabase.from('listas').insert(row);
@@ -764,8 +771,9 @@ app.post('/api/playlists/:id/activate', async (req, res) => {
   const dbId = found[0].id;
 
   // Todas inativas → a selecionada ativa
-  const { error: e1 } = await supabase.from('listas').update({ status: 'inativa' }).eq('mac_address', key);
-  const { error: e2 } = await supabase.from('listas').update({ status: 'ativa'   }).eq('id', dbId);
+  const agora = new Date().toISOString();
+  const { error: e1 } = await supabase.from('listas').update({ status: 'inativa', atualizado_em: agora }).eq('mac_address', key);
+  const { error: e2 } = await supabase.from('listas').update({ status: 'ativa',   atualizado_em: agora }).eq('id', dbId);
   if (e1 || e2) {
     console.error('[listas] Erro ao ativar:', e1?.message || e2?.message);
     return res.status(500).json({ error: 'Erro ao ativar lista' });
@@ -814,18 +822,19 @@ async function getParentalRecord(mac) {
   return Array.isArray(data) ? (data[0] || null) : null;
 }
 
-async function upsertParental(mac, fields) {
+async function upsertParental(mac, fields, deviceKey = null) {
   // Preserva campos existentes (ex.: não apaga canais_bloqueados ao mudar pin)
   const { data: existing } = await supabase
     .from('parental').select('*').eq('mac_address', mac).limit(1).maybeSingle();
 
   const { data: atv } = await supabase
-    .from('ativacoes').select('nome_dispositivo, nome_cliente')
+    .from('ativacoes').select('nome_dispositivo, nome_cliente, device_key')
     .eq('mac_address', mac).eq('ativo', true)
     .order('criado_em', { ascending: false }).limit(1).maybeSingle();
 
   const record = {
     mac_address:       mac,
+    device_key:        deviceKey || existing?.device_key || atv?.device_key || null,
     nome_dispositivo:  existing?.nome_dispositivo || atv?.nome_dispositivo || null,
     nome_cliente:      existing?.nome_cliente     || atv?.nome_cliente     || null,
     canais_bloqueados: existing?.canais_bloqueados ?? [],
@@ -877,7 +886,7 @@ app.post('/api/parental/set-pin', async (req, res) => {
     }
   }
 
-  const err = await upsertParental(key, { pin_hash: hashPin(newPin) });
+  const err = await upsertParental(key, { pin_hash: hashPin(newPin) }, deviceKey);
   if (err) { console.error('[parental] Erro set-pin:', err.message); return res.status(500).json({ error: 'Erro ao salvar senha' }); }
 
   const state = parental.get(key) || { pinHash: '', lockedCategories: [] };
@@ -898,7 +907,7 @@ app.post('/api/parental/unlock', async (req, res) => {
   if (!pin || hashPin(pin) !== record.pin_hash) return res.status(401).json({ error: 'Senha incorreta' });
 
   const newCats = (record.canais_bloqueados || []).filter(c => c !== category);
-  const err = await upsertParental(key, { canais_bloqueados: newCats });
+  const err = await upsertParental(key, { canais_bloqueados: newCats }, deviceKey);
   if (err) { console.error('[parental] Erro unlock:', err.message); return res.status(500).json({ error: 'Erro ao desbloquear' }); }
 
   const state = parental.get(key) || { pinHash: record.pin_hash, lockedCategories: [] };
@@ -915,7 +924,7 @@ app.post('/api/parental/categories', async (req, res) => {
 
   const key = mac.toLowerCase();
   const cats = Array.isArray(lockedCategories) ? lockedCategories : [];
-  const err = await upsertParental(key, { canais_bloqueados: cats });
+  const err = await upsertParental(key, { canais_bloqueados: cats }, deviceKey);
   if (err) { console.error('[parental] Erro categories:', err.message); return res.status(500).json({ error: 'Erro ao salvar categorias' }); }
 
   const state = parental.get(key) || { pinHash: '', lockedCategories: [] };
@@ -999,8 +1008,21 @@ app.post('/api/favorites/toggle', async (req, res) => {
     return res.json({ action: 'removed' });
   }
 
+  // Busca usuario_id na ativação para manter consistência referencial
+  const { data: atvFav } = await supabase
+    .from('ativacoes')
+    .select('usuario_id')
+    .eq('mac_address', key)
+    .eq('ativo', true)
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   const { error } = await supabase.from('favoritos').insert({
-    mac_address: key, item_id, tipo,
+    mac_address: key,
+    device_key:  deviceKey || null,
+    usuario_id:  atvFav?.usuario_id || null,
+    item_id, tipo,
     nome: nome || null, url: url || null,
     logo: logo || null, grupo: grupo || null,
     criado_em: new Date().toISOString()
@@ -1876,10 +1898,11 @@ app.post('/api/reseller/listas/toggle-active', authReseller, async (req, res) =>
   if (check.erro) return res.status(check.status).json({ error: check.erro });
 
   const mac = mac_address.toLowerCase().trim();
+  const agoraToggle = new Date().toISOString();
   // Desativa todas as listas do mesmo MAC
-  await supabase.from('listas').update({ status: 'inativa' }).eq('mac_address', mac);
+  await supabase.from('listas').update({ status: 'inativa', atualizado_em: agoraToggle }).eq('mac_address', mac);
   // Ativa a selecionada
-  const { error } = await supabase.from('listas').update({ status: 'ativa' }).eq('id', id);
+  const { error } = await supabase.from('listas').update({ status: 'ativa', atualizado_em: agoraToggle }).eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
@@ -2159,7 +2182,7 @@ async function insertSaldo({ revendedorId, nomeRevendedor, tipo, quantidade, ref
 }
 
 // ── TRANSACOES ────────────────────────────────────────────────────────────────
-async function insertTransacao({ pagamentoId, origem, data, status = 'pago', tipoPagamento, identificador, nome, valorPago, revendedorId }) {
+async function insertTransacao({ pagamentoId, origem, data, status = 'pago', tipoPagamento, identificador, nome, valorPago, revendedorId, deviceKey = null, plano = null, usuarioId = null }) {
   const { error } = await supabase.from('transacoes_ativacao').upsert({
     pagamento_id:   pagamentoId,
     origem,
@@ -2167,6 +2190,9 @@ async function insertTransacao({ pagamentoId, origem, data, status = 'pago', tip
     status,
     tipo_pagamento: tipoPagamento || null,
     identificador:  String(identificador || ''),
+    device_key:     deviceKey || null,
+    plano:          plano || null,
+    usuario_id:     usuarioId || null,
     nome:           nome || null,
     valor_pago:     parseFloat(valorPago) || 0,
     revendedor_id:  revendedorId || null,
@@ -2682,16 +2708,38 @@ app.get('/api/reseller/faturamento/revendedores', authReseller, async (req, res)
   res.json((data || []).map(u => ({ id: u.id, nome: (u.nome || u.email) + (u.role === 'administrador' ? ' (admin)' : ''), email: u.email })));
 });
 
-// Fechamentos persistidos em memória (pode migrar para Supabase depois)
-const fechamentosMap = new Map();
-app.get('/api/reseller/faturamento/fechamento', authReseller, (req, res) => {
+app.get('/api/reseller/faturamento/fechamento', authReseller, async (req, res) => {
   const mes = req.query.mes || new Date().toISOString().slice(0, 7);
-  res.json(fechamentosMap.get(mes) || null);
+  const { data, error } = await supabase
+    .from('fechamentos_faturamento')
+    .select('*')
+    .eq('mes', mes)
+    .single();
+  if (error && error.code !== 'PGRST116') return res.status(500).json({ error: error.message });
+  if (!data) return res.json(null);
+  res.json({
+    mes:         data.mes,
+    taxaGateway: data.taxa_gateway,
+    taxaApp:     data.taxa_app,
+    taxaSite:    data.taxa_site,
+    reembolsos:  data.reembolsos,
+    notas:       data.notas,
+    savedAt:     data.saved_at
+  });
 });
-app.post('/api/reseller/faturamento/fechamento', authReseller, (req, res) => {
+app.post('/api/reseller/faturamento/fechamento', authReseller, async (req, res) => {
   const { mes, taxaGateway, taxaApp, taxaSite, reembolsos, notas } = req.body;
   if (!mes) return res.status(400).json({ error: 'Mês obrigatório' });
-  fechamentosMap.set(mes, { mes, taxaGateway: +taxaGateway||0, taxaApp: +taxaApp||0, taxaSite: +taxaSite||0, reembolsos: +reembolsos||0, notas: notas||'', savedAt: new Date().toISOString() });
+  const { error } = await supabase.from('fechamentos_faturamento').upsert({
+    mes,
+    taxa_gateway: +taxaGateway || 0,
+    taxa_app:     +taxaApp     || 0,
+    taxa_site:    +taxaSite    || 0,
+    reembolsos:   +reembolsos  || 0,
+    notas:        notas || '',
+    saved_at:     new Date().toISOString()
+  }, { onConflict: 'mes' });
+  if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
 
@@ -2779,7 +2827,8 @@ app.post('/api/reseller/sub-resellers', authReseller, async (req, res) => {
       nome, email: email.toLowerCase().trim(), senha_hash: senhaHash,
       telefone: telefone || null, pais: pais || null,
       data_nascimento: data_nascimento || null,
-      role: 'revendedor', ativo: true, criado_em: new Date().toISOString()
+      role: 'revendedor', ativo: true, criado_em: new Date().toISOString(),
+      parent_id: req.reseller.supabaseId || req.resellerId || null
     }).select('id, nome').single();
 
     if (error) {
@@ -2837,16 +2886,69 @@ app.post('/api/reseller/sub-resellers/deactivate-user', authReseller, async (req
   res.json({ success: true });
 });
 
-app.post('/api/reseller/sub-resellers/give-credits', authReseller, (req, res) => {
+app.post('/api/reseller/sub-resellers/give-credits', authReseller, async (req, res) => {
   const { subresellerId, credits } = req.body;
   const n = parseInt(credits) || 0;
   if (n <= 0) return res.status(400).json({ error: 'Quantidade inválida' });
-  if (req.reseller.credits < n) return res.status(400).json({ error: 'Créditos insuficientes' });
-  const sub = resellers.get(subresellerId);
-  if (!sub || sub.parentId !== req.resellerId) return res.status(404).json({ error: 'Revendedor não encontrado' });
-  req.reseller.credits -= n;
-  sub.credits += n;
+  const isAdmin = req.reseller?.role === 'administrador';
+
+  // Saldo do remetente: Supabase como fonte, in-memory como fallback
+  const saldoDB = await getSaldoAtual(req.resellerId);
+  const saldoEfetivo = saldoDB !== null ? saldoDB : (req.reseller.credits ?? 0);
+  if (saldoEfetivo < n) return res.status(400).json({ error: 'Créditos insuficientes' });
+
+  // Verificar destinatário no Supabase
+  const { data: subUser } = await supabase
+    .from('usuarios')
+    .select('id, nome, parent_id')
+    .eq('id', subresellerId)
+    .single();
+  const subLocal = resellers.get(subresellerId);
+  if (!subUser && !subLocal) return res.status(404).json({ error: 'Revendedor não encontrado' });
+
+  // Não-admin só pode transferir para revendedores criados por ele
+  if (!isAdmin) {
+    const parentOk = subUser?.parent_id === req.resellerId || subLocal?.parentId === req.resellerId;
+    if (!parentOk) return res.status(403).json({ error: 'Acesso negado' });
+  }
+
+  const nomeRemetente    = req.reseller.nome || req.reseller.username || null;
+  const nomeDestinatario = subUser?.nome || subLocal?.nome || subLocal?.username || null;
+
+  // Se remetente ainda não tem registro em saldo (account pré-migração), inicializa
+  if (saldoDB === null && saldoEfetivo > 0) {
+    await insertSaldo({
+      revendedorId: req.resellerId, nomeRevendedor: nomeRemetente,
+      tipo: 'bootstrap', quantidade: saldoEfetivo,
+      descricao: 'Saldo inicial sincronizado'
+    });
+  }
+
+  // Débito no remetente
+  await insertSaldo({
+    revendedorId:   req.resellerId,
+    nomeRevendedor: nomeRemetente,
+    tipo:           'transferencia_enviada',
+    quantidade:     -n,
+    referenciaId:   subresellerId,
+    descricao:      `Transferência de ${n} crédito(s) para ${nomeDestinatario || subresellerId}`
+  });
+
+  // Crédito no destinatário
+  await insertSaldo({
+    revendedorId:   subresellerId,
+    nomeRevendedor: nomeDestinatario,
+    tipo:           'transferencia_recebida',
+    quantidade:     n,
+    referenciaId:   req.resellerId,
+    descricao:      `Créditos recebidos de ${nomeRemetente || req.resellerId}`
+  });
+
+  // Sync in-memory
+  req.reseller.credits = Math.max(0, saldoEfetivo - n);
+  if (subLocal) subLocal.credits = (subLocal.credits || 0) + n;
   saveResellerState();
+
   res.json({ success: true });
 });
 
@@ -2930,7 +3032,7 @@ app.get('/activate', (req, res) => {
 
 // ── AUTH UTILIZADORES (Supabase) ───────────────────────────────────────────────
 app.post('/api/auth/register', async (req, res) => {
-  const { nome, email, senha, email_secundario, pais, telefone, data_nascimento } = req.body;
+  const { nome, email, senha, email_secundario, pais, telefone, data_nascimento, mac, deviceKey } = req.body;
   if (!nome || !email || !senha)
     return res.status(400).json({ error: 'Nome, email e senha são obrigatórios' });
   if (senha.length < 6)
@@ -2948,7 +3050,9 @@ app.post('/api/auth/register', async (req, res) => {
         pais: pais || null,
         telefone: telefone || null,
         data_nascimento: data_nascimento || null,
-        role: 'cliente'
+        role: 'cliente',
+        criado_em: new Date().toISOString(),
+        ativo: true
       }])
       .select('id, nome, email, role')
       .single();
@@ -2957,6 +3061,28 @@ app.post('/api/auth/register', async (req, res) => {
       if (error.code === '23505')
         return res.status(409).json({ error: 'Este email já está registado' });
       throw error;
+    }
+
+    // Vincula o usuario_id ao dispositivo que originou o cadastro e propaga
+    // para todas as tabelas que já têm registros com usuario_id NULL.
+    if (mac && data?.id) {
+      const macNorm = mac.toLowerCase().trim();
+      const agora = new Date().toISOString();
+
+      // 1. Atualiza ativacoes (por device_key quando genérico, por mac caso contrário)
+      let atvQ = supabase.from('ativacoes')
+        .update({ usuario_id: data.id, nome_cliente: nome, atualizado_em: agora });
+      atvQ = deviceKey ? atvQ.eq('device_key', deviceKey) : atvQ.eq('mac_address', macNorm);
+      const { error: atvErr } = await atvQ;
+      if (atvErr) console.error('[register] erro ao vincular ativacao:', atvErr.message);
+      else console.log('[register] usuario_id vinculado a ativacoes | mac:', macNorm, '| key:', deviceKey);
+
+      // 2. Retroactivamente preenche usuario_id NULL em favoritos do mesmo dispositivo
+      const { error: favErr } = await supabase.from('favoritos')
+        .update({ usuario_id: data.id })
+        .eq('mac_address', macNorm)
+        .is('usuario_id', null);
+      if (favErr) console.error('[register] erro ao preencher favoritos:', favErr.message);
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -2979,6 +3105,7 @@ app.post('/api/auth/login', async (req, res) => {
       .from('usuarios')
       .select('id, nome, email, senha_hash, role')
       .eq('email', email.toLowerCase().trim())
+      .eq('role', 'cliente')
       .single();
 
     if (error || !data)
