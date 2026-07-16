@@ -650,30 +650,37 @@ app.post('/api/playlists/create', async (req, res) => {
   const localId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
   // Buscar ativação para enriquecer o registo
-  const { data: atvList } = await supabase
+  // Para MACs genéricos busca por device_key; para MACs reais busca por mac_address
+  const isGenericMacCreate = GENERIC_MACS.has(key);
+  let atvQuery = supabase
     .from('ativacoes')
-    .select('id, nome_dispositivo, nome_cliente')
-    .eq('mac_address', key)
+    .select('id, nome_dispositivo')
     .eq('ativo', true)
     .order('criado_em', { ascending: false })
     .limit(1);
-  const atv = Array.isArray(atvList) ? atvList[0] : null;
+  atvQuery = isGenericMacCreate
+    ? atvQuery.eq('device_key', deviceKey)
+    : atvQuery.eq('mac_address', key);
+  const { data: atvList } = await atvQuery;
+  const atv = Array.isArray(atvList) ? atvList[0] : atvList || null;
 
   // Determinar status: só ativa se não houver já outra ativa
-  const { data: jaAtiva } = await supabase
-    .from('listas').select('id').eq('mac_address', key).eq('status', 'ativa').limit(1);
+  const deviceFilter = isGenericMacCreate
+    ? supabase.from('listas').select('id').eq('device_key', deviceKey).eq('status', 'ativa').limit(1)
+    : supabase.from('listas').select('id').eq('mac_address', key).eq('status', 'ativa').limit(1);
+  const { data: jaAtiva } = await deviceFilter;
   const status = (jaAtiva && jaAtiva.length > 0) ? 'inativa' : 'ativa';
 
   const tipoMap = { url: 'url', file: 'file', xtream: 'xtream', other: 'm3u8', m3u: 'url' };
   const tipo = tipoMap[type] || type;
 
+  const agora = new Date().toISOString();
   const row = {
     lista_local_id:    localId,
     ativacao_id:       atv?.id               || null,
     mac_address:       key,
     device_key:        deviceKey             || null,
     nome_dispositivo:  atv?.nome_dispositivo || null,
-    nome_cliente:      atv?.nome_cliente     || null,
     nome_lista:        name,
     tipo,
     url:               req.body.url          || null,
@@ -686,10 +693,10 @@ app.post('/api/playlists/create', async (req, res) => {
     pin_hash:          req.body.protected && req.body.pin
                          ? crypto.createHash('sha256').update(req.body.pin).digest('hex')
                          : null,
-    criado_em:         new Date().toISOString(),
+    criado_em:         agora,
     expira_em:         new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
     status,
-    atualizado_em:     new Date().toISOString()
+    atualizado_em:     agora,
   };
 
   const { error } = await supabase.from('listas').insert(row);
