@@ -1086,15 +1086,6 @@ app.post('/api/device/register-trial', async (req, res) => {
       criado_em:          new Date().toISOString(),
       ativo:              true,
       modelo_dispositivo: modelo_dispositivo || null,
-      nome_dispositivo:   null,
-      nome_cliente:       null,
-      usuario_id:         null,
-      pagamento_id:       null,
-      nome_revendedor:    null,
-      revendedor_id:      null,
-      termo_aceite:       true,
-      data_aceite:        new Date().toISOString(),
-      versao_termo:       '1.0',
     });
 
     if (error) {
