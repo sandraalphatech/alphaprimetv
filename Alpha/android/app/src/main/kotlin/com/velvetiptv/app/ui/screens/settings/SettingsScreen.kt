@@ -302,7 +302,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
 
                     TvButton(
                         onClick = {
-                            val uri = pickedFileUri ?: return@onClick
+                            val uri = pickedFileUri ?: return@TvButton
                             scope.launch {
                                 val name = listName.trim().ifBlank { pickedFileName ?: "Lista ${playlists.size + 1}" }
                                 val localPath = withContext(Dispatchers.IO) { copyToLocalFile(context, uri, name) }
