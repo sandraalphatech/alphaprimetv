@@ -470,23 +470,25 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
   const macNorm = (mac || '').toLowerCase();
   const isGenericMac = GENERIC_MACS.has(macNorm);
 
-  // Campos comuns a update e insert
+  // Campos usados no UPDATE (modelo_dispositivo preservado do trial)
   const fields = {
-    plano:              PLANO_MAP[plan] || 'anual',
-    device_key:         deviceKey || null,
-    nome_dispositivo:   deviceName || null,
-    nome_cliente:       nome_cliente || null,
-    cliente_id:         usuario_id || null,
+    plano:            PLANO_MAP[plan] || 'anual',
+    device_key:       deviceKey || null,
+    nome_dispositivo: deviceName || null,
+    nome_cliente:     nome_cliente || null,
+    cliente_id:       usuario_id || null,
     validade,
-    pagamento_id:       paymentId || null,
-    modelo_dispositivo: modelo,
-    ativo:              true,
-    termo_aceite:       true,
-    data_aceite:        agora,
-    versao_termo:       '1.0',
-    atualizado_em:      agora,
+    pagamento_id:     paymentId || null,
+    ativo:            true,
+    termo_aceite:     true,
+    data_aceite:      agora,
+    versao_termo:     '1.0',
+    atualizado_em:    agora,
     ...(revendedor_id ? { revendedor_id, nome_revendedor } : {})
   };
+
+  // Campos extras apenas para INSERT (novo registro sem trial prévio)
+  const fieldsInsert = { ...fields, modelo_dispositivo: modelo };
 
   // Localiza o registro existente para fazer update (trial → pago).
   // Para MACs genéricos usa device_key como chave; para MACs reais usa mac_address.
@@ -519,7 +521,7 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
     if (error) console.error('Supabase ativacoes update error:', error.message, '| mac:', mac);
   } else {
     const { error } = await supabase.from('ativacoes').insert({
-      ...fields,
+      ...fieldsInsert,
       mac_address:  macNorm,
       termo_aceite: true,
       data_aceite:  agora,
