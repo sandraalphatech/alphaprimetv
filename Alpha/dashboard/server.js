@@ -1026,10 +1026,10 @@ app.post('/api/favorites/toggle', async (req, res) => {
     return res.json({ action: 'removed' });
   }
 
-  // Busca usuario_id na ativação para manter consistência referencial
+  // Busca cliente_id na ativação para manter consistência referencial
   const { data: atvFav } = await supabase
     .from('ativacoes')
-    .select('usuario_id')
+    .select('cliente_id')
     .eq('mac_address', key)
     .eq('ativo', true)
     .order('criado_em', { ascending: false })
@@ -1039,7 +1039,7 @@ app.post('/api/favorites/toggle', async (req, res) => {
   const { error } = await supabase.from('favoritos').insert({
     mac_address: key,
     device_key:  deviceKey || null,
-    usuario_id:  atvFav?.usuario_id || null,
+    usuario_id:  atvFav?.cliente_id || null,
     item_id, tipo,
     nome: nome || null, url: url || null,
     logo: logo || null, grupo: grupo || null,
@@ -3156,7 +3156,7 @@ app.get('/api/user/devices', async (req, res) => {
   const { data, error } = await supabase
     .from('ativacoes')
     .select('id, nome_dispositivo, nome_cliente, mac_address, device_key, plano, validade, ativo, modelo_dispositivo, criado_em')
-    .eq('usuario_id', session.userId)
+    .eq('cliente_id', session.userId)
     .eq('ativo', true)
     .order('criado_em', { ascending: false });
 
