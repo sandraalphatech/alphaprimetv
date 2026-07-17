@@ -32,9 +32,9 @@ Thumbs.db
 *.tar
 *.tar.gz
 
-# APKs Android
-*.apk
-*.aab
+# # APKs Android
+# *.apk
+# *.aab
 
 # Build Android
 **/build/
