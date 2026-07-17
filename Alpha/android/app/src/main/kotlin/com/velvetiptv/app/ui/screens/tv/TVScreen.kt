@@ -2,6 +2,11 @@ package com.velvetiptv.app.ui.screens.tv
 
 import android.view.View
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -1098,6 +1103,9 @@ private fun ChannelPanel(
     // Actualizar estrelas sem rebind completo
     LaunchedEffect(favoriteUrls) { adapter.favoriteUrls = favoriteUrls }
 
+    val searchFocusRequester = remember { FocusRequester() }
+    val keyboardController   = LocalSoftwareKeyboardController.current
+
     Column(modifier.background(Color(0xFF0d0d1a))) {
 
         // Cabeçalho (Compose — estático, sem impacto de performance)
@@ -1135,11 +1143,15 @@ private fun ChannelPanel(
                     value = search, onValueChange = onSearchChange, singleLine = true,
                     textStyle = TextStyle(color = TextLight, fontSize = 13.sp),
                     cursorBrush = SolidColor(AccentPrimary),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     decorationBox = { inner ->
                         if (search.isEmpty()) Text("Pesquisar...", color = TextLight.copy(0.3f), fontSize = 13.sp)
                         inner()
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(searchFocusRequester)
+                        .onFocusChanged { if (it.isFocused) keyboardController?.show() }
                 )
             }
         }
@@ -1147,9 +1159,24 @@ private fun ChannelPanel(
         // Lista de canais — RecyclerView nativo (estável com 58K+ itens)
         // weight(1f) em vez de fillMaxSize() — garante que o RV ocupa apenas
         // o espaço restante após o cabeçalho/busca, sem sobrepor os elementos acima.
+        // Subclasse anônima sobrescreve focusSearch para que, ao pressionar D-pad UP
+        // no primeiro item, o foco escape para o campo de pesquisa acima (Compose).
+        // Sem isto, o RecyclerView consume o evento e o foco fica preso na lista.
         AndroidView(
             factory = { ctx ->
-                RecyclerView(ctx).apply {
+                object : RecyclerView(ctx) {
+                    override fun focusSearch(focused: android.view.View?, direction: Int): android.view.View? {
+                        if (direction == View.FOCUS_UP && focused != null) {
+                            val pos = getChildAdapterPosition(focused)
+                            if (pos == 0) {
+                                searchFocusRequester.requestFocus()
+                                keyboardController?.show()
+                                return null
+                            }
+                        }
+                        return super.focusSearch(focused, direction)
+                    }
+                }.apply {
                     layoutManager = LinearLayoutManager(ctx)
                     this.adapter  = adapter
                     setHasFixedSize(false)
