@@ -58,8 +58,7 @@ import com.velvetiptv.app.data.ParentalPreferences
 import com.velvetiptv.app.data.VodPreferences
 import com.velvetiptv.app.ui.navigation.Screen
 import com.velvetiptv.app.ui.screens.activation.AlphaLogoMini
-import com.velvetiptv.app.ui.screens.activation.getDeviceKey
-import com.velvetiptv.app.ui.screens.activation.getMacAddress
+import com.velvetiptv.app.data.DeviceUtils
 import com.velvetiptv.app.ui.theme.AccentPrimary
 import com.velvetiptv.app.ui.theme.DarkBackground
 import com.velvetiptv.app.ui.theme.SurfaceDark
@@ -471,8 +470,8 @@ fun TVScreen(navController: NavController? = null) {
     var parentalMac by remember { mutableStateOf("") }
     var parentalDeviceKey by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        val mac = withContext(Dispatchers.IO) { getMacAddress() }
-        val key = withContext(Dispatchers.IO) { getDeviceKey(context) }
+        val mac = withContext(Dispatchers.IO) { DeviceUtils.getMacAddress(context) }
+        val key = withContext(Dispatchers.IO) { DeviceUtils.getDeviceKey(context) }
         parentalMac = mac
         parentalDeviceKey = key
         while (true) {

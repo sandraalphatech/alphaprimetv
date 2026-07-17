@@ -30,6 +30,7 @@ import com.velvetiptv.app.data.VodPreferences
 import com.velvetiptv.app.data.XtreamApi
 import com.velvetiptv.app.data.XtreamCreds
 import com.velvetiptv.app.data.XtreamSeason
+import com.velvetiptv.app.ui.navigation.PlayQueueHolder
 import com.velvetiptv.app.ui.navigation.PlayQueueItem
 import com.velvetiptv.app.ui.navigation.Screen
 import com.velvetiptv.app.ui.screens.tv.ErrorMessage
@@ -140,7 +141,7 @@ fun SeriesEpisodesScreen(
                             ResolvedEpisode(ep.episodeNum, ep.title, url, name)
                         }
                     }
-                    val queue = remember(resolved) { resolved.map { PlayQueueItem(it.url, it.displayName) } }
+                    val queue = remember(resolved) { resolved.map { PlayQueueItem(it.url, it.displayName, seriesId) } }
 
                     Column(Modifier.fillMaxSize()) {
                         // Separadores de temporada
@@ -189,9 +190,10 @@ fun SeriesEpisodesScreen(
                                         scope.launch {
                                             VodPreferences.addToContinueWatching(
                                                 context,
-                                                M3UChannel(name = ep.displayName, url = ep.url, logo = "", group = seriesName, type = ChannelType.SERIES)
+                                                M3UChannel(name = ep.displayName, url = ep.url, logo = seriesId, group = seriesName, type = ChannelType.SERIES)
                                             )
                                         }
+                                        PlayQueueHolder.queue = queue
                                         navController?.navigate(Screen.Player.createRoute(ep.url, ep.displayName, queue, index))
                                     }
                                 )

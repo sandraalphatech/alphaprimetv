@@ -6,11 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,23 +34,22 @@ import com.velvetiptv.app.data.DeviceCheckRequest
 import com.velvetiptv.app.data.LicensePreferences
 import com.velvetiptv.app.data.TRIAL_DURATION_MS
 import com.velvetiptv.app.ui.navigation.Screen
-import com.velvetiptv.app.ui.screens.activation.getDeviceKey
-import com.velvetiptv.app.ui.screens.activation.getMacAddress
+import com.velvetiptv.app.data.DeviceUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
 @Composable
 fun HomeMenuScreen(navController: NavController) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var validityText by remember { mutableStateOf<String?>(null) }
     var macAddress by remember { mutableStateOf("") }
     var deviceKeyVal by remember { mutableStateOf("") }
+    var isRefreshing by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        macAddress = withContext(Dispatchers.IO) { getMacAddress() }
-        deviceKeyVal = withContext(Dispatchers.IO) { getDeviceKey(context) }
-
+    suspend fun refreshFromBackend(mac: String, key: String) {
         val installDate = LicensePreferences.getOrInitInstallDate(context)
         var expiresAt = LicensePreferences.getExpiresAt(context)
 
@@ -58,35 +59,35 @@ fun HomeMenuScreen(navController: NavController) {
                     "Acesso válido até ${LicensePreferences.formatExpiresAt(expiresAt!!)}"
                 LicensePreferences.isTrialActive(installDate) -> {
                     val trialEnd = installDate + TRIAL_DURATION_MS
-                    val formatted = LicensePreferences.formatExpiresAt(trialEnd)
-                    "Período de teste de 7 dias - Válido até: $formatted"
+                    "Teste gratuito - Válido até: ${LicensePreferences.formatExpiresAt(trialEnd)}"
                 }
-                else -> null
+                else -> "Acesso expirado"
             }
         }
         updateLabel()
 
-        // Revalida com o backend em segundo plano — mas só para SINCRONIZAR/
-        // RENOVAR uma licença que já existia (dispositivo já passou pela tela
-        // de ativação antes). Nunca conceder ativação a partir daqui: um
-        // dispositivo em teste grátis (sem expiresAt local) só vira "pago" ao
-        // ser ativado explicitamente via QR code na tela de Ativação — senão
-        // qualquer resposta otimista/stub do backend destravaria o trial.
-        if (expiresAt != null) {
-            try {
-                val response = ActivationApiClient.api.checkDevice(
-                    DeviceCheckRequest(mac = macAddress, deviceKey = deviceKeyVal)
-                )
-                if (response.activated) {
-                    val millis = LicensePreferences.parseExpiresAt(response.expiresAt)
-                    LicensePreferences.setExpiresAt(context, millis)
-                    expiresAt = millis
-                    updateLabel()
-                }
-            } catch (_: Exception) {
-                // Sem rede — mantém a validade guardada localmente.
+        try {
+            val response = ActivationApiClient.api.checkDevice(
+                DeviceCheckRequest(mac = mac, deviceKey = key)
+            )
+            if (response.activated) {
+                val millis = LicensePreferences.parseExpiresAt(response.expiresAt)
+                LicensePreferences.setExpiresAt(context, millis)
+                expiresAt = millis
+            } else {
+                LicensePreferences.setExpiresAt(context, null)
+                expiresAt = null
             }
+            updateLabel()
+        } catch (_: Exception) {
+            // Sem rede — mantém a validade guardada localmente.
         }
+    }
+
+    LaunchedEffect(Unit) {
+        macAddress = withContext(Dispatchers.IO) { DeviceUtils.getMacAddress(context) }
+        deviceKeyVal = withContext(Dispatchers.IO) { DeviceUtils.getDeviceKey(context) }
+        refreshFromBackend(macAddress, deviceKeyVal)
     }
 
     Box(
@@ -120,8 +121,46 @@ fun HomeMenuScreen(navController: NavController) {
                     color = Color(0xFFD4A843),
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
             }
+
+            // Botão Atualizar — sincroniza o status de licença com o servidor
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable(enabled = !isRefreshing) {
+                        scope.launch {
+                            isRefreshing = true
+                            refreshFromBackend(macAddress, deviceKeyVal)
+                            isRefreshing = false
+                        }
+                    }
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (isRefreshing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(12.dp),
+                        color = Color.White.copy(alpha = 0.5f),
+                        strokeWidth = 1.5.dp
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Atualizar",
+                        tint = Color.White.copy(alpha = 0.45f),
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+                Text(
+                    "Atualizar",
+                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.45f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Identificação do dispositivo — útil para suporte/diagnóstico,
             // mesma info mostrada na tela de Ativação.

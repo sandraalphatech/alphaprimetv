@@ -32,9 +32,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
+import com.velvetiptv.app.data.ChannelType
+import com.velvetiptv.app.data.M3UChannel
 import com.velvetiptv.app.data.VodPreferences
 import com.velvetiptv.app.ui.navigation.PlayQueueItem
 import com.velvetiptv.app.ui.navigation.Screen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.videolan.libvlc.LibVLC
@@ -251,19 +255,32 @@ fun PlayerScreen(
                 org.videolan.libvlc.MediaPlayer.Event.EndReached -> {
                     isBuffering = false
                     isPlaying   = false
-                    scope.launch {
+                    val next = episodeQueue.getOrNull(queueIndex + 1)
+                    // CoroutineScope próprio — o rememberCoroutineScope é cancelado
+                    // quando o composable é descartado (o que acontece imediatamente
+                    // ao navegar), por isso as operações de DataStore ficariam por
+                    // executar. Um scope de IO efémero garante que completam.
+                    CoroutineScope(Dispatchers.IO).launch {
                         VodPreferences.clearPosition(context, streamUrl)
                         VodPreferences.removeFromContinueWatching(context, streamUrl)
-                        // Fica marcado como visto — mostra o indicador na lista de
-                        // episódios mesmo depois de saír de "Continuar a assistir".
                         VodPreferences.markWatched(context, streamUrl)
+                        if (next != null) {
+                            // O próximo episódio começa a ser visto — entra em
+                            // "continuar a assistir" para o utilizador saber onde ficou.
+                            val seriesName = next.name.substringBefore(" · ")
+                            VodPreferences.addToContinueWatching(
+                                context,
+                                M3UChannel(name = next.name, url = next.url, logo = next.seriesId, group = seriesName, type = ChannelType.SERIES)
+                            )
+                        }
                     }
-                    val next = episodeQueue.getOrNull(queueIndex + 1)
                     if (next != null) {
-                        // Série com próximo episódio disponível — avança sozinho.
-                        // popUpTo substitui o Player actual (ver goToQueueItem) para o
-                        // "voltar" ir directo à lista de episódios, não ao anterior.
-                        navController.navigate(Screen.Player.createRoute(next.url, next.name, episodeQueue, queueIndex + 1)) {
+                        // Série com próximo episódio — avança sozinho.
+                        // popUpTo substitui o Player actual para o "voltar" ir directo
+                        // à lista de episódios, não passar por cada episódio anterior.
+                        navController.navigate(
+                            Screen.Player.createRoute(next.url, next.name, episodeQueue, queueIndex + 1)
+                        ) {
                             popUpTo(Screen.Player.route) { inclusive = true }
                         }
                     } else {

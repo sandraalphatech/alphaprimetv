@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -38,8 +39,7 @@ import com.velvetiptv.app.data.ParentalPreferences
 import com.velvetiptv.app.data.ParentalSetPinRequest
 import com.velvetiptv.app.data.PlaylistCreateRequest
 import com.velvetiptv.app.data.PlaylistDeleteRequest
-import com.velvetiptv.app.ui.screens.activation.getDeviceKey
-import com.velvetiptv.app.ui.screens.activation.getMacAddress
+import com.velvetiptv.app.data.DeviceUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -79,8 +79,8 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
     // para refletir quase em tempo real o que for alterado na dashboard (ou noutro
     // dispositivo) sem precisar sair e voltar à tela.
     LaunchedEffect(Unit) {
-        val mac = withContext(Dispatchers.IO) { getMacAddress() }
-        val key = withContext(Dispatchers.IO) { getDeviceKey(context) }
+        val mac = withContext(Dispatchers.IO) { DeviceUtils.getMacAddress(context) }
+        val key = withContext(Dispatchers.IO) { DeviceUtils.getDeviceKey(context) }
         deviceMac = mac
         deviceKeyVal = key
 
@@ -252,20 +252,28 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                 val url = m3uUrl.trim()
                                 val epg = epgUrl.trim()
                                 val localId = IPTVPreferences.addM3UPlaylist(context, name, url, epg)
-                                try {
-                                    val response = ActivationApiClient.api.createPlaylist(
-                                        PlaylistCreateRequest(
-                                            deviceMac, deviceKeyVal, name,
-                                            type = if (selectedTab == 3) "other" else "url",
-                                            url = url, epgUrl = epg,
-                                            protectPlaylist = protectPlaylist,
-                                            pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
-                                        )
-                                    )
-                                    IPTVPreferences.adoptServerId(context, localId, response.playlist.id)
-                                } catch (_: Exception) { /* fica só local até a próxima sincronização */ }
                                 listName = ""; m3uUrl = ""; epgUrl = ""; protectPlaylist = false; playlistPin = ""
                                 saveSuccess = true
+                                // Tenta sincronizar com servidor; retenta após delay
+                                // para dar tempo ao register-trial completar.
+                                val req = PlaylistCreateRequest(
+                                    deviceMac, deviceKeyVal, name,
+                                    type = if (selectedTab == 3) "other" else "url",
+                                    url = url, epgUrl = epg,
+                                    protectPlaylist = protectPlaylist,
+                                    pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
+                                )
+                                var synced = false
+                                for (attempt in 1..3) {
+                                    try {
+                                        val response = ActivationApiClient.api.createPlaylist(req)
+                                        IPTVPreferences.adoptServerId(context, localId, response.playlist.id)
+                                        synced = true
+                                        break
+                                    } catch (_: Exception) {
+                                        if (attempt < 3) delay(3000)
+                                    }
+                                }
                             }
                         },
                         enabled = m3uUrl.isNotBlank(),
@@ -363,19 +371,23 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                 val user = xtreamUser.trim()
                                 val epg = epgUrl.trim()
                                 val localId = IPTVPreferences.addXtreamPlaylist(context, name, server, user, xtreamPass, epg)
-                                try {
-                                    val response = ActivationApiClient.api.createPlaylist(
-                                        PlaylistCreateRequest(
-                                            deviceMac, deviceKeyVal, name, "xtream",
-                                            server = server, username = user, password = xtreamPass, epgUrl = epg,
-                                            protectPlaylist = protectPlaylist,
-                                            pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
-                                        )
-                                    )
-                                    IPTVPreferences.adoptServerId(context, localId, response.playlist.id)
-                                } catch (_: Exception) { /* fica só local até a próxima sincronização */ }
                                 listName = ""; xtreamServer = ""; xtreamUser = ""; xtreamPass = ""; epgUrl = ""; protectPlaylist = false; playlistPin = ""
                                 saveSuccess = true
+                                val req = PlaylistCreateRequest(
+                                    deviceMac, deviceKeyVal, name, "xtream",
+                                    server = server, username = user, password = xtreamPass, epgUrl = epg,
+                                    protectPlaylist = protectPlaylist,
+                                    pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
+                                )
+                                for (attempt in 1..3) {
+                                    try {
+                                        val response = ActivationApiClient.api.createPlaylist(req)
+                                        IPTVPreferences.adoptServerId(context, localId, response.playlist.id)
+                                        break
+                                    } catch (_: Exception) {
+                                        if (attempt < 3) delay(3000)
+                                    }
+                                }
                             }
                         },
                         enabled = xtreamServer.isNotBlank() && xtreamUser.isNotBlank() && xtreamPass.isNotBlank(),
@@ -427,10 +439,15 @@ private fun AppFooter() {
             style = MaterialTheme.typography.bodySmall,
             color = TextLight.copy(alpha = 0.6f)
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            Text("Privacidade", style = MaterialTheme.typography.bodySmall, color = TextLight.copy(alpha = 0.6f))
-            Text("Termos de Uso", style = MaterialTheme.typography.bodySmall, color = TextLight.copy(alpha = 0.6f))
-        }
+        val uriHandler = LocalUriHandler.current
+        Text(
+            "Termos de Uso e Politicas de Privacidade - Documentos Legais",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextLight.copy(alpha = 0.6f),
+            modifier = Modifier.clickable {
+                uriHandler.openUri("https://www.alphaprimetv.com/legal.html")
+            }
+        )
     }
 }
 
@@ -564,8 +581,8 @@ private fun ParentalLockSection() {
     // (ex.: senha redefinida ou removida pelo suporte).
     LaunchedEffect(Unit) {
         try {
-            val mac = withContext(Dispatchers.IO) { getMacAddress() }
-            val key = withContext(Dispatchers.IO) { getDeviceKey(context) }
+            val mac = withContext(Dispatchers.IO) { DeviceUtils.getMacAddress(context) }
+            val key = withContext(Dispatchers.IO) { DeviceUtils.getDeviceKey(context) }
             val remote = ActivationApiClient.api.syncParental(mac, key)
             ParentalPreferences.adoptServerState(context, remote.pinHash, remote.lockedCategories)
         } catch (_: Exception) {
@@ -671,8 +688,8 @@ private fun ParentalLockSection() {
                             else -> {
                                 ParentalPreferences.setPin(context, newPin)
                                 try {
-                                    val mac = withContext(Dispatchers.IO) { getMacAddress() }
-                                    val key = withContext(Dispatchers.IO) { getDeviceKey(context) }
+                                    val mac = withContext(Dispatchers.IO) { DeviceUtils.getMacAddress(context) }
+                                    val key = withContext(Dispatchers.IO) { DeviceUtils.getDeviceKey(context) }
                                     ActivationApiClient.api.setParentalPin(
                                         ParentalSetPinRequest(mac, key, currentPin.ifBlank { null }, newPin)
                                     )

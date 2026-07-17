@@ -69,9 +69,17 @@ app.post('/api/device/register', (req, res) => {
   if (!mac || !deviceKey) return res.status(400).json({ error: 'mac e deviceKey obrigatórios' });
 
   const devices  = getDevices();
-  const existing = devices.find(d => d.mac === mac.toLowerCase());
+  // deviceKey (ANDROID_ID) é o identificador único real — MAC pode ser idêntico
+  // em dispositivos modernos que retornam 00:00:00:00:00:00 por restrições de privacidade.
+  const existing = devices.find(d => d.deviceKey === deviceKey)
+    || devices.find(d => d.mac === mac.toLowerCase());
 
   if (existing) {
+    // Atualiza o MAC caso o dispositivo tenha gerado um novo (ex.: após correção do app)
+    if (existing.deviceKey === deviceKey && existing.mac !== mac.toLowerCase()) {
+      existing.mac = mac.toLowerCase();
+      saveDevices(devices);
+    }
     return res.json({
       registered: true,
       activated: existing.activated,
@@ -95,20 +103,62 @@ app.post('/api/device/register', (req, res) => {
   res.json({ registered: true, activated: false });
 });
 
+// Alias para compatibilidade com o app (chama register-trial)
+app.post('/api/device/register-trial', (req, res) => {
+  const mac        = (req.body.mac_address || req.body.mac || '').toLowerCase();
+  const deviceKey  = req.body.devicekey   || req.body.deviceKey || '';
+  const modelo     = req.body.modelo_dispositivo || '';
+
+  if (!mac || !deviceKey) return res.status(400).json({ success: false, error: 'mac e deviceKey obrigatórios' });
+
+  const devices  = getDevices();
+  const existing = devices.find(d => d.deviceKey === deviceKey)
+    || devices.find(d => d.mac === mac);
+
+  if (existing) {
+    if (existing.deviceKey === deviceKey && existing.mac !== mac) {
+      existing.mac = mac;
+      saveDevices(devices);
+    }
+    const validade = existing.expiresAt || null;
+    return res.json({ success: true, validade });
+  }
+
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + 7);
+
+  devices.push({
+    id: Date.now(),
+    mac,
+    deviceKey,
+    modelo_dispositivo: modelo,
+    activated: false,
+    plan: 'trial',
+    activatedAt: null,
+    expiresAt: trialEnd.toISOString(),
+    notes: '',
+    createdAt: new Date().toISOString()
+  });
+  saveDevices(devices);
+  res.json({ success: true, validade: trialEnd.toISOString() });
+});
+
 // App verifica estado de ativação
 app.post('/api/device/check', (req, res) => {
-  const { mac } = req.body;
+  const { mac, deviceKey } = req.body;
   if (!mac) return res.status(400).json({ error: 'mac obrigatório' });
 
-  const device = getDevices().find(d => d.mac === mac.toLowerCase());
+  const devices = getDevices();
+  // Busca por deviceKey primeiro (identificador único real), depois por MAC como fallback
+  const device = (deviceKey && devices.find(d => d.deviceKey === deviceKey))
+    || devices.find(d => d.mac === mac.toLowerCase());
   if (!device) return res.json({ activated: false });
 
   if (device.expiresAt && new Date(device.expiresAt) < new Date()) {
-    const devices = getDevices();
-    const idx = devices.findIndex(d => d.mac === mac.toLowerCase());
+    const idx = devices.findIndex(d => d.deviceKey === device.deviceKey || d.mac === device.mac);
     devices[idx].activated = false;
     saveDevices(devices);
-    return res.json({ activated: false, reason: 'expired' });
+    return res.json({ activated: false, reason: 'expired', plan: device.plan });
   }
 
   res.json({
@@ -125,7 +175,8 @@ app.post('/api/device/login', (req, res) => {
   if (!mac || !deviceKey) return res.status(400).json({ error: 'mac e deviceKey obrigatórios' });
 
   const devices = getDevices();
-  let device = devices.find(d => d.mac === mac.toLowerCase());
+  let device = devices.find(d => d.deviceKey === deviceKey)
+    || devices.find(d => d.mac === mac.toLowerCase());
 
   if (!device) {
     // Regista automaticamente

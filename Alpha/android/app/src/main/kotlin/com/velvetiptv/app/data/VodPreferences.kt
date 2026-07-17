@@ -66,7 +66,7 @@ object VodPreferences {
         }
         // Sync ao backend em background — falha silenciosa, sincroniza no próximo arranque
         try {
-            val mac = DeviceUtils.getMacAddress()
+            val mac = DeviceUtils.getMacAddress(context)
             val key = DeviceUtils.getDeviceKey(context)
             val tipo = when (channel.type) {
                 ChannelType.TV     -> "canal"
@@ -89,7 +89,7 @@ object VodPreferences {
 
     suspend fun syncFavoritesFromServer(context: Context) {
         try {
-            val mac = DeviceUtils.getMacAddress()
+            val mac = DeviceUtils.getMacAddress(context)
             val key = DeviceUtils.getDeviceKey(context)
             val remote = ActivationApiClient.api.syncFavorites(mac, key)
             if (remote.isEmpty()) return

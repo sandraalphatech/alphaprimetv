@@ -126,11 +126,13 @@ object IPTVPreferences {
         }
     }
 
-    // O servidor é a fonte da verdade: como toda alteração local já é enviada na hora
-    // (ver SettingsScreen), o pull substitui a lista local pela do servidor — assim
-    // uma lista apagada no dashboard também some do app, e vice-versa.
     suspend fun syncFromServer(context: Context, remote: List<PlaylistDto>) {
         context.iptvDataStore.edit { prefs ->
+            val local = parsePlaylists(prefs[PLAYLISTS])
+            // Não apaga listas locais se o servidor retornar lista vazia —
+            // pode ser um createPlaylist que ainda não chegou ao servidor.
+            if (remote.isEmpty() && local.isNotEmpty()) return@edit
+
             val merged = remote.map { r ->
                 IPTVPlaylist(
                     id = r.id,

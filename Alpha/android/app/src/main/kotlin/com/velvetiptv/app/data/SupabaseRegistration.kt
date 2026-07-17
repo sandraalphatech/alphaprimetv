@@ -15,7 +15,7 @@ object SupabaseRegistration {
     suspend fun registerIfNeeded(context: Context, installDate: Long) {
         withContext(Dispatchers.IO) {
             try {
-                val mac    = DeviceUtils.getMacAddress()
+                val mac    = DeviceUtils.getMacAddress(context)
                 val key    = DeviceUtils.getDeviceKey(context)
                 val modelo = DeviceUtils.getDeviceModel(context)
 

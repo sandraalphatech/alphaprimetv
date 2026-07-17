@@ -50,7 +50,14 @@ import com.velvetiptv.app.ui.screens.vod.SeriesEpisodesScreen
 // Um episódio na "fila" do episódio actualmente a reproduzir — permite ao
 // PlayerScreen mostrar/usar os botões de "próximo"/"anterior episódio" sem
 // precisar de voltar a chamar a API Xtream a cada salto.
-data class PlayQueueItem(val url: String, val name: String)
+data class PlayQueueItem(val url: String, val name: String, val seriesId: String = "")
+
+// Fila de episódios partilhada entre instâncias do PlayerScreen — evita depender
+// de codificar/descodificar a fila na rota de navegação, que falha silenciosamente
+// quando os URLs dos episódios são longos ou contêm caracteres especiais no JSON.
+object PlayQueueHolder {
+    var queue: List<PlayQueueItem> = emptyList()
+}
 
 private fun b64Encode(s: String): String = android.util.Base64.encodeToString(
     s.toByteArray(Charsets.UTF_8),
@@ -79,7 +86,10 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
             val extraJson = JSONObject().apply {
                 put("index", index)
                 put("queue", JSONArray().apply {
-                    queue.forEach { put(JSONObject().apply { put("url", it.url); put("name", it.name) }) }
+                    queue.forEach { put(JSONObject().apply {
+                        put("url", it.url); put("name", it.name)
+                        if (it.seriesId.isNotBlank()) put("sid", it.seriesId)
+                    }) }
                 })
             }.toString()
             return "player/$encodedUrl/$encodedName/${b64Encode(extraJson)}"
@@ -105,25 +115,49 @@ fun AlphaPrimeNavigation() {
     LaunchedEffect(Unit) {
         val installDate = LicensePreferences.getOrInitInstallDate(context)
 
-        // Garante que o dispositivo está registado no Supabase antes de verificar
+        if (LicensePreferences.isTrialActive(installDate)) {
+            // Regista o dispositivo e aguarda (idempotente — não sobrescreve se já existe,
+            // por isso o admin pode expirar o trial no banco sem o app re-criar o registo).
+            SupabaseRegistration.registerIfNeeded(context, installDate)
+
+            // Consulta o backend mesmo durante o trial — permite que o admin revogue
+            // ou expire o período sem ter de esperar que os 7 dias locais acabem.
+            // Sem rede: benefício da dúvida (true = deixa entrar).
+            val trialValid = try {
+                val mac = DeviceUtils.getMacAddress(context)
+                val key = DeviceUtils.getDeviceKey(context)
+                ActivationApiClient.api.checkDevice(DeviceCheckRequest(mac, key)).activated
+            } catch (_: Exception) {
+                true
+            }
+
+            if (trialValid) {
+                CoroutineScope(Dispatchers.IO).launch { VodPreferences.syncFavoritesFromServer(context) }
+                startDestination = Screen.Home.route
+            } else {
+                startDestination = Screen.Activation.route
+            }
+            return@LaunchedEffect
+        }
+
+        // Trial expirado localmente: consulta o backend para verificar licença paga
         SupabaseRegistration.registerIfNeeded(context, installDate)
 
-        // A fonte de verdade é o Supabase — verifica status real no backend.
-        // Fallback para estado local apenas se não houver rede.
         val isActive = try {
-            val mac      = DeviceUtils.getMacAddress()
+            val mac      = DeviceUtils.getMacAddress(context)
             val key      = DeviceUtils.getDeviceKey(context)
             val response = ActivationApiClient.api.checkDevice(DeviceCheckRequest(mac, key))
-            if (response.activated && response.expiresAt != null) {
-                LicensePreferences.setExpiresAt(
-                    context, LicensePreferences.parseExpiresAt(response.expiresAt)
-                )
+            if (response.activated) {
+                LicensePreferences.setExpiresAt(context, LicensePreferences.parseExpiresAt(response.expiresAt))
+                true
+            } else {
+                LicensePreferences.setExpiresAt(context, null)
+                false
             }
-            response.activated
         } catch (_: Exception) {
             // Sem rede: usa cache local
             val expiresAt = LicensePreferences.getExpiresAt(context)
-            LicensePreferences.isLicenseValid(expiresAt) || LicensePreferences.isTrialActive(installDate)
+            LicensePreferences.isLicenseValid(expiresAt)
         }
 
         if (isActive) {
@@ -200,16 +234,23 @@ fun AlphaPrimeNavigation() {
                 if (arr != null) {
                     queue = (0 until arr.length()).map { i ->
                         val o = arr.getJSONObject(i)
-                        PlayQueueItem(o.optString("url"), o.optString("name"))
+                        PlayQueueItem(o.optString("url"), o.optString("name"), o.optString("sid", ""))
                     }
                 }
             } catch (_: Exception) { /* sem fila (ex.: Filmes) — fica vazia */ }
+
+            // Usa o holder em memória como fonte primária da fila — só usa o queue
+            // descodificado da rota se o episódio actual não estiver no holder
+            // (ex: player aberto de "Continuar a Assistir" sem passar por SeriesEpisodes).
+            val resolvedQueue = PlayQueueHolder.queue
+                .takeIf { q -> q.any { it.url == url } }
+                ?: queue
 
             PlayerScreen(
                 navController = navController,
                 streamUrl     = url,
                 channelName   = name,
-                episodeQueue  = queue,
+                episodeQueue  = resolvedQueue,
                 queueIndex    = index
             )
         }

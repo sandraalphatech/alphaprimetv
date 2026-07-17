@@ -226,8 +226,20 @@ fun VodGridScreen(
                     // a lista (groups) é grande mas estável entre recomposições normais,
                     // e isto evita qualquer risco de ficar agarrado a um valor antigo de
                     // favorites/continueWatching quando só essas duas mudam.
+                    // Para séries, "Continuar a Assistir" armazena episódios individuais,
+                    // mas mostramos apenas 1 card por série (o mais recente), usando o
+                    // campo "group" como nome da série e "logo" como seriesId para navegação.
+                    val continueWatchingDisplay = if (type == ChannelType.SERIES) {
+                        val seen = mutableSetOf<String>()
+                        continueWatching.mapNotNull { ch ->
+                            val key = ch.group.ifBlank { ch.url }
+                            if (seen.add(key)) ch.copy(name = ch.group.ifBlank { ch.name.substringBefore(" · ") })
+                            else null
+                        }
+                    } else continueWatching
+
                     val allGroups = buildList {
-                        if (continueWatching.isNotEmpty()) add(CATEGORY_CONTINUE_WATCHING to continueWatching)
+                        if (continueWatchingDisplay.isNotEmpty()) add(CATEGORY_CONTINUE_WATCHING to continueWatchingDisplay)
                         if (favorites.isNotEmpty()) add(CATEGORY_FAVORITES to favorites)
                         addAll(groups)
                     }
@@ -259,8 +271,16 @@ fun VodGridScreen(
 
                     fun onItemClick(ch: M3UChannel) {
                         if (ch.url.startsWith(SERIES_MARKER_PREFIX)) {
+                            // Catálogo de séries — abre a lista de episódios
                             val seriesId = ch.url.removePrefix(SERIES_MARKER_PREFIX)
                             navController?.navigate(Screen.SeriesEpisodes.createRoute(seriesId, ch.name))
+                        } else if (type == ChannelType.SERIES && ch.logo.isNotBlank()) {
+                            // "Continuar a Assistir" de uma série — o campo logo guarda o seriesId.
+                            // Navega PRIMEIRO para a lista de episódios (fica no back stack), depois
+                            // para o player: o botão "voltar" do player leva à lista atualizada.
+                            // Como as animações estão desligadas, a transição é instantânea.
+                            navController?.navigate(Screen.SeriesEpisodes.createRoute(ch.logo, ch.group.ifBlank { ch.name }))
+                            navController?.navigate(Screen.Player.createRoute(ch.url, ch.name))
                         } else {
                             scope.launch { VodPreferences.addToContinueWatching(context, ch) }
                             navController?.navigate(Screen.Player.createRoute(ch.url, ch.name))
@@ -597,7 +617,7 @@ private fun PosterCard(
                 .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
-            if (channel.logo.isNotBlank()) {
+            if (channel.logo.isNotBlank() && channel.logo.startsWith("http")) {
                 SubcomposeAsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(channel.logo)

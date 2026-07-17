@@ -1,8 +1,6 @@
 package com.velvetiptv.app.ui.screens.activation
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.provider.Settings
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,12 +31,12 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.velvetiptv.app.data.ActivationApiClient
 import com.velvetiptv.app.data.DeviceCheckRequest
+import com.velvetiptv.app.data.DeviceUtils
 import com.velvetiptv.app.data.LicensePreferences
 import com.velvetiptv.app.ui.navigation.Screen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import java.net.NetworkInterface
 
 const val ACTIVATION_URL  = "https://www.alphaprimetv.com/cadastro.html"
 const val ACTIVATION_SITE = "www.alphaprimetv.com"
@@ -52,34 +50,21 @@ fun generateQrBitmap(content: String, size: Int = 512): Bitmap {
     return bmp
 }
 
-fun getMacAddress(): String = try {
-    val intf = NetworkInterface.getNetworkInterfaces()?.toList()
-        ?.firstOrNull { it.name.equals("wlan0", true) || it.name.startsWith("eth") }
-    val mac = intf?.hardwareAddress
-    if (mac != null && mac.isNotEmpty()) mac.joinToString(":") { "%02x".format(it) }
-    else "00:00:00:00:00:00"
-} catch (_: Exception) { "00:00:00:00:00:00" }
-
-fun getDeviceKey(context: Context): String {
-    val id = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "000000"
-    val digits = id.filter { it.isDigit() }.take(6).padEnd(6, '0')
-    return digits.ifEmpty { id.take(6).uppercase() }
-}
-
 @Composable
 fun ActivationScreen(navController: NavController) {
     val context    = LocalContext.current
     val config     = LocalConfiguration.current
     val isWide     = config.screenWidthDp > config.screenHeightDp
 
-    var macAddress  by remember { mutableStateOf("--:--:--:--:--:--") }
-    var deviceKey   by remember { mutableStateOf("------") }
-    var qrBitmap    by remember { mutableStateOf<Bitmap?>(null) }
-    var isActivated by remember { mutableStateOf(false) }
+    var macAddress   by remember { mutableStateOf("--:--:--:--:--:--") }
+    var deviceKey    by remember { mutableStateOf("------") }
+    var qrBitmap     by remember { mutableStateOf<Bitmap?>(null) }
+    var isActivated  by remember { mutableStateOf(false) }
+    var expiredPlan  by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        val mac = withContext(Dispatchers.IO) { getMacAddress() }
-        val key = withContext(Dispatchers.IO) { getDeviceKey(context) }
+        val mac = withContext(Dispatchers.IO) { DeviceUtils.getMacAddress(context) }
+        val key = withContext(Dispatchers.IO) { DeviceUtils.getDeviceKey(context) }
         val qr  = withContext(Dispatchers.IO) {
             try { generateQrBitmap("$ACTIVATION_URL?mac=$mac&key=$key") } catch (_: Exception) { null }
         }
@@ -98,14 +83,13 @@ fun ActivationScreen(navController: NavController) {
                 )
                 if (response.activated) {
                     isActivated = true
-                    // Guarda a validade da licença (1 ano por padrão, ou a data
-                    // devolvida pelo backend) para o app saber, no próximo
-                    // arranque, que pode ir direto ao menu sem reativar.
-                    val expiresAtMillis = LicensePreferences.parseExpiresAt(response.expiresAt)
-                    LicensePreferences.setExpiresAt(context, expiresAtMillis)
+                    LicensePreferences.setExpiresAt(context, LicensePreferences.parseExpiresAt(response.expiresAt))
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Activation.route) { inclusive = true }
                     }
+                } else {
+                    // Guarda o plano para mostrar mensagem adequada (trial vs anual)
+                    expiredPlan = response.plan
                 }
             } catch (_: Exception) {
                 // Sem rede ou backend indisponível — tenta de novo no próximo ciclo.
@@ -127,7 +111,8 @@ fun ActivationScreen(navController: NavController) {
                 macAddress   = macAddress,
                 deviceKey    = deviceKey,
                 qrBitmap     = qrBitmap,
-                isActivated  = isActivated
+                isActivated  = isActivated,
+                expiredPlan  = expiredPlan
             )
         } else {
             // ── Portrait / Mobile ─────────────────────────────────────────
@@ -135,7 +120,8 @@ fun ActivationScreen(navController: NavController) {
                 macAddress   = macAddress,
                 deviceKey    = deviceKey,
                 qrBitmap     = qrBitmap,
-                isActivated  = isActivated
+                isActivated  = isActivated,
+                expiredPlan  = expiredPlan
             )
         }
     }
@@ -147,7 +133,8 @@ private fun TVActivationLayout(
     macAddress: String,
     deviceKey: String,
     qrBitmap: Bitmap?,
-    isActivated: Boolean
+    isActivated: Boolean,
+    expiredPlan: String? = null
 ) {
     Row(
         modifier = Modifier
@@ -166,11 +153,12 @@ private fun TVActivationLayout(
             AlphaLogoMini(size = 150.dp)
 
             Spacer(Modifier.height(4.dp))
-            Text(
-                "Crie sua conta ou faça login para desbloquear todas as funcionalidades. " +
-                "Ative sua licença pelo site e o aplicativo será liberado automaticamente.",
-                fontSize = 12.sp, color = Color.White.copy(0.65f), lineHeight = 17.sp
-            )
+            val infoMsg = when (expiredPlan) {
+                "trial"  -> "Seu período de teste terminou. Faça seu cadastro ou login e adquira sua licença via QR code ou em $ACTIVATION_SITE"
+                "anual"  -> "Sua licença expirou. Renove via QR code ou em $ACTIVATION_SITE"
+                else     -> "Crie sua conta ou faça login para desbloquear todas as funcionalidades. Ative sua licença pelo site e o aplicativo será liberado automaticamente."
+            }
+            Text(infoMsg, fontSize = 12.sp, color = Color.White.copy(0.65f), lineHeight = 17.sp)
             Spacer(Modifier.height(2.dp))
             InfoLine("Acesse para ativar:", ACTIVATION_SITE, Color.White, 12, 13)
             InfoLine("Mac Address", macAddress, Color(0xFFD4A843), 12, 20)
@@ -245,7 +233,8 @@ private fun MobileActivationLayout(
     macAddress: String,
     deviceKey: String,
     qrBitmap: Bitmap?,
-    isActivated: Boolean
+    isActivated: Boolean,
+    expiredPlan: String? = null
 ) {
     Column(
         modifier = Modifier
@@ -258,9 +247,13 @@ private fun MobileActivationLayout(
     ) {
         AlphaLogoMini(size = 180.dp)
 
+        val mobileInfoMsg = when (expiredPlan) {
+            "trial"  -> "Seu período de teste terminou. Faça seu cadastro ou login e adquira sua licença via QR code ou em $ACTIVATION_SITE"
+            "anual"  -> "Sua licença expirou. Renove via QR code ou em $ACTIVATION_SITE"
+            else     -> "Crie sua conta ou faça login para desbloquear todas as funcionalidades. Ative sua licença pelo site e o aplicativo será liberado automaticamente."
+        }
         Text(
-            "Crie sua conta ou faça login para desbloquear todas as funcionalidades. " +
-            "Ative sua licença pelo site e o aplicativo será liberado automaticamente.",
+            mobileInfoMsg,
             fontSize = 13.sp, color = Color.White.copy(0.65f),
             textAlign = TextAlign.Center, lineHeight = 19.sp
         )
