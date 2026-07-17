@@ -36,10 +36,10 @@ Thumbs.db
 # *.apk
 # *.aab
 
-# Build Android
-**/build/
-.gradle/
-local.properties
+# # Build Android
+# **/build/
+# .gradle/
+# local.properties
 
 # Pastas temporárias
 dreamtv_extracted/
@@ -47,4 +47,4 @@ dreamtv_temp/
 
 # Build Web
 dist/
-coverage/
+coverage/git a
