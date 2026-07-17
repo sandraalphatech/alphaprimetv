@@ -454,7 +454,7 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
     device_key:         deviceKey || null,
     nome_dispositivo:   deviceName || null,
     nome_cliente:       nome_cliente || null,
-    usuario_id:         usuario_id || null,
+    cliente_id:         usuario_id || null,
     validade,
     pagamento_id:       paymentId || null,
     modelo_dispositivo: modelo,
@@ -2199,16 +2199,16 @@ async function insertSaldo({ revendedorId, nomeRevendedor, tipo, quantidade, ref
 
 // ── TRANSACOES ────────────────────────────────────────────────────────────────
 async function insertTransacao({ pagamentoId, origem, data, status = 'pago', tipoPagamento, identificador, nome, valorPago, revendedorId, deviceKey = null, plano = null, usuarioId = null }) {
-  const { error } = await supabase.from('transacoes_ativacao').upsert({
+  const { error } = await supabase.from('transacoes').upsert({
     pagamento_id:   pagamentoId,
     origem,
     data:           data || new Date().toISOString(),
     status,
     tipo_pagamento: tipoPagamento || null,
-    identificador:  String(identificador || ''),
+    mac_address:    String(identificador || ''),
     device_key:     deviceKey || null,
     plano:          plano || null,
-    usuario_id:     usuarioId || null,
+    cliente_id:     usuarioId || null,
     nome:           nome || null,
     valor_pago:     parseFloat(valorPago) || 0,
     revendedor_id:  revendedorId || null,
@@ -3087,7 +3087,7 @@ app.post('/api/auth/register', async (req, res) => {
 
       // 1. Atualiza ativacoes (por device_key quando genérico, por mac caso contrário)
       let atvQ = supabase.from('ativacoes')
-        .update({ usuario_id: data.cliente_id, nome_cliente: nome, atualizado_em: agora });
+        .update({ cliente_id: data.cliente_id, nome_cliente: nome, atualizado_em: agora });
       atvQ = deviceKey ? atvQ.eq('device_key', deviceKey) : atvQ.eq('mac_address', macNorm);
       const { error: atvErr } = await atvQ;
       if (atvErr) console.error('[register] erro ao vincular ativacao:', atvErr.message);
