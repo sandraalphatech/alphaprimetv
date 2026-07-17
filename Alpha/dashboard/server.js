@@ -511,7 +511,7 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
   if (usuario_id) {
     const { error: userErr } = await supabase.from('usuarios')
       .update({ ativo: true })
-      .eq('id', usuario_id);
+      .eq('cliente_id', usuario_id);
     if (userErr) console.error('Supabase usuarios update error:', userErr.message, '| usuario_id:', usuario_id);
   }
 
@@ -1231,7 +1231,7 @@ app.post('/api/reseller/login', async (req, res) => {
   try {
     const { data: rows, error: loginQueryErr } = await supabase
       .from('usuarios')
-      .select('id, nome, email, senha_hash, ativo, role, data_autoexclusao')
+      .select('cliente_id, nome, email, senha_hash, ativo, role, data_autoexclusao')
       .eq('email', username.toLowerCase().trim())
       .in('role', ['revendedor', 'administrador'])
       .limit(1);
@@ -1241,7 +1241,7 @@ app.post('/api/reseller/login', async (req, res) => {
     if (loginQueryErr) {
       const { data: rows2 } = await supabase
         .from('usuarios')
-        .select('id, nome, email, senha_hash, ativo, role')
+        .select('cliente_id, nome, email, senha_hash, ativo, role')
         .eq('email', username.toLowerCase().trim())
         .in('role', ['revendedor', 'administrador'])
         .limit(1);
@@ -1258,19 +1258,19 @@ app.post('/api/reseller/login', async (req, res) => {
     if (!match) return res.status(401).json({ error: 'Credenciais inválidas' });
 
     // Ensure local Map entry exists for this Supabase reseller
-    if (!resellers.has(user.id)) {
-      resellers.set(user.id, {
+    if (!resellers.has(user.cliente_id)) {
+      resellers.set(user.cliente_id, {
         username: user.email, nome: user.nome, passwordHash: null,
         credits: 0, parentId: null, active: true, role: user.role,
-        createdAt: new Date().toISOString(), earnings: 0, supabaseId: user.id
+        createdAt: new Date().toISOString(), earnings: 0, supabaseId: user.cliente_id
       });
     } else {
-      resellers.get(user.id).role = user.role;
+      resellers.get(user.cliente_id).role = user.role;
     }
 
     const token = genToken();
-    resellerTokens.set(token, user.id);
-    return res.json({ resellerId: user.id, username: user.nome || user.email, token, role: user.role });
+    resellerTokens.set(token, user.cliente_id);
+    return res.json({ resellerId: user.cliente_id, username: user.nome || user.email, token, role: user.role });
   } catch (e) {
     console.error('Erro login revendedor:', e.message);
     return res.status(500).json({ error: 'Erro interno' });
@@ -1310,7 +1310,7 @@ app.post('/api/reseller/forgot-password', async (req, res) => {
   try {
     const { data: user } = await supabase
       .from('usuarios')
-      .select('id, nome, email')
+      .select('cliente_id, nome, email')
       .eq('email', email.toLowerCase().trim())
       .in('role', ['revendedor', 'administrador'])
       .single();
@@ -1759,7 +1759,7 @@ app.post('/api/reseller/devices/update', authReseller, async (req, res) => {
       if (r.passwordHash) {
         valid = r.passwordHash === hashPassword(password || '');
       } else if (r.supabaseId) {
-        const { data: rows } = await supabase.from('usuarios').select('senha_hash').eq('id', r.supabaseId).limit(1);
+        const { data: rows } = await supabase.from('usuarios').select('senha_hash').eq('cliente_id', r.supabaseId).limit(1);
         if (rows?.[0]) valid = await bcrypt.compare(password || '', rows[0].senha_hash);
       }
       if (!valid) return res.status(401).json({ error: 'Senha incorreta' });
@@ -2400,7 +2400,7 @@ app.get('/api/reseller/credits/geral', authReseller, async (req, res) => {
 
   const { data: usuarios, error } = await supabase
     .from('usuarios')
-    .select('id, nome, email, role')
+    .select('cliente_id, nome, email, role')
     .in('role', ['revendedor', 'administrador'])
     .eq('ativo', true)
     .order('nome', { ascending: true });
@@ -2412,11 +2412,11 @@ app.get('/api/reseller/credits/geral', authReseller, async (req, res) => {
     const { data: s } = await supabase
       .from('saldo')
       .select('saldo_resultante, criado_em')
-      .eq('revendedor_id', u.id)
+      .eq('revendedor_id', u.cliente_id)
       .order('criado_em', { ascending: false })
       .limit(1);
     return {
-      id: u.id,
+      id: u.cliente_id,
       nome: u.nome || u.email,
       email: u.email,
       role: u.role,
@@ -2656,8 +2656,8 @@ app.get('/api/reseller/faturamento/transacoes', authReseller, async (req, res) =
   let nomesMap = {};
   if (revIds.length) {
     const { data: users } = await supabase
-      .from('usuarios').select('id, nome, email').in('id', revIds);
-    (users || []).forEach(u => { nomesMap[u.id] = u.nome || u.email; });
+      .from('usuarios').select('cliente_id, nome, email').in('cliente_id', revIds);
+    (users || []).forEach(u => { nomesMap[u.cliente_id] = u.nome || u.email; });
   }
 
   res.json(rows.map(r => ({
@@ -2703,8 +2703,8 @@ app.get('/api/reseller/faturamento/por-revendedor', authReseller, async (req, re
   const ids = Object.keys(agg).filter(id => id !== '__autonomo__');
   let nomesMap = {};
   if (ids.length) {
-    const { data: users } = await supabase.from('usuarios').select('id, nome, email').in('id', ids);
-    (users || []).forEach(u => { nomesMap[u.id] = u.nome || u.email; });
+    const { data: users } = await supabase.from('usuarios').select('cliente_id, nome, email').in('cliente_id', ids);
+    (users || []).forEach(u => { nomesMap[u.cliente_id] = u.nome || u.email; });
   }
 
   const result = Object.values(agg)
@@ -2719,9 +2719,9 @@ app.get('/api/reseller/faturamento/por-revendedor', authReseller, async (req, re
 });
 
 app.get('/api/reseller/faturamento/revendedores', authReseller, async (req, res) => {
-  const { data } = await supabase.from('usuarios').select('id, nome, email, role')
+  const { data } = await supabase.from('usuarios').select('cliente_id, nome, email, role')
     .in('role', ['revendedor', 'administrador']).order('nome');
-  res.json((data || []).map(u => ({ id: u.id, nome: (u.nome || u.email) + (u.role === 'administrador' ? ' (admin)' : ''), email: u.email })));
+  res.json((data || []).map(u => ({ id: u.cliente_id, nome: (u.nome || u.email) + (u.role === 'administrador' ? ' (admin)' : ''), email: u.email })));
 });
 
 app.get('/api/reseller/faturamento/fechamento', authReseller, async (req, res) => {
@@ -2782,12 +2782,12 @@ app.get('/api/reseller/sub-resellers', authReseller, async (req, res) => {
   // Busca todos revendedores no Supabase (ativos e pendentes)
   const { data: revs, error } = await supabase
     .from('usuarios')
-    .select('id, nome, email, ativo, criado_em, role')
+    .select('cliente_id, nome, email, ativo, criado_em, role')
     .in('role', ['revendedor', 'administrador'])
     .order('criado_em', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
 
-  const revIds = (revs || []).map(r => r.id);
+  const revIds = (revs || []).map(r => r.cliente_id);
   if (!revIds.length) return res.json([]);
 
   const now = new Date();
@@ -2845,14 +2845,14 @@ app.post('/api/reseller/sub-resellers', authReseller, async (req, res) => {
       data_nascimento: data_nascimento || null,
       role: 'revendedor', ativo: true, criado_em: new Date().toISOString(),
       parent_id: req.reseller.supabaseId || req.resellerId || null
-    }).select('id, nome').single();
+    }).select('cliente_id, nome').single();
 
     if (error) {
       if (error.code === '23505') return res.status(409).json({ error: 'Email já cadastrado' });
       throw error;
     }
 
-    const newId = inserted.id;
+    const newId = inserted.cliente_id;
     const nomeRev = inserted.nome;
     const qtd = Math.max(0, parseInt(credits) || 0);
 
@@ -2889,7 +2889,7 @@ app.post('/api/reseller/sub-resellers', authReseller, async (req, res) => {
 app.post('/api/reseller/sub-resellers/approve', authReseller, async (req, res) => {
   const { id } = req.body;
   if (!id) return res.status(400).json({ error: 'ID obrigatório' });
-  const { error } = await supabase.from('usuarios').update({ ativo: true }).eq('id', id).eq('role', 'revendedor');
+  const { error } = await supabase.from('usuarios').update({ ativo: true }).eq('cliente_id', id).eq('role', 'revendedor');
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
@@ -2897,7 +2897,7 @@ app.post('/api/reseller/sub-resellers/approve', authReseller, async (req, res) =
 app.post('/api/reseller/sub-resellers/deactivate-user', authReseller, async (req, res) => {
   const { id } = req.body;
   if (!id) return res.status(400).json({ error: 'ID obrigatório' });
-  const { error } = await supabase.from('usuarios').update({ ativo: false }).eq('id', id).eq('role', 'revendedor');
+  const { error } = await supabase.from('usuarios').update({ ativo: false }).eq('cliente_id', id).eq('role', 'revendedor');
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
@@ -2916,8 +2916,8 @@ app.post('/api/reseller/sub-resellers/give-credits', authReseller, async (req, r
   // Verificar destinatário no Supabase
   const { data: subUser } = await supabase
     .from('usuarios')
-    .select('id, nome, parent_id')
-    .eq('id', subresellerId)
+    .select('cliente_id, nome, parent_id')
+    .eq('cliente_id', subresellerId)
     .single();
   const subLocal = resellers.get(subresellerId);
   if (!subUser && !subLocal) return res.status(404).json({ error: 'Revendedor não encontrado' });
@@ -2973,7 +2973,7 @@ app.get('/api/reseller/profile', authReseller, async (req, res) => {
   const { data, error } = await supabase
     .from('usuarios')
     .select('nome, email, telefone, pais, data_nascimento, criado_em')
-    .eq('id', req.resellerId)
+    .eq('cliente_id', req.resellerId)
     .single();
   if (error) return res.status(500).json({ error: error.message });
   res.json(data || {});
@@ -2989,7 +2989,7 @@ app.post('/api/reseller/profile', authReseller, async (req, res) => {
 
   if (email) {
     if (!senhaAtual) return res.status(400).json({ error: 'Senha necessária para alterar o e-mail' });
-    const { data: user } = await supabase.from('usuarios').select('senha_hash').eq('id', req.resellerId).single();
+    const { data: user } = await supabase.from('usuarios').select('senha_hash').eq('cliente_id', req.resellerId).single();
     if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
     const ok = await bcrypt.compare(senhaAtual, user.senha_hash || '');
     if (!ok) return res.status(401).json({ error: 'Senha incorreta' });
@@ -2998,7 +2998,7 @@ app.post('/api/reseller/profile', authReseller, async (req, res) => {
 
   if (!Object.keys(updates).length) return res.json({ success: true });
 
-  const { error } = await supabase.from('usuarios').update(updates).eq('id', req.resellerId);
+  const { error } = await supabase.from('usuarios').update(updates).eq('cliente_id', req.resellerId);
   if (error) {
     if (error.code === '23505') return res.status(409).json({ error: 'E-mail já está em uso' });
     return res.status(500).json({ error: error.message });
@@ -3012,12 +3012,12 @@ app.post('/api/reseller/profile/change-password', authReseller, async (req, res)
   const { senhaAtual, novaSenha } = req.body;
   if (!senhaAtual || !novaSenha) return res.status(400).json({ error: 'Campos obrigatórios' });
   if (novaSenha.length < 6)      return res.status(400).json({ error: 'Nova senha mínima de 6 caracteres' });
-  const { data: user } = await supabase.from('usuarios').select('senha_hash').eq('id', req.resellerId).single();
+  const { data: user } = await supabase.from('usuarios').select('senha_hash').eq('cliente_id', req.resellerId).single();
   if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
   const ok = await bcrypt.compare(senhaAtual, user.senha_hash || '');
   if (!ok) return res.status(401).json({ error: 'Senha atual incorreta' });
   const newHash = await bcrypt.hash(novaSenha, 12);
-  const { error } = await supabase.from('usuarios').update({ senha_hash: newHash }).eq('id', req.resellerId);
+  const { error } = await supabase.from('usuarios').update({ senha_hash: newHash }).eq('cliente_id', req.resellerId);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
@@ -3025,14 +3025,14 @@ app.post('/api/reseller/profile/change-password', authReseller, async (req, res)
 app.post('/api/reseller/profile/delete-account', authReseller, async (req, res) => {
   const { senha } = req.body;
   if (!senha) return res.status(400).json({ error: 'Senha necessária para excluir conta' });
-  const { data: user } = await supabase.from('usuarios').select('senha_hash').eq('id', req.resellerId).single();
+  const { data: user } = await supabase.from('usuarios').select('senha_hash').eq('cliente_id', req.resellerId).single();
   if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
   const ok = await bcrypt.compare(senha, user.senha_hash || '');
   if (!ok) return res.status(401).json({ error: 'Senha incorreta' });
   const { error } = await supabase.from('usuarios').update({
     ativo: false,
     data_autoexclusao: new Date().toISOString()
-  }).eq('id', req.resellerId);
+  }).eq('cliente_id', req.resellerId);
   if (error) return res.status(500).json({ error: error.message });
   // Invalidar sessão imediatamente
   const token = req.headers['x-reseller-token'];
@@ -3070,7 +3070,7 @@ app.post('/api/auth/register', async (req, res) => {
         criado_em: new Date().toISOString(),
         ativo: true
       }])
-      .select('id, nome, email, role')
+      .select('cliente_id, nome, email, role')
       .single();
 
     if (error) {
@@ -3081,13 +3081,13 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Vincula o usuario_id ao dispositivo que originou o cadastro e propaga
     // para todas as tabelas que já têm registros com usuario_id NULL.
-    if (mac && data?.id) {
+    if (mac && data?.cliente_id) {
       const macNorm = mac.toLowerCase().trim();
       const agora = new Date().toISOString();
 
       // 1. Atualiza ativacoes (por device_key quando genérico, por mac caso contrário)
       let atvQ = supabase.from('ativacoes')
-        .update({ usuario_id: data.id, nome_cliente: nome, atualizado_em: agora });
+        .update({ usuario_id: data.cliente_id, nome_cliente: nome, atualizado_em: agora });
       atvQ = deviceKey ? atvQ.eq('device_key', deviceKey) : atvQ.eq('mac_address', macNorm);
       const { error: atvErr } = await atvQ;
       if (atvErr) console.error('[register] erro ao vincular ativacao:', atvErr.message);
@@ -3095,14 +3095,14 @@ app.post('/api/auth/register', async (req, res) => {
 
       // 2. Retroactivamente preenche usuario_id NULL em favoritos do mesmo dispositivo
       const { error: favErr } = await supabase.from('favoritos')
-        .update({ usuario_id: data.id })
+        .update({ usuario_id: data.cliente_id })
         .eq('mac_address', macNorm)
         .is('usuario_id', null);
       if (favErr) console.error('[register] erro ao preencher favoritos:', favErr.message);
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    sessions.set(token, { userId: data.id, email: data.email, nome: data.nome, createdAt: Date.now() });
+    sessions.set(token, { userId: data.cliente_id, email: data.email, nome: data.nome, createdAt: Date.now() });
     saveState();
     res.json({ token, nome: data.nome, email: data.email });
   } catch (err) {
@@ -3119,7 +3119,7 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, nome, email, senha_hash, role')
+      .select('cliente_id, nome, email, senha_hash, role')
       .eq('email', email.toLowerCase().trim())
       .eq('role', 'cliente')
       .single();
@@ -3132,7 +3132,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Email ou senha incorretos' });
 
     const token = crypto.randomBytes(32).toString('hex');
-    sessions.set(token, { userId: data.id, email: data.email, nome: data.nome, createdAt: Date.now() });
+    sessions.set(token, { userId: data.cliente_id, email: data.email, nome: data.nome, createdAt: Date.now() });
     saveState();
     res.json({ token, nome: data.nome, email: data.email });
   } catch (err) {
@@ -3181,7 +3181,7 @@ app.post('/api/auth/change-password', async (req, res) => {
   if (newPassword.length < 6) return res.status(400).json({ error: 'A nova senha deve ter pelo menos 6 caracteres' });
 
   const { data: user, error: fetchErr } = await supabase
-    .from('usuarios').select('senha_hash').eq('id', session.userId).single();
+    .from('usuarios').select('senha_hash').eq('cliente_id', session.userId).single();
   if (fetchErr || !user) return res.status(500).json({ error: 'Erro ao verificar utilizador' });
 
   const ok = await bcrypt.compare(currentPassword, user.senha_hash);
@@ -3189,7 +3189,7 @@ app.post('/api/auth/change-password', async (req, res) => {
 
   const newHash = await bcrypt.hash(newPassword, 12);
   const { error: updateErr } = await supabase
-    .from('usuarios').update({ senha_hash: newHash }).eq('id', session.userId);
+    .from('usuarios').update({ senha_hash: newHash }).eq('cliente_id', session.userId);
   if (updateErr) return res.status(500).json({ error: 'Erro ao atualizar senha' });
 
   res.json({ success: true });
@@ -3203,7 +3203,7 @@ app.get('/api/auth/profile', async (req, res) => {
   const { data, error } = await supabase
     .from('usuarios')
     .select('nome, email, telefone, data_nascimento, pais, email_secundario')
-    .eq('id', session.userId)
+    .eq('cliente_id', session.userId)
     .single();
   if (error) return res.status(500).json({ error: 'Erro ao buscar perfil' });
   res.json(data);
@@ -3221,7 +3221,7 @@ app.post('/api/auth/update-profile', async (req, res) => {
     const { error } = await supabase
       .from('usuarios')
       .update({ nome: nome.trim(), email_secundario: email_secundario || null, pais: pais || null, telefone: telefone || null, data_nascimento: data_nascimento || null })
-      .eq('id', session.userId);
+      .eq('cliente_id', session.userId);
     if (error) throw error;
     session.nome = nome.trim();
     res.json({ success: true, nome: nome.trim() });
@@ -3287,7 +3287,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     const { data: user } = await supabase
       .from('usuarios')
-      .select('id, nome, email, email_secundario')
+      .select('cliente_id, nome, email, email_secundario')
       .eq('email', email.toLowerCase().trim())
       .single();
 
@@ -3339,7 +3339,7 @@ app.post('/api/auth/delete-account', async (req, res) => {
 
   try {
     const { data: user, error: fetchErr } = await supabase
-      .from('usuarios').select('senha_hash').eq('id', session.userId).single();
+      .from('usuarios').select('senha_hash').eq('cliente_id', session.userId).single();
     if (fetchErr || !user) return res.status(500).json({ error: 'Erro ao verificar utilizador' });
 
     const ok = await bcrypt.compare(password, user.senha_hash);
@@ -3349,7 +3349,7 @@ app.post('/api/auth/delete-account', async (req, res) => {
     const { error: updateErr } = await supabase
       .from('usuarios')
       .update({ ativo: false, data_autoexclusao: now })
-      .eq('id', session.userId);
+      .eq('cliente_id', session.userId);
     if (updateErr) throw updateErr;
 
     sessions.delete(token);
