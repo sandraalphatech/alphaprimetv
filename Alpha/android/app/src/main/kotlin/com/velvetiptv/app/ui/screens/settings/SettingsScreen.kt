@@ -251,6 +251,8 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                 val name = listName.trim().ifBlank { "Lista ${playlists.size + 1}" }
                                 val url = m3uUrl.trim()
                                 val epg = epgUrl.trim()
+                                val protect = protectPlaylist
+                                val pin = if (protect) playlistPin.ifBlank { null } else null
                                 val localId = IPTVPreferences.addM3UPlaylist(context, name, url, epg)
                                 listName = ""; m3uUrl = ""; epgUrl = ""; protectPlaylist = false; playlistPin = ""
                                 saveSuccess = true
@@ -260,8 +262,8 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                     deviceMac, deviceKeyVal, name,
                                     type = if (selectedTab == 3) "other" else "url",
                                     url = url, epgUrl = epg,
-                                    protectPlaylist = protectPlaylist,
-                                    pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
+                                    protectPlaylist = protect,
+                                    pin = pin
                                 )
                                 var synced = false
                                 for (attempt in 1..3) {
@@ -369,15 +371,18 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                 val name = listName.trim().ifBlank { "Lista Xtream ${playlists.size + 1}" }
                                 val server = xtreamServer.trim()
                                 val user = xtreamUser.trim()
+                                val pass = xtreamPass.trim()
                                 val epg = epgUrl.trim()
-                                val localId = IPTVPreferences.addXtreamPlaylist(context, name, server, user, xtreamPass, epg)
+                                val protect = protectPlaylist
+                                val pin = if (protect) playlistPin.ifBlank { null } else null
+                                val localId = IPTVPreferences.addXtreamPlaylist(context, name, server, user, pass, epg)
                                 listName = ""; xtreamServer = ""; xtreamUser = ""; xtreamPass = ""; epgUrl = ""; protectPlaylist = false; playlistPin = ""
                                 saveSuccess = true
                                 val req = PlaylistCreateRequest(
                                     deviceMac, deviceKeyVal, name, "xtream",
-                                    server = server, username = user, password = xtreamPass, epgUrl = epg,
-                                    protectPlaylist = protectPlaylist,
-                                    pin = if (protectPlaylist) playlistPin.ifBlank { null } else null
+                                    server = server, username = user, password = pass, epgUrl = epg,
+                                    protectPlaylist = protect,
+                                    pin = pin
                                 )
                                 for (attempt in 1..3) {
                                     try {
