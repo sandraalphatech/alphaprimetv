@@ -95,17 +95,22 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 app.post('/api/payments/pix/create', async (req, res) => {
-  const { mac, deviceKey, plan, deviceName, deviceModel, userToken } = req.body;
+  const { mac, deviceKey, plan, deviceName, deviceModel, userToken, clienteId: clienteIdBody } = req.body;
   if (!mac || !PLANS[plan]) {
     return res.status(400).json({ error: 'mac e plan são obrigatórios' });
   }
 
   const planInfo = PLANS[plan];
 
-  // Resolve dados do usuário agora — sessão pode não existir na hora da confirmação
-  const sessNowPix = userToken ? sessions.get(userToken) : null;
-  const userIdPix  = sessNowPix?.userId || null;
-  const userNomePix = sessNowPix?.nome  || null;
+  // Resolve dados do usuário agora — sessão pode não existir na hora da confirmação.
+  // Fallback: clienteId enviado pelo frontend (armazenado no localStorage após login).
+  const sessNowPix  = userToken ? sessions.get(userToken) : null;
+  let userIdPix     = sessNowPix?.userId  || clienteIdBody || null;
+  let userNomePix   = sessNowPix?.nome    || null;
+  if (userIdPix && !userNomePix) {
+    const { data: uRow } = await supabase.from('usuarios').select('nome').eq('cliente_id', userIdPix).maybeSingle();
+    if (uRow) userNomePix = uRow.nome;
+  }
 
   if (MOCK_PAYMENTS) {
     const paymentId = 'mock_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -189,16 +194,21 @@ app.get('/api/config/public-key', (req, res) => {
 });
 
 app.post('/api/payments/card/create', async (req, res) => {
-  const { mac, deviceKey, plan, deviceName, deviceModel, userToken, cardToken, customerEmail, customerDocument, installments: rawInst } = req.body;
+  const { mac, deviceKey, plan, deviceName, deviceModel, userToken, cardToken, customerEmail, customerDocument, installments: rawInst, clienteId: clienteIdBody } = req.body;
 
   if (!mac || !PLANS[plan] || !cardToken) {
     return res.status(400).json({ error: 'mac, plan e cardToken são obrigatórios' });
   }
 
-  // Resolve dados do usuário agora — sessão pode não existir na hora da confirmação
-  const sessNowCard = userToken ? sessions.get(userToken) : null;
-  const userIdCard  = sessNowCard?.userId || null;
-  const userNomeCard = sessNowCard?.nome  || null;
+  // Resolve dados do usuário agora — sessão pode não existir na hora da confirmação.
+  // Fallback: clienteId enviado pelo frontend (armazenado no localStorage após login).
+  const sessNowCard  = userToken ? sessions.get(userToken) : null;
+  let userIdCard     = sessNowCard?.userId  || clienteIdBody || null;
+  let userNomeCard   = sessNowCard?.nome    || null;
+  if (userIdCard && !userNomeCard) {
+    const { data: uRow } = await supabase.from('usuarios').select('nome').eq('cliente_id', userIdCard).maybeSingle();
+    if (uRow) userNomeCard = uRow.nome;
+  }
 
   if (MOCK_PAYMENTS) {
     const paymentId = 'mock_card_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -3132,7 +3142,7 @@ app.post('/api/auth/register', async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     sessions.set(token, { userId: data.cliente_id, email: data.email, nome: data.nome, createdAt: Date.now() });
     saveState();
-    res.json({ token, nome: data.nome, email: data.email });
+    res.json({ token, nome: data.nome, email: data.email, clienteId: data.cliente_id });
   } catch (err) {
     console.error('Register error:', err.message);
     res.status(500).json({ error: 'Erro ao criar conta. Tente novamente.' });
@@ -3162,7 +3172,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     sessions.set(token, { userId: data.cliente_id, email: data.email, nome: data.nome, createdAt: Date.now() });
     saveState();
-    res.json({ token, nome: data.nome, email: data.email });
+    res.json({ token, nome: data.nome, email: data.email, clienteId: data.cliente_id });
   } catch (err) {
     console.error('Login error:', err.message);
     res.status(500).json({ error: 'Erro ao fazer login. Tente novamente.' });

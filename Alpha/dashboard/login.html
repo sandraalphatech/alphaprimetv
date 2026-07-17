@@ -369,7 +369,7 @@
             const data = await res.json();
             if (!res.ok) { errEl.textContent = data.error || t('login.errGeneric'); return; }
 
-            localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email }));
+            localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email, clienteId: data.clienteId }));
 
             const _lip = new URLSearchParams(window.location.search);
             const _lim = _lip.get('mac'), _lik = _lip.get('key');

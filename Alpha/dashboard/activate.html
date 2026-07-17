@@ -514,7 +514,7 @@ async function startPixPayment() {
     const res = await fetch('/api/payments/pix/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel, userToken: apUser?.token || null })
+      body: JSON.stringify({ mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel, userToken: apUser?.token || null, clienteId: apUser?.clienteId || null })
     });
     if (!res.ok) throw new Error('create-failed');
     const data = await res.json();
@@ -670,6 +670,7 @@ async function payWithCard() {
       body: JSON.stringify({
         mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel,
         userToken: apUser?.token || null,
+        clienteId: apUser?.clienteId || null,
         cardToken: cardTokenId,
         customerEmail: email,
         customerDocument: cpf,

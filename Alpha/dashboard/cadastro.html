@@ -293,7 +293,7 @@
             const data = await res.json();
             if (!res.ok) { errEl.textContent = data.error || t('reg.errCreate'); return; }
 
-            localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email }));
+            localStorage.setItem('ap_user', JSON.stringify({ token: data.token, nome: data.nome, email: data.email, clienteId: data.clienteId }));
             const _qp = new URLSearchParams(location.search);
             const _qm = _qp.get('mac'), _qk = _qp.get('key');
             const _next = _qm ? `activate.html?mac=${encodeURIComponent(_qm)}&key=${encodeURIComponent(_qk||'')}` : 'activate.html';
