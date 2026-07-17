@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.background
@@ -1063,6 +1064,7 @@ private fun ChannelPreviewBox(
 //  1. RecyclerView recicla views nativas sem overhead de recomposição Compose
 //  2. ListAdapter + DiffUtil calcula diferenças em thread de fundo
 //  3. Bitmaps de logos descartados em onViewRecycled → sem acumulação OOM
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun ChannelPanel(
     modifier         : Modifier = Modifier.width(240.dp).fillMaxHeight(),
