@@ -102,9 +102,14 @@ app.post('/api/payments/pix/create', async (req, res) => {
 
   const planInfo = PLANS[plan];
 
+  // Resolve dados do usuário agora — sessão pode não existir na hora da confirmação
+  const sessNowPix = userToken ? sessions.get(userToken) : null;
+  const userIdPix  = sessNowPix?.userId || null;
+  const userNomePix = sessNowPix?.nome  || null;
+
   if (MOCK_PAYMENTS) {
     const paymentId = 'mock_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    payments.set(paymentId, { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'pix' });
+    payments.set(paymentId, { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, userId: userIdPix, userNome: userNomePix, tipoPagamento: 'pix' });
 
     setTimeout(() => {
       const payment = payments.get(paymentId);
@@ -163,7 +168,7 @@ app.post('/api/payments/pix/create', async (req, res) => {
       color: { dark: '#000000', light: '#ffffff' }
     });
 
-    payments.set(order.data.id, { paymentId: order.data.id, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'pix' });
+    payments.set(order.data.id, { paymentId: order.data.id, mac, deviceKey: deviceKey || '', plan, status: 'pending', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, userId: userIdPix, userNome: userNomePix, tipoPagamento: 'pix' });
 
     res.json({
       paymentId: order.data.id,
@@ -190,9 +195,14 @@ app.post('/api/payments/card/create', async (req, res) => {
     return res.status(400).json({ error: 'mac, plan e cardToken são obrigatórios' });
   }
 
+  // Resolve dados do usuário agora — sessão pode não existir na hora da confirmação
+  const sessNowCard = userToken ? sessions.get(userToken) : null;
+  const userIdCard  = sessNowCard?.userId || null;
+  const userNomeCard = sessNowCard?.nome  || null;
+
   if (MOCK_PAYMENTS) {
     const paymentId = 'mock_card_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-    const paymentData = { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'paid', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'cartao' };
+    const paymentData = { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'paid', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, userId: userIdCard, userNome: userNomeCard, tipoPagamento: 'cartao' };
     payments.set(paymentId, paymentData);
     activateDevice(paymentData);
     return res.json({ status: 'paid', paymentId });
@@ -249,6 +259,8 @@ app.post('/api/payments/card/create', async (req, res) => {
       deviceName: deviceName || '',
       deviceModel: deviceModel || '',
       userToken: userToken || null,
+      userId: userIdCard,
+      userNome: userNomeCard,
       tipoPagamento: 'cartao',
       status: 'pending'
     };
@@ -393,12 +405,12 @@ app.post('/api/payments/pix/webhook', (req, res) => {
 });
 
 function activateDevice(payment) {
-  const { mac, deviceKey, plan, deviceName, deviceModel, userToken, tipoPagamento } = payment;
+  const { mac, deviceKey, plan, deviceName, deviceModel, userToken, tipoPagamento, userId, userNome } = payment;
   const planInfo = PLANS[plan];
   const expiresAt = planInfo.days ? new Date(Date.now() + planInfo.days * 86400000).toISOString() : null;
   devices.set(mac, { active: true, plan, expiresAt, deviceKey });
   saveState();
-  saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, userToken, expiresAt, paymentId: payment.paymentId || null, tipoPagamento: tipoPagamento || null }).catch(e => console.error('Erro ao gravar ativação:', e));
+  saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, userToken, expiresAt, paymentId: payment.paymentId || null, tipoPagamento: tipoPagamento || null, usuario_id_direct: userId || null, nome_cliente_direct: userNome || null }).catch(e => console.error('Erro ao gravar ativação:', e));
 }
 
 const PLANO_MAP = { monthly: 'mensal', quarterly: 'trimestral', semiannual: 'semestral', yearly: 'anual', lifetime: 'vitalicio' };
@@ -505,6 +517,14 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
       criado_em:    agora
     });
     if (error) console.error('Supabase ativacoes insert error:', error.message, '| mac:', mac);
+  }
+
+  // Atualiza nome_cliente e nome_dispositivo em listas do mesmo dispositivo
+  if (nome_cliente) {
+    let lstQ = supabase.from('listas').update({ nome_cliente, atualizado_em: agora });
+    lstQ = (isGenericMac && deviceKey) ? lstQ.eq('device_key', deviceKey) : lstQ.eq('mac_address', macNorm);
+    const { error: lstErr } = await lstQ;
+    if (lstErr) console.error('[saveAtivacao] erro ao atualizar listas:', lstErr.message);
   }
 
   // Atualiza usuarios.ativo = true
