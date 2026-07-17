@@ -5,6 +5,7 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +25,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -245,7 +247,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                         onPinChange = { playlistPin = it }
                     )
 
-                    Button(
+                    TvButton(
                         onClick = {
                             scope.launch {
                                 val name = listName.trim().ifBlank { "Lista ${playlists.size + 1}" }
@@ -279,8 +281,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                             }
                         },
                         enabled = m3uUrl.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Carregar Lista", modifier = Modifier.padding(vertical = 4.dp))
                     }
@@ -299,9 +300,9 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                         Text(pickedFileName ?: "Escolher ficheiro (.m3u / .m3u8)")
                     }
 
-                    Button(
+                    TvButton(
                         onClick = {
-                            val uri = pickedFileUri ?: return@Button
+                            val uri = pickedFileUri ?: return@onClick
                             scope.launch {
                                 val name = listName.trim().ifBlank { pickedFileName ?: "Lista ${playlists.size + 1}" }
                                 val localPath = withContext(Dispatchers.IO) { copyToLocalFile(context, uri, name) }
@@ -313,8 +314,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                             }
                         },
                         enabled = pickedFileUri != null,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Carregar Lista (Ficheiro)", modifier = Modifier.padding(vertical = 4.dp))
                     }
@@ -365,7 +365,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                         onPinChange = { playlistPin = it }
                     )
 
-                    Button(
+                    TvButton(
                         onClick = {
                             scope.launch {
                                 val name = listName.trim().ifBlank { "Lista Xtream ${playlists.size + 1}" }
@@ -396,8 +396,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                             }
                         },
                         enabled = xtreamServer.isNotBlank() && xtreamUser.isNotBlank() && xtreamPass.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Adicionar Xtream Codes", modifier = Modifier.padding(vertical = 4.dp))
                     }
@@ -463,43 +462,96 @@ private fun PlaylistRow(
     onSelect: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var rowFocused by remember { mutableStateOf(false) }
+    var deleteFocused by remember { mutableStateOf(false) }
+
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (isActive) Color(0xFF1a3a2a) else SurfaceDark
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect() }
+            .border(
+                width = if (rowFocused || deleteFocused) 2.dp else 0.dp,
+                color = if (deleteFocused) Color(0xFFEF4444)
+                        else if (rowFocused) Color(0xFFD4A843)
+                        else Color.Transparent,
+                shape = MaterialTheme.shapes.medium
+            )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                if (isActive) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
-                contentDescription = null,
-                tint = if (isActive) Color(0xFF10b981) else TextLight.copy(alpha = 0.4f)
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(playlist.name, style = MaterialTheme.typography.bodyMedium, color = TextLight)
-                Text(
-                    if (playlist.type == "xtream") "Xtream Codes: ${playlist.xtreamServer}"
-                    else "M3U: ${playlist.m3uUrl.take(40)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextLight.copy(alpha = 0.6f)
+            // Área de seleção — ocupa todo o espaço menos a lixeira
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onSelect() }
+                    .onFocusChanged { rowFocused = it.isFocused }
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    if (isActive) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
+                    contentDescription = null,
+                    tint = if (isActive) Color(0xFF10b981) else TextLight.copy(alpha = 0.4f)
                 )
-                if (isActive) {
-                    Text("Ativa", style = MaterialTheme.typography.labelSmall, color = Color(0xFF10b981))
+                Column {
+                    Text(playlist.name, style = MaterialTheme.typography.bodyMedium, color = TextLight)
+                    Text(
+                        if (playlist.type == "xtream") "Xtream Codes: ${playlist.xtreamServer}"
+                        else "M3U: ${playlist.m3uUrl.take(40)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextLight.copy(alpha = 0.6f)
+                    )
+                    if (isActive) {
+                        Text("Ativa", style = MaterialTheme.typography.labelSmall, color = Color(0xFF10b981))
+                    }
                 }
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Remover", tint = AccentSecondary)
+            // Lixeira — focusável independentemente pelo D-pad
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier
+                    .onFocusChanged { deleteFocused = it.isFocused }
+                    .padding(end = 4.dp)
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Remover",
+                    tint = if (deleteFocused) Color(0xFFEF4444) else AccentSecondary
+                )
             }
         }
     }
+}
+
+// Botão com borda amarela visível ao receber foco via controle remoto de TV.
+@Composable
+private fun TvButton(
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    content: @Composable RowScope.() -> Unit
+) {
+    var focused by remember { mutableStateOf(false) }
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier
+            .onFocusChanged { focused = it.isFocused }
+            .border(
+                width = if (focused) 3.dp else 0.dp,
+                color = if (focused) Color.White else Color.Transparent,
+                shape = MaterialTheme.shapes.small
+            ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (focused) AccentPrimary.copy(alpha = 0.85f) else AccentPrimary
+        ),
+        content = content
+    )
 }
 
 @Composable
