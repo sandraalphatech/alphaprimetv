@@ -177,7 +177,10 @@ app.post('/api/payments/pix/create', async (req, res) => {
 });
 
 app.get('/api/config/public-key', (req, res) => {
-  res.json({ publicKey: process.env.PAGARME_PUBLIC_KEY || '' });
+  res.json({
+    publicKey: MOCK_PAYMENTS ? 'MOCK' : (process.env.PAGARME_PUBLIC_KEY || ''),
+    mockPayments: MOCK_PAYMENTS
+  });
 });
 
 app.post('/api/payments/card/create', async (req, res) => {
@@ -185,6 +188,14 @@ app.post('/api/payments/card/create', async (req, res) => {
 
   if (!mac || !PLANS[plan] || !cardToken) {
     return res.status(400).json({ error: 'mac, plan e cardToken são obrigatórios' });
+  }
+
+  if (MOCK_PAYMENTS) {
+    const paymentId = 'mock_card_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const paymentData = { paymentId, mac, deviceKey: deviceKey || '', plan, status: 'paid', deviceName: deviceName || '', deviceModel: deviceModel || '', userToken: userToken || null, tipoPagamento: 'cartao' };
+    payments.set(paymentId, paymentData);
+    activateDevice(paymentData);
+    return res.json({ status: 'paid', paymentId });
   }
 
   const INST_FEES = {

@@ -633,25 +633,32 @@ async function payWithCard() {
   try {
     // 1. Busca public key do servidor
     const cfgRes = await fetch('/api/config/public-key');
-    const { publicKey } = await cfgRes.json();
+    const { publicKey, mockPayments } = await cfgRes.json();
 
-    // 2. Tokeniza o cartão direto na PagarME (dados nunca passam pelo servidor)
-    const tokenRes = await fetch(`https://api.pagar.me/core/v5/tokens?appId=${publicKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'card',
-        card: {
-          number,
-          holder_name: name,
-          exp_month: parseInt(expMonth, 10),
-          exp_year:  parseInt('20' + expYear, 10),
-          cvv
-        }
-      })
-    });
-    const tokenData = await tokenRes.json();
-    if (!tokenData.id) throw new Error(tokenData.message || 'Falha ao tokenizar cartão');
+    let cardTokenId;
+    if (mockPayments) {
+      // Modo mock — pula tokenização real, usa token fictício
+      cardTokenId = 'mock_token_test';
+    } else {
+      // 2. Tokeniza o cartão direto na PagarME (dados nunca passam pelo servidor)
+      const tokenRes = await fetch(`https://api.pagar.me/core/v5/tokens?appId=${publicKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'card',
+          card: {
+            number,
+            holder_name: name,
+            exp_month: parseInt(expMonth, 10),
+            exp_year:  parseInt('20' + expYear, 10),
+            cvv
+          }
+        })
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.id) throw new Error(tokenData.message || 'Falha ao tokenizar cartão');
+      cardTokenId = tokenData.id;
+    }
 
     btn.innerHTML = '<span class="spinner"></span> Processando pagamento...';
 
@@ -663,7 +670,7 @@ async function payWithCard() {
       body: JSON.stringify({
         mac, deviceKey: key, plan: selectedPlan, deviceName, deviceModel,
         userToken: apUser?.token || null,
-        cardToken: tokenData.id,
+        cardToken: cardTokenId,
         customerEmail: email,
         customerDocument: cpf,
         installments
