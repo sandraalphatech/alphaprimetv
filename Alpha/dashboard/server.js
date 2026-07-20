@@ -1282,9 +1282,9 @@ app.post('/api/reseller/login', async (req, res) => {
       user = rows?.[0];
     }
 
-    if (!user) return res.status(401).json({ error: 'Credenciais inválidas' });
+    if (!user) { console.error('[LOGIN] user not found in Supabase for:', username); return res.status(401).json({ error: 'Credenciais inválidas' }); }
     if (user.data_autoexclusao) return res.status(403).json({ error: 'Conta autoexcluída. Para mais dúvidas, contacte o suporte.' });
-    if (!user.ativo) return res.status(403).json({ error: 'Conta aguardando aprovação' });
+    if (!user.ativo) { console.error('[LOGIN] user inactive:', username); return res.status(403).json({ error: 'Conta aguardando aprovação' }); }
 
     const match = await bcrypt.compare(password, user.senha_hash);
     if (!match) return res.status(401).json({ error: 'Credenciais inválidas' });
