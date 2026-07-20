@@ -2871,14 +2871,14 @@ app.get('/api/reseller/sub-resellers', authReseller, async (req, res) => {
   });
 
   const result = (revs || []).map(r => ({
-    id:               r.id,
+    id:               r.cliente_id,
     nome:             r.nome || r.email,
     email:            r.email,
-    credits:          saldoMap[r.id] ?? 0,
+    credits:          saldoMap[r.cliente_id] ?? 0,
     active:           r.ativo,
     createdAt:        r.criado_em,
-    totalActivations: ativTotal[r.id] || 0,
-    monthActivations: ativMes[r.id]   || 0,
+    totalActivations: ativTotal[r.cliente_id] || 0,
+    monthActivations: ativMes[r.cliente_id]   || 0,
   }));
 
   res.json(result);
