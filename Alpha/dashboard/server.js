@@ -1441,92 +1441,112 @@ app.delete('/api/reseller/packages/admin/:id', authReseller, async (req, res) =>
 app.get('/api/reseller/dashboard', authReseller, async (req, res) => {
   const rid = req.resellerId;
   const r = req.reseller;
+  const isAdmin = r?.role === 'administrador';
   const now = new Date();
   const startOfDay = new Date(now); startOfDay.setHours(0,0,0,0);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfDay = new Date(startOfDay); endOfDay.setHours(23, 59, 59, 999);
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-  // Ativações: busca direto no Supabase ativo=true filtrado por revendedor_id
-  const { data: ativacoes } = await supabase
-    .from('ativacoes')
-    .select('criado_em, mac_address')
-    .eq('revendedor_id', rid)
-    .eq('ativo', true);
+  // ── Ativações: admin vê TODOS os ativos; revendedor só os seus ──
+  let ativQ = supabase.from('ativacoes').select('criado_em, mac_address').eq('ativo', true);
+  if (!isAdmin) ativQ = ativQ.eq('revendedor_id', rid);
+  const { data: ativacoes } = await ativQ;
   const atv = ativacoes || [];
   const actTotal = atv.length;
   const actMonth = atv.filter(a => new Date(a.criado_em) >= startOfMonth).length;
   const actToday = atv.filter(a => new Date(a.criado_em) >= startOfDay).length;
 
-  // Listas stats: conta ativas e a vencer hoje para este revendedor
-  const macsDash = [...new Set(atv.map(a => a.mac_address).filter(Boolean))];
+  // ── Listas: admin vê todas; revendedor vê as dos seus MACs ──
   let listasAtivas = 0, listasVencendoHoje = 0;
-  if (macsDash.length) {
-    const endOfDay = new Date(startOfDay); endOfDay.setHours(23, 59, 59, 999);
+  if (isAdmin) {
     const [{ count: cAtivas }, { count: cHoje }] = await Promise.all([
+      supabase.from('listas').select('id', { count: 'exact', head: true }).eq('status', 'ativa'),
       supabase.from('listas').select('id', { count: 'exact', head: true })
-        .in('mac_address', macsDash).eq('status', 'ativa'),
-      supabase.from('listas').select('id', { count: 'exact', head: true })
-        .in('mac_address', macsDash).eq('status', 'ativa')
+        .eq('status', 'ativa')
         .gte('expira_em', startOfDay.toISOString())
         .lte('expira_em', endOfDay.toISOString()),
     ]);
     listasAtivas = cAtivas ?? 0;
     listasVencendoHoje = cHoje ?? 0;
+  } else {
+    const macsDash = [...new Set(atv.map(a => a.mac_address).filter(Boolean))];
+    if (macsDash.length) {
+      const [{ count: cAtivas }, { count: cHoje }] = await Promise.all([
+        supabase.from('listas').select('id', { count: 'exact', head: true })
+          .in('mac_address', macsDash).eq('status', 'ativa'),
+        supabase.from('listas').select('id', { count: 'exact', head: true })
+          .in('mac_address', macsDash).eq('status', 'ativa')
+          .gte('expira_em', startOfDay.toISOString())
+          .lte('expira_em', endOfDay.toISOString()),
+      ]);
+      listasAtivas = cAtivas ?? 0;
+      listasVencendoHoje = cHoje ?? 0;
+    }
   }
 
-  // Saldo: busca saldo atual + compras do mês/hoje em uma única query
+  // ── Saldo: saldo atual + compras do mês/hoje ──
   const { data: saldoRows } = await supabase
     .from('saldo')
     .select('saldo_resultante, quantidade, tipo, criado_em')
     .eq('revendedor_id', rid)
     .order('criado_em', { ascending: false });
-
   const rows = saldoRows || [];
-
-  // Saldo atual = saldo_resultante da linha mais recente (já ordenado DESC)
   const credits = rows[0]?.saldo_resultante ?? r.credits;
-  if (r.credits !== credits) r.credits = credits; // sincroniza in-memory
-
-  // Créditos comprados este mês e hoje (apenas entradas tipo 'compra')
+  if (r.credits !== credits) r.credits = credits;
   const compras = rows.filter(x => x.tipo === 'compra');
-  const crMonth = compras
-    .filter(x => new Date(x.criado_em) >= startOfMonth)
-    .reduce((s, x) => s + x.quantidade, 0);
-  const crToday = compras
-    .filter(x => new Date(x.criado_em) >= startOfDay)
-    .reduce((s, x) => s + x.quantidade, 0);
+  const crMonth = compras.filter(x => new Date(x.criado_em) >= startOfMonth).reduce((s, x) => s + x.quantidade, 0);
+  const crToday = compras.filter(x => new Date(x.criado_em) >= startOfDay).reduce((s, x) => s + x.quantidade, 0);
 
-  const subs = [...resellers.values()].filter(s => s.parentId === rid);
-  const subsToday = subs.filter(s => new Date(s.createdAt) >= startOfDay).length;
-  const subsMonth = subs.filter(s => new Date(s.createdAt) >= startOfMonth).length;
+  // ── Revendedores (admin: todos ativos; revendedor: seus sub-revendedores) ──
+  let subsTotal = 0, subsMonth = 0, subsToday = 0;
+  if (isAdmin) {
+    const { data: revsData } = await supabase
+      .from('usuarios').select('criado_em').eq('role', 'revendedor').eq('ativo', true);
+    const revs = revsData || [];
+    subsTotal = revs.length;
+    subsMonth = revs.filter(s => new Date(s.criado_em) >= startOfMonth).length;
+    subsToday = revs.filter(s => new Date(s.criado_em) >= startOfDay).length;
+  } else {
+    const { data: subData } = await supabase
+      .from('usuarios').select('criado_em').eq('parent_id', rid).eq('role', 'revendedor').eq('ativo', true);
+    const subs = subData || [];
+    subsTotal = subs.length;
+    subsMonth = subs.filter(s => new Date(s.criado_em) >= startOfMonth).length;
+    subsToday = subs.filter(s => new Date(s.criado_em) >= startOfDay).length;
+  }
 
-  const links = resellerLinks.get(rid) || [];
-  const linksToday = links.filter(l => new Date(l.createdAt) >= startOfDay).length;
-  const actByLinks = links.reduce((s, l) => s + l.activations, 0);
+  // ── Links: busca da tabela links_indicacao ──
+  const { data: linksData } = await supabase
+    .from('links_indicacao').select('criado_em, ativacoes').eq('revendedor_id', rid);
+  const links = linksData || [];
+  const linksToday = links.filter(l => new Date(l.criado_em) >= startOfDay).length;
+  const actByLinks = links.reduce((s, l) => s + (l.ativacoes || 0), 0);
+
+  // ── Ganhos (admin only): soma transacoes com status='pago' ──
+  let earnings = { mes: 0, anterior: 0, hoje: 0 };
+  if (isAdmin) {
+    const soma = (arr) => (arr || []).reduce((s, x) => s + (parseFloat(x.valor_pago) || 0), 0);
+    const [{ data: rHoje }, { data: rMes }, { data: rPrev }] = await Promise.all([
+      supabase.from('transacoes').select('valor_pago').eq('status', 'pago')
+        .gte('data', startOfDay.toISOString()).lte('data', endOfDay.toISOString()),
+      supabase.from('transacoes').select('valor_pago').eq('status', 'pago')
+        .gte('data', startOfMonth.toISOString()).lt('data', startOfNextMonth.toISOString()),
+      supabase.from('transacoes').select('valor_pago').eq('status', 'pago')
+        .gte('data', startOfPrevMonth.toISOString()).lt('data', startOfMonth.toISOString()),
+    ]);
+    earnings = { mes: soma(rMes), anterior: soma(rPrev), hoje: soma(rHoje) };
+  }
 
   res.json({
     credits,
     activations: { total: actTotal, month: actMonth, today: actToday },
-    // total = saldo disponível agora; month/today = comprado nesse período
     creditsSpent: { total: credits, month: crMonth, today: crToday },
-    subresellers: { total: subs.length, month: subsMonth, today: subsToday },
+    subresellers: { total: subsTotal, month: subsMonth, today: subsToday },
     links: { total: links.length, today: linksToday, totalActivated: actByLinks, activatedToday: 0 },
     listas: { ativas: listasAtivas, vencendoHoje: listasVencendoHoje },
-    earnings: await (async () => {
-      const todayIso  = startOfDay.toISOString();
-      const monthIso  = startOfMonth.toISOString();
-      const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
-      const nextIso   = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
-
-      const soma = (rows) => (rows || []).reduce((s, r) => s + (parseFloat(r.valor_pago) || 0), 0);
-
-      const [{ data: rHoje }, { data: rMes }, { data: rPrev }] = await Promise.all([
-        supabase.from('transacoes_ativacao').select('valor_pago').gte('data', todayIso).lt('data', nextIso),
-        supabase.from('transacoes_ativacao').select('valor_pago').gte('data', monthIso).lt('data', nextIso),
-        supabase.from('transacoes_ativacao').select('valor_pago').gte('data', prevStart).lt('data', monthIso),
-      ]);
-
-      return { mes: soma(rMes), anterior: soma(rPrev), hoje: soma(rHoje) };
-    })(),
+    earnings,
   });
 });
 
