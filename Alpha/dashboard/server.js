@@ -58,6 +58,7 @@ function loadState() {
     (raw.playlists || []).forEach(([k, v]) => playlists.set(k, v));
     (raw.activePlaylist || []).forEach(([k, v]) => activePlaylist.set(k, v));
     (raw.parental || []).forEach(([k, v]) => parental.set(k, v));
+    (raw.creditOrders || []).forEach(([k, v]) => creditOrders.set(k, v));
     // Restaurar sessões (expiram após 30 dias)
     const cutoff = Date.now() - 30 * 24 * 3600 * 1000;
     (raw.sessions || []).forEach(([k, v]) => {
@@ -380,12 +381,32 @@ app.post('/api/payments/pix/webhook', (req, res) => {
   const orderId = event.data?.id || event.data?.order?.id;
   if (!orderId) return;
 
-  // Tenta recuperar do Map em memória (caso normal)
+  const meta = event.data?.metadata || event.data?.charges?.[0]?.metadata || {};
+
+  // ── Compra de créditos ────────────────────────────────────────────────────
+  if (meta.type === 'credit_purchase') {
+    if (!isPaid) return;
+    const credEntry  = creditOrders.get(orderId);
+    const resellerId = credEntry?.resellerId || meta.resellerId;
+    const txnId      = credEntry?.txnId      || meta.txnId;
+    const totalAmt   = credEntry?.totalAmount;
+    const pkg        = credEntry?.pkg        || {
+      activations:  parseInt(meta.creditCount || '0', 10),
+      priceInCents: 0,
+      id:           meta.packageId || 'unknown'
+    };
+    if (resellerId && txnId) {
+      confirmCreditPurchase({ resellerId, txnId, pkg, paymentId: orderId, tipoPagamento: meta.tipoPagamento || 'pix', valorPago: totalAmt })
+        .catch(e => console.error('[webhook/credit]', e.message));
+    }
+    return;
+  }
+
+  // ── Ativação de dispositivo ───────────────────────────────────────────────
   let payment = payments.get(orderId);
 
   // Fallback: reconstrói o pagamento a partir do metadata do evento (após redeploy)
   if (!payment && isPaid) {
-    const meta = event.data?.metadata || event.data?.charges?.[0]?.metadata || {};
     if (meta.mac && meta.plan) {
       payment = {
         paymentId: orderId,
@@ -1165,6 +1186,7 @@ const resellers = new Map();       // id -> { username, passwordHash, credits, p
 const resellerTokens = new Map();  // token -> resellerId
 const resellerDevices = new Map(); // resellerId -> [{ mac, comment, model, activationExpires, createdAt }]
 const resellerTxns = new Map();    // resellerId -> [{ id, method, transactionId, creditCount, status, priceInCents, createdAt }]
+const creditOrders = new Map();    // pagarmeOrderId -> { resellerId, txnId, pkg }
 const resellerActLog = new Map();  // resellerId -> [{ mac, comment, plan, createdAt }]
 const resellerLinks = new Map();   // resellerId -> [{ id, code, name, plan, activations, createdAt }]
 const resellerWithdrawals = new Map(); // resellerId -> [{ id, amount, method, key, status, createdAt, processedAt }]
@@ -1214,6 +1236,7 @@ function saveResellerState() {
       resellerActLog: [...resellerActLog.entries()],
       resellerLinks: [...resellerLinks.entries()],
       resellerWithdrawals: [...resellerWithdrawals.entries()],
+      creditOrders: [...creditOrders.entries()],
     };
     fs.writeFile(DB_FILE, JSON.stringify(snap, null, 2), err => {
       if (err) console.error('Erro ao salvar:', err.message);
@@ -1739,7 +1762,7 @@ app.post('/api/reseller/devices/renew', authReseller, async (req, res) => {
       validadeFim: expiresAt || null,
       revendedorId: req.resellerId,
       nomeRevendedor: req.reseller.nome || req.reseller.username || null,
-      nomeCliente: nomeCliente || row.nome_cliente || null,
+      nomeCliente: nomeCliente || row.nome || null,
       deviceKey: deviceKey || null,
       pagamentoId: null, tipoPagamento: 'credito_revenda', valorPago: 0,
       criadoPor, observacao: null
@@ -2316,6 +2339,23 @@ async function insertHistoricoAtivacao({
 }
 
 // ── CREDITS / BUY ─────────────────────────────────────────────────────────────
+// Confirma compra de créditos (idempotente): atualiza memória + DB
+async function confirmCreditPurchase({ resellerId, txnId, pkg, paymentId, tipoPagamento, valorPago }) {
+  const reseller = resellers.get(resellerId);
+  const txns = resellerTxns.get(resellerId) || [];
+  const txn = txns.find(t => t.id === txnId);
+  if (txn && txn.status === 'paid') return; // já processado
+  if (txn) { txn.status = 'paid'; txn.transactionId = paymentId; }
+  if (reseller) reseller.credits += pkg.activations;
+  creditOrders.delete(paymentId);
+  saveResellerState();
+  const nomeRevendedor = reseller ? (reseller.nome || reseller.username || null) : null;
+  await saveCreditoPurchase({
+    resellerId, nomeRevendedor, tipoPagamento, transacaoId: paymentId,
+    quantidade: pkg.activations, valorPago: valorPago ?? pkg.priceInCents
+  });
+}
+
 async function saveCreditoPurchase({ resellerId, nomeRevendedor, tipoPagamento, transacaoId, quantidade, valorPago }) {
   const valorReais = parseFloat((valorPago / 100).toFixed(2));
   const agora = new Date().toISOString();
@@ -2356,68 +2396,184 @@ async function saveCreditoPurchase({ resellerId, nomeRevendedor, tipoPagamento, 
   });
 }
 
-app.post('/api/reseller/buy-credits', authReseller, async (req, res) => {
-  const { packageId, method } = req.body;
-  let pkg;
+async function resolveCredPkg(packageId) {
   const { data: dbPkg } = await supabase
-    .from('pacotes_credito')
-    .select('id, nome, ativacoes, valor_centavos')
+    .from('pacotes_credito').select('id, nome, ativacoes, valor_centavos')
     .eq('id', packageId).eq('ativo', true).single();
-  if (dbPkg) {
-    pkg = { id: dbPkg.id, name: dbPkg.nome, activations: dbPkg.ativacoes, priceInCents: dbPkg.valor_centavos };
-  } else {
-    pkg = CREDIT_PACKAGES.find(p => p.id === packageId); // fallback
-  }
+  if (dbPkg) return { id: dbPkg.id, name: dbPkg.nome, activations: dbPkg.ativacoes, priceInCents: dbPkg.valor_centavos };
+  return CREDIT_PACKAGES.find(p => p.id === packageId) || null;
+}
+
+// PIX — compra de créditos
+app.post('/api/reseller/buy-credits', authReseller, async (req, res) => {
+  const { packageId } = req.body;
+  const pkg = await resolveCredPkg(packageId);
   if (!pkg) return res.status(400).json({ error: 'Pacote inválido' });
 
   const txnId = genId();
   const txns = resellerTxns.get(req.resellerId) || [];
   const nomeRevendedor = req.reseller.nome || req.reseller.username || null;
 
-  if (MOCK_PAYMENTS || method === 'mock') {
-    const txn = { id: txnId, method: 'mock', transactionId: 'mock_'+txnId, creditCount: pkg.activations, status: 'paid', priceInCents: pkg.priceInCents, createdAt: new Date().toISOString() };
-    txns.unshift(txn);
-    resellerTxns.set(req.resellerId, txns);
-    req.reseller.credits += pkg.activations;
-    saveResellerState();
-    saveCreditoPurchase({
-      resellerId: req.resellerId, nomeRevendedor,
-      tipoPagamento: 'mock', transacaoId: txn.transactionId,
-      quantidade: pkg.activations, valorPago: pkg.priceInCents
-    }).catch(e => console.error(e));
-    return res.json({ paymentId: txnId, status: 'paid' });
+  // ── MOCK ──────────────────────────────────────────────────────────────────
+  if (MOCK_PAYMENTS) {
+    const mockId = 'mock_cred_' + txnId;
+    const txn = { id: txnId, method: 'pix', transactionId: mockId, creditCount: pkg.activations, status: 'pending', priceInCents: pkg.priceInCents, createdAt: new Date().toISOString() };
+    txns.unshift(txn); resellerTxns.set(req.resellerId, txns); saveResellerState();
+    const fakeCode = `00020126580014BR.GOV.BCB.PIX0136mock-${txnId}5204000053039865406${(pkg.priceInCents/100).toFixed(2)}5802BR5919Alpha Prime Mock6009SAO PAULO62070503***6304MOCK`;
+    setTimeout(() => {
+      confirmCreditPurchase({ resellerId: req.resellerId, txnId, pkg, paymentId: mockId, tipoPagamento: 'pix' }).catch(e => console.error(e));
+    }, MOCK_AUTO_CONFIRM_MS);
+    return res.json({
+      paymentId: txnId,
+      qrCodeBase64: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(fakeCode)}`,
+      qrCodeText: fakeCode
+    });
   }
 
-  const txn = { id: txnId, method: method||'pix', transactionId: null, creditCount: pkg.activations, status: 'pending', priceInCents: pkg.priceInCents, createdAt: new Date().toISOString() };
-  txns.unshift(txn);
-  resellerTxns.set(req.resellerId, txns);
+  // ── PAGAR.ME REAL ─────────────────────────────────────────────────────────
+  try {
+    const order = await axios.post(`${PAGARME_API}/orders`, {
+      items: [{ amount: pkg.priceInCents, description: `${pkg.activations} créditos Alpha Prime`, quantity: 1, code: pkg.id }],
+      customer: {
+        name: nomeRevendedor || 'Revendedor Alpha Prime',
+        email: req.reseller.email || `res_${req.resellerId}@alphaprime.tv`,
+        type: 'individual',
+        document: req.reseller.cpf || '11144477735',
+        document_type: 'CPF',
+        phones: { mobile_phone: { country_code: '55', area_code: '11', number: '999999999' } }
+      },
+      payments: [{ payment_method: 'pix', pix: { expires_in: 3600 } }],
+      metadata: { type: 'credit_purchase', resellerId: req.resellerId, txnId, creditCount: String(pkg.activations), packageId: pkg.id }
+    }, { headers: { Authorization: authHeader } });
 
-  const fakeCode = `00020126580014BR.GOV.BCB.PIX0136reseller-${txnId}5204000053039865406${(pkg.priceInCents/100).toFixed(2)}5802BR5919Alpha Prime6009SAO PAULO62070503***6304ABCD`;
-  saveResellerState();
+    const charge  = order.data.charges?.[0];
+    const pixTx   = charge?.last_transaction;
+    const pixCode = pixTx?.qr_code;
+    if (!pixCode) {
+      console.error('[buy-credits/pix] qr_code ausente:', JSON.stringify(order.data));
+      return res.status(502).json({ error: 'QR Code não retornado pelo gateway' });
+    }
 
-  setTimeout(() => {
-    txn.status = 'paid';
-    txn.transactionId = 'auto_' + txnId;
-    req.reseller.credits += pkg.activations;
+    const qrDataUri = await QRCode.toDataURL(pixCode, { errorCorrectionLevel: 'M', margin: 1, width: 220 });
+    const txn = { id: txnId, method: 'pix', transactionId: order.data.id, creditCount: pkg.activations, status: 'pending', priceInCents: pkg.priceInCents, createdAt: new Date().toISOString() };
+    txns.unshift(txn); resellerTxns.set(req.resellerId, txns);
+    creditOrders.set(order.data.id, { resellerId: req.resellerId, txnId, pkg });
     saveResellerState();
-    saveCreditoPurchase({
-      resellerId: req.resellerId, nomeRevendedor,
-      tipoPagamento: method || 'pix', transacaoId: txn.transactionId,
-      quantidade: pkg.activations, valorPago: pkg.priceInCents
-    }).catch(e => console.error(e));
-  }, MOCK_AUTO_CONFIRM_MS);
 
-  res.json({
-    paymentId: txnId,
-    qrCodeBase64: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(fakeCode)}`,
-    qrCodeText: fakeCode
-  });
+    res.json({ paymentId: txnId, qrCodeBase64: qrDataUri, qrCodeText: pixCode });
+  } catch (err) {
+    console.error('[buy-credits/pix] erro:', err.response?.data || err.message);
+    res.status(502).json({ error: 'Não foi possível gerar o PIX de pagamento' });
+  }
 });
 
-app.get('/api/reseller/buy-credits/status', authReseller, (req, res) => {
+// CARTÃO — compra de créditos
+const CREDIT_INST_FEES = { 1: 0.06, 2: 0.10, 3: 0.12 };
+
+app.post('/api/reseller/buy-credits/card', authReseller, async (req, res) => {
+  const { packageId, cardToken, customerEmail, customerDocument, installments: rawInst } = req.body;
+  if (!packageId || !cardToken) return res.status(400).json({ error: 'packageId e cardToken são obrigatórios' });
+
+  const pkg = await resolveCredPkg(packageId);
+  if (!pkg) return res.status(400).json({ error: 'Pacote inválido' });
+
+  const txnId = genId();
+  const txns = resellerTxns.get(req.resellerId) || [];
+  const nomeRevendedor = req.reseller.nome || req.reseller.username || null;
+  const installments = [1, 2, 3].includes(Number(rawInst)) ? Number(rawInst) : 1;
+
+  // ── MOCK ──────────────────────────────────────────────────────────────────
+  if (MOCK_PAYMENTS) {
+    const mockId = 'mock_card_cred_' + txnId;
+    const txn = { id: txnId, method: 'cartao', transactionId: mockId, creditCount: pkg.activations, status: 'paid', priceInCents: pkg.priceInCents, createdAt: new Date().toISOString() };
+    txns.unshift(txn); resellerTxns.set(req.resellerId, txns);
+    await confirmCreditPurchase({ resellerId: req.resellerId, txnId, pkg, paymentId: mockId, tipoPagamento: 'cartao' });
+    return res.json({ status: 'paid', paymentId: txnId });
+  }
+
+  // ── PAGAR.ME REAL ─────────────────────────────────────────────────────────
+  const totalAmount = Math.round(pkg.priceInCents * (1 + (CREDIT_INST_FEES[installments] || 0)));
+  const txn = { id: txnId, method: 'cartao', transactionId: null, creditCount: pkg.activations, status: 'pending', priceInCents: pkg.priceInCents, createdAt: new Date().toISOString() };
+  txns.unshift(txn); resellerTxns.set(req.resellerId, txns);
+
+  try {
+    const returnUrl = `${APP_BASE_URL}/painel.html`;
+    const order = await axios.post(`${PAGARME_API}/orders`, {
+      code: 'AP-CRED-CARD-' + txnId,
+      items: [{ amount: totalAmount, description: `${pkg.activations} créditos Alpha Prime`, quantity: 1, code: pkg.id }],
+      customer: {
+        name: nomeRevendedor || 'Revendedor Alpha Prime',
+        email: customerEmail || req.reseller.email || `res_${req.resellerId}@alphaprime.tv`,
+        type: 'individual',
+        document: (customerDocument || req.reseller.cpf || '11144477735').replace(/\D/g, ''),
+        document_type: 'CPF',
+        phones: { mobile_phone: { country_code: '55', area_code: '11', number: '999999999' } }
+      },
+      payments: [{
+        payment_method: 'credit_card',
+        credit_card: {
+          card_token: cardToken,
+          installments,
+          statement_descriptor: 'ALPHA PRIME',
+          threed_d_secure: { mpi: 'pagarme', mode: 'with_fallback', success_url: returnUrl, failure_url: returnUrl }
+        }
+      }],
+      metadata: { type: 'credit_purchase', resellerId: req.resellerId, txnId, creditCount: String(pkg.activations), packageId: pkg.id }
+    }, { headers: { Authorization: authHeader } });
+
+    const charge  = order.data.charges?.[0];
+    const tx      = charge?.last_transaction;
+    const orderId = order.data.id;
+
+    txn.transactionId = orderId;
+    creditOrders.set(orderId, { resellerId: req.resellerId, txnId, pkg, totalAmount });
+    saveResellerState();
+
+    const authUrl = tx?.threed_d_secure?.authentication_url || tx?.authentication_url;
+    if (authUrl) return res.json({ status: 'pending_3ds', paymentId: txnId, redirectUrl: authUrl });
+
+    if (charge.status === 'paid') {
+      await confirmCreditPurchase({ resellerId: req.resellerId, txnId, pkg, paymentId: orderId, tipoPagamento: 'cartao', valorPago: totalAmount });
+      return res.json({ status: 'paid', paymentId: txnId });
+    }
+    if (charge.status === 'failed') {
+      txn.status = 'failed'; saveResellerState();
+      const reason = tx?.gateway_response?.errors?.[0]?.message || 'Pagamento recusado';
+      return res.status(402).json({ error: reason });
+    }
+    return res.json({ status: charge.status, paymentId: txnId });
+  } catch (err) {
+    console.error('[buy-credits/card] erro:', err.response?.data || err.message);
+    res.status(502).json({ error: 'Erro ao processar pagamento com cartão' });
+  }
+});
+
+app.get('/api/reseller/buy-credits/status', authReseller, async (req, res) => {
   const txns = resellerTxns.get(req.resellerId) || [];
   const txn = txns.find(t => t.id === req.query.id);
   if (!txn) return res.status(404).json({ error: 'Transação não encontrada' });
+  if (txn.status === 'paid') return res.json({ status: 'paid' });
+
+  // Consulta Pagar.me quando há um ID real e ainda está pendente
+  if (txn.transactionId && !txn.transactionId.startsWith('mock')) {
+    try {
+      const { data } = await axios.get(`${PAGARME_API}/orders/${txn.transactionId}`, {
+        headers: { Authorization: authHeader }
+      });
+      if (data.status === 'paid' && txn.status !== 'paid') {
+        const credEntry = creditOrders.get(txn.transactionId);
+        const pkg = credEntry?.pkg || { activations: txn.creditCount, priceInCents: txn.priceInCents, id: 'unknown' };
+        await confirmCreditPurchase({ resellerId: req.resellerId, txnId: txn.id, pkg, paymentId: txn.transactionId, tipoPagamento: txn.method, valorPago: credEntry?.totalAmount });
+        return res.json({ status: 'paid' });
+      }
+      if (data.status === 'canceled' || data.status === 'failed') {
+        txn.status = 'failed'; saveResellerState();
+        return res.json({ status: 'failed' });
+      }
+    } catch (e) {
+      console.error('[buy-credits/status] Pagar.me query error:', e.message);
+    }
+  }
   res.json({ status: txn.status });
 });
 

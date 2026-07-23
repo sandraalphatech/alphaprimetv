@@ -1,6 +1,7 @@
 package com.velvetiptv.app.ui.screens.vod
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -16,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -156,10 +158,23 @@ fun SeriesEpisodesScreen(
                             state.seasons.forEach { s ->
                                 val isSelected = s.season == season.season
                                 val interactionSource = remember { MutableInteractionSource() }
+                                var tabFocused by remember { mutableStateOf(false) }
                                 Box(
                                     Modifier
+                                        .onFocusChanged { tabFocused = it.isFocused }
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isSelected) AccentPrimary else Color.Transparent)
+                                        .background(
+                                            when {
+                                                isSelected -> AccentPrimary
+                                                tabFocused -> AccentPrimary.copy(alpha = 0.25f)
+                                                else       -> Color.Transparent
+                                            }
+                                        )
+                                        .border(
+                                            width = if (tabFocused) 2.dp else 0.dp,
+                                            color = if (tabFocused) AccentPrimary else Color.Transparent,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
                                         .clickable(interactionSource = interactionSource, indication = null) {
                                             selectedSeason = s.season
                                         }
@@ -167,7 +182,7 @@ fun SeriesEpisodesScreen(
                                 ) {
                                     Text(
                                         "Temporada ${s.season}",
-                                        color = if (isSelected) Color.White else TextLight.copy(0.7f),
+                                        color = if (isSelected || tabFocused) Color.White else TextLight.copy(0.7f),
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                         fontSize = 13.sp
                                     )
@@ -215,11 +230,20 @@ private fun EpisodeRow(
     onClick     : () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    var focused by remember { mutableStateOf(false) }
     Row(
         Modifier
             .fillMaxWidth()
+            .onFocusChanged { focused = it.isFocused }
             .clip(RoundedCornerShape(10.dp))
-            .background(if (isWatched) SurfaceDark.copy(alpha = 0.5f) else SurfaceDark)
+            .background(
+                when {
+                    focused   -> AccentPrimary.copy(alpha = 0.22f)
+                    isWatched -> SurfaceDark.copy(alpha = 0.5f)
+                    else      -> SurfaceDark
+                }
+            )
+            .border(width = if (focused) 2.dp else 0.dp, color = if (focused) AccentPrimary else Color.Transparent, shape = RoundedCornerShape(10.dp))
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically

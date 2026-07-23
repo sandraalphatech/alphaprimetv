@@ -1,7 +1,10 @@
 package com.velvetiptv.app.ui.screens.vod
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,7 +31,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -554,10 +565,19 @@ private fun CategorySidebar(
 @Composable
 private fun CategoryRow(name: String, count: Int, isSelected: Boolean, onClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
+    var focused by remember { mutableStateOf(false) }
     Row(
         Modifier
             .fillMaxWidth()
-            .background(if (isSelected) AccentPrimary.copy(0.18f) else Color.Transparent)
+            .onFocusChanged { focused = it.isFocused }
+            .background(
+                when {
+                    focused    -> AccentPrimary.copy(0.32f)
+                    isSelected -> AccentPrimary.copy(0.18f)
+                    else       -> Color.Transparent
+                }
+            )
+            .border(width = if (focused) 2.dp else 0.dp, color = if (focused) AccentPrimary else Color.Transparent)
             .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -595,6 +615,7 @@ private fun CategoryRow(name: String, count: Int, isSelected: Boolean, onClick: 
     Divider(color = Color.White.copy(0.04f), thickness = 0.5.dp)
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PosterCard(
     channel          : M3UChannel,
@@ -603,9 +624,14 @@ private fun PosterCard(
     onToggleFavorite : () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    var focused by remember { mutableStateOf(false) }
+    var firstPressTime by remember { mutableStateOf(0L) }
+    var favoriteJustTriggered by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .width(130.dp)
+            .onFocusChanged { focused = it.isFocused }
+            .scale(if (focused) 1.08f else 1f)
             .clip(RoundedCornerShape(10.dp)),
     ) {
         Box(
@@ -614,7 +640,41 @@ private fun PosterCard(
                 .height(185.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(SurfaceDark)
-                .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
+                .border(width = if (focused) 3.dp else 0.dp, color = if (focused) AccentPrimary else Color.Transparent, shape = RoundedCornerShape(10.dp))
+                // Click tátil abre o filme; long-press tátil alterna favorito.
+                // Para o controlo remoto de TV, o onKeyEvent abaixo interceta o
+                // ENTER antes do combinedClickable: curto = abre, longo = favorito.
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication        = null,
+                    onClick           = onClick,
+                    onLongClick       = onToggleFavorite
+                )
+                .onKeyEvent { event ->
+                    val isEnter = event.key == Key.DirectionCenter || event.key == Key.Enter
+                    if (!isEnter) return@onKeyEvent false
+                    when (event.type) {
+                        KeyEventType.KeyDown -> {
+                            val now = System.currentTimeMillis()
+                            if (firstPressTime == 0L) {
+                                firstPressTime = now
+                                favoriteJustTriggered = false
+                            } else if (!favoriteJustTriggered && (now - firstPressTime) >= 600L) {
+                                favoriteJustTriggered = true
+                                onToggleFavorite()
+                            }
+                            true
+                        }
+                        KeyEventType.KeyUp -> {
+                            val triggered = favoriteJustTriggered
+                            firstPressTime = 0L
+                            favoriteJustTriggered = false
+                            if (!triggered) onClick()
+                            true
+                        }
+                        else -> false
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             if (channel.logo.isNotBlank() && channel.logo.startsWith("http")) {
@@ -656,21 +716,28 @@ private fun PosterCard(
             ) {
                 Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(14.dp))
             }
-            val favInteraction = remember { MutableInteractionSource() }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(4.dp)
-                    .background(Color.Black.copy(0.55f), RoundedCornerShape(50))
-                    .clickable(interactionSource = favInteraction, indication = null, onClick = onToggleFavorite)
-                    .padding(6.dp)
-            ) {
-                Icon(
-                    if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    null,
-                    tint = if (isFavorite) AccentPrimary else Color.White.copy(0.8f),
-                    modifier = Modifier.size(15.dp)
-                )
+            // Ícone de favorito — visível quando favorito OU quando o card tem foco
+            // (indica ao utilizador que pode fazer long-press para favoritar).
+            // focusProperties(canFocus=false) impede o D-pad do comando de navegar
+            // até aqui em vez de abrir o filme com SELECT.
+            if (isFavorite || focused) {
+                val favInteraction = remember { MutableInteractionSource() }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .focusProperties { canFocus = false }
+                        .background(Color.Black.copy(0.55f), RoundedCornerShape(50))
+                        .clickable(interactionSource = favInteraction, indication = null, onClick = onToggleFavorite)
+                        .padding(6.dp)
+                ) {
+                    Icon(
+                        if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        null,
+                        tint = if (isFavorite) AccentPrimary else Color.White.copy(0.8f),
+                        modifier = Modifier.size(15.dp)
+                    )
+                }
             }
         }
         Text(

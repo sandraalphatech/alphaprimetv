@@ -3,6 +3,7 @@ package com.velvetiptv.app.ui.screens.home
 import android.app.Activity
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -19,7 +20,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -227,29 +230,31 @@ data class MenuItem(
 
 @Composable
 private fun MenuCircleButton(item: MenuItem, onClick: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(64.dp)
+            .onFocusChanged { focused = it.isFocused }
+            .scale(if (focused) 1.15f else 1f)
             .clickable(onClick = onClick)
     ) {
         Box(
             modifier = Modifier
                 .size(58.dp)
-                .shadow(8.dp, CircleShape)
+                .shadow(if (focused) 16.dp else 8.dp, CircleShape)
                 .clip(CircleShape)
                 .background(Color(0xFF1a1a2e))
-                .clickable(onClick = onClick),
+                .border(width = if (focused) 3.dp else 0.dp, color = if (focused) item.color else Color.Transparent, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // Brilho colorido atrás
             Box(
                 modifier = Modifier
                     .size(58.dp)
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                item.color.copy(alpha = 0.25f),
+                                item.color.copy(alpha = if (focused) 0.55f else 0.25f),
                                 Color.Transparent
                             )
                         )
@@ -258,7 +263,7 @@ private fun MenuCircleButton(item: MenuItem, onClick: () -> Unit) {
             Icon(
                 imageVector = item.icon,
                 contentDescription = item.label,
-                tint = item.color,
+                tint = if (focused) Color.White else item.color,
                 modifier = Modifier.size(28.dp)
             )
         }
@@ -268,10 +273,11 @@ private fun MenuCircleButton(item: MenuItem, onClick: () -> Unit) {
         Text(
             text = item.label,
             fontSize = 11.sp,
-            color = Color.White.copy(alpha = 0.85f),
+            color = if (focused) Color.White else Color.White.copy(alpha = 0.85f),
             textAlign = TextAlign.Center,
             maxLines = 2,
-            lineHeight = 13.sp
+            lineHeight = 13.sp,
+            fontWeight = if (focused) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Normal
         )
     }
 }

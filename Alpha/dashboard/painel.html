@@ -304,16 +304,16 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
     <!-- estado: formulário -->
     <div id="forgot-state-form">
       <p style="font-size:.83rem;color:var(--text2);text-align:center;margin-top:-6px" data-i18n="res.forgotDesc">Informe o email cadastrado. Enviaremos um link para redefinir sua senha.</p>
-      <input type="email" id="forgot-email" placeholder="Email cadastrado" onkeydown="if(event.key==='Enter')forgotPassword()">
+      <input type="email" id="forgot-email" data-i18n-ph="res.forgotEmailPh" placeholder="Email cadastrado" onkeydown="if(event.key==='Enter')forgotPassword()">
       <div id="forgot-error" style="color:var(--error);font-size:.83rem;display:none"></div>
-      <button class="btn btn-primary full" id="btn-forgot-res" onclick="forgotPassword()">Enviar link</button>
+      <button class="btn btn-primary full" id="btn-forgot-res" onclick="forgotPassword()" data-i18n="res.forgotSendBtn">Enviar link</button>
     </div>
 
     <!-- estado: sucesso -->
     <div id="forgot-state-success" style="display:none;text-align:center">
       <div style="font-size:2rem;margin-bottom:12px">✉️</div>
-      <p style="font-size:.95rem;font-weight:700;margin-bottom:8px">Email enviado!</p>
-      <p style="font-size:.83rem;color:var(--text2);line-height:1.6">O link de redefinição foi enviado.<br>Verifique também a caixa de spam.</p>
+      <p style="font-size:.95rem;font-weight:700;margin-bottom:8px" data-i18n="res.forgotEmailSentTitle">Email enviado!</p>
+      <p style="font-size:.83rem;color:var(--text2);line-height:1.6" data-i18n="res.forgotEmailSentDesc">O link de redefinição foi enviado. Verifique também a caixa de spam.</p>
     </div>
 
     <div style="text-align:center;font-size:.8rem;margin-top:8px">
@@ -327,23 +327,23 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
       <img src="icons/logoheader.png" class="logo">
       <span class="logo2"><img src="icons/logoheader2.png" alt="Alpha Prime"></span>
     </div>
-    <div class="login-sub">NOVA SENHA</div>
+    <div class="login-sub" data-i18n="res.resetSub">NOVA SENHA</div>
 
     <!-- estado: formulário -->
     <div id="reset-state-form">
-      <p style="font-size:.83rem;color:var(--text2);text-align:center;margin-top:-6px">Digite e confirme a sua nova senha.</p>
-      <input type="password" id="reset-pw1" placeholder="Nova senha (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitResellerReset()">
-      <input type="password" id="reset-pw2" placeholder="Confirmar nova senha" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitResellerReset()">
+      <p style="font-size:.83rem;color:var(--text2);text-align:center;margin-top:-6px" data-i18n="res.resetDesc">Digite e confirme a sua nova senha.</p>
+      <input type="password" id="reset-pw1" data-i18n-ph="res.resetPw1Ph" placeholder="Nova senha (mín. 6 caracteres)" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitResellerReset()">
+      <input type="password" id="reset-pw2" data-i18n-ph="res.resetPw2Ph" placeholder="Confirmar nova senha" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitResellerReset()">
       <div id="reset-error" style="color:var(--error);font-size:.83rem;display:none"></div>
-      <button class="btn btn-primary full" id="btn-reset-res" onclick="submitResellerReset()">Salvar nova senha</button>
+      <button class="btn btn-primary full" id="btn-reset-res" onclick="submitResellerReset()" data-i18n="res.resetSaveBtn">Salvar nova senha</button>
     </div>
 
     <!-- estado: sucesso -->
     <div id="reset-state-success" style="display:none;text-align:center">
       <div style="font-size:2rem;margin-bottom:12px">✅</div>
-      <p style="font-size:.95rem;font-weight:700;margin-bottom:8px">Senha alterada!</p>
-      <p style="font-size:.83rem;color:var(--text2);margin-bottom:16px">Sua nova senha foi definida com sucesso.</p>
-      <button class="btn btn-primary full" onclick="showView('login')">Entrar agora</button>
+      <p style="font-size:.95rem;font-weight:700;margin-bottom:8px" data-i18n="res.resetSuccessTitle">Senha alterada!</p>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:16px" data-i18n="res.resetSuccessDesc">Sua nova senha foi definida com sucesso.</p>
+      <button class="btn btn-primary full" onclick="showView('login')" data-i18n="res.resetLoginNow">Entrar agora</button>
     </div>
   </div>
 
@@ -394,7 +394,7 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
       <span class="icon">📺</span> <span data-i18n="res.navLists">Lista de Clientes</span>
     </div>
     <div class="nav-item" data-page="parental" onclick="showPage('parental',this)">
-      <span class="icon">🔒</span> <span>Controle Parental</span>
+      <span class="icon">🔒</span> <span data-i18n="res.navParental">Controle Parental</span>
     </div>
     <div class="nav-item" data-page="credits" onclick="showPage('credits',this)">
       <span class="icon">📋</span> <span data-i18n="res.navCredits">Histórico de Créditos</span>
@@ -461,11 +461,11 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
           </div>
         </div>
         <div class="stat-card c-listas-ativas">
-          <h3>Listas</h3>
+          <h3 data-i18n="res.dashListas">Listas</h3>
           <div class="stat-num" id="dash-lst-ativas">—</div>
           <div class="stat-sub">
-            <span>Ativas</span>
-            <span>A vencer hoje: <b id="dash-lst-vencendo">—</b></span>
+            <span data-i18n="res.lstActive">Ativas</span>
+            <span><span data-i18n="res.lstExpiringToday">A vencer hoje</span>: <b id="dash-lst-vencendo">—</b></span>
           </div>
         </div>
       </div>
@@ -492,11 +492,11 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
       </div>
       <div class="search-bar"><input type="text" id="dev-search" data-i18n-ph="res.searchDevices" placeholder="🔍  Pesquisar por MAC, cliente ou dispositivo..." oninput="filterDevices(this.value)"></div>
       <div class="page-stats-bar" id="dev-stats-bar" style="display:none">
-        <span>Ativos: <b id="dev-count-ativo">0</b></span>
+        <span><span data-i18n="res.devCountActive">Ativos</span>: <b id="dev-count-ativo">0</b></span>
         <span style="color:var(--border)">|</span>
-        <span>Trial: <b id="dev-count-trial" style="color:#f59e0b">0</b></span>
+        <span><span data-i18n="res.devCountTrial">Trial</span>: <b id="dev-count-trial" style="color:#f59e0b">0</b></span>
         <span style="color:var(--border)">|</span>
-        <span>Licença expirada: <b id="dev-count-exp" style="color:var(--error)">0</b></span>
+        <span><span data-i18n="res.devCountExpired">Licença expirada</span>: <b id="dev-count-exp" style="color:var(--error)">0</b></span>
       </div>
       <div class="table-wrap"><div class="table-scroll">
         <table>
@@ -527,9 +527,9 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
       </div>
       <div class="search-bar"><input type="text" id="lists-search" data-i18n-ph="res.searchLists" placeholder="🔍  Pesquisar por MAC, cliente ou dispositivo..." oninput="filterListas(this.value)"></div>
       <div class="page-stats-bar" id="lst-stats-bar" style="display:none">
-        <span>MACs com lista ativa: <b id="lst-count-ativa">0</b></span>
+        <span><span data-i18n="res.lstCountActive">MACs com lista ativa</span>: <b id="lst-count-ativa">0</b></span>
         <span style="color:var(--border)">|</span>
-        <span>Expirados ou sem lista: <b id="lst-count-exp" style="color:var(--error)">0</b></span>
+        <span><span data-i18n="res.lstCountExpiredOrNone">Expirados ou sem lista</span>: <b id="lst-count-exp" style="color:var(--error)">0</b></span>
       </div>
       <div class="table-wrap"><div class="table-scroll">
         <table>
@@ -547,16 +547,16 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
     <!-- CONTROLE PARENTAL -->
     <div class="page" id="page-parental">
       <div class="section-header">
-        <div class="page-title" style="margin:0">🔒 Controle Parental</div>
+        <div class="page-title" style="margin:0" data-i18n="res.parentalTitle">🔒 Controle Parental</div>
       </div>
-      <div class="search-bar"><input type="text" id="parental-search" placeholder="🔍  Pesquisar por MAC, cliente ou dispositivo..." oninput="filterParental(this.value)"></div>
+      <div class="search-bar"><input type="text" id="parental-search" data-i18n-ph="res.searchParental" placeholder="🔍  Pesquisar por MAC, cliente ou dispositivo..." oninput="filterParental(this.value)"></div>
       <div class="table-wrap"><div class="table-scroll">
         <table>
           <thead><tr>
-            <th>#</th><th>Cliente</th><th>MAC Address</th><th>Dispositivo</th><th>Canais Bloqueados</th><th>PIN</th><th></th>
+            <th>#</th><th data-i18n="res.colClient">Cliente</th><th>MAC Address</th><th data-i18n="res.colDevice">Dispositivo</th><th data-i18n="res.colBlockedChannels">Canais Bloqueados</th><th>PIN</th><th></th>
           </tr></thead>
           <tbody id="parental-body">
-            <tr class="empty-row"><td colspan="7">Carregando...</td></tr>
+            <tr class="empty-row"><td colspan="7" data-i18n="res.loading">Carregando...</td></tr>
           </tbody>
         </table>
       </div></div>
@@ -643,7 +643,7 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
           </select>
           <div id="fat-rev-wrap" style="display:none">
             <select id="fat-revendedor" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-size:.85rem">
-              <option value="">Todos</option>
+              <option value="" data-i18n="res.fatRevAll">Todos</option>
             </select>
           </div>
           <button class="btn btn-primary btn-sm" onclick="loadFaturamento()" data-i18n="res.filterBtn">🔍 Filtrar</button>
@@ -681,17 +681,17 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
           <canvas id="fat-chart" style="width:100%;min-width:500px;display:block"></canvas>
         </div>
         <div style="display:flex;gap:20px;justify-content:center;margin-top:10px;font-size:.82rem;color:var(--text2)">
-          <span><span style="display:inline-block;width:12px;height:12px;background:#7c3aed;border-radius:2px;margin-right:5px"></span>Ativações</span>
-          <span><span style="display:inline-block;width:12px;height:12px;background:var(--gold);border-radius:2px;margin-right:5px"></span>Créditos</span>
+          <span><span style="display:inline-block;width:12px;height:12px;background:#7c3aed;border-radius:2px;margin-right:5px"></span><span data-i18n="res.fatLegendActivations">Ativações</span></span>
+          <span><span style="display:inline-block;width:12px;height:12px;background:var(--gold);border-radius:2px;margin-right:5px"></span><span data-i18n="res.fatLegendCredits">Créditos</span></span>
         </div>
 
         <!-- Ranking de revendedores -->
         <div style="margin-top:28px;border-top:1px solid var(--border);padding-top:20px">
-          <div style="font-weight:700;font-size:.95rem;margin-bottom:12px">🏆 Ativações por Revendedor — Mês Atual</div>
+          <div style="font-weight:700;font-size:.95rem;margin-bottom:12px" data-i18n="res.resellerRanking">🏆 Ativações por Revendedor — Mês Atual</div>
           <div style="overflow-x:auto">
             <canvas id="fat-chart-rev" style="width:100%;display:block"></canvas>
           </div>
-          <div id="fat-chart-rev-empty" style="display:none;text-align:center;color:var(--text2);padding:24px;font-size:.85rem">Sem dados de ativações no mês</div>
+          <div id="fat-chart-rev-empty" style="display:none;text-align:center;color:var(--text2);padding:24px;font-size:.85rem" data-i18n="res.noDataMonth">Sem dados de ativações no mês</div>
         </div>
       </div>
 
@@ -902,17 +902,61 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
       <hr style="border-color:var(--border)">
       <div class="form-group">
         <label data-i18n="res.labelPaymentMethod">Método de Pagamento</label>
-        <select id="buy-method">
+        <select id="buy-method" onchange="onBuyMethodChange()">
           <option value="pix" data-i18n="res.methodPix">PIX</option>
-          <option value="stripe" data-i18n="res.methodCard">Cartão de Crédito</option>
+          <option value="card" data-i18n="res.methodCard">Cartão de Crédito</option>
         </select>
       </div>
+
+      <!-- PIX -->
       <div id="buy-pix-section" style="display:none;text-align:center">
         <img id="buy-qr" src="" alt="QR Code PIX" style="width:200px;border-radius:12px;margin:12px auto;display:block">
         <div style="font-size:.78rem;color:var(--text2);margin-bottom:8px" data-i18n="res.copyCodeBelow">Copie o código abaixo:</div>
         <div style="background:var(--surface2);border-radius:8px;padding:10px;font-family:monospace;font-size:.72rem;word-break:break-all;color:var(--text2)" id="buy-pix-code"></div>
         <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="copyPix()" data-i18n="res.copyPixBtn">📋 Copiar código PIX</button>
         <div style="margin-top:12px;font-size:.8rem;color:var(--text2)" id="buy-status-msg" data-i18n="res.awaitingPayment">Aguardando pagamento...</div>
+      </div>
+
+      <!-- Cartão -->
+      <div id="buy-card-section" style="display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group" style="margin:0">
+            <label data-i18n="res.labelEmail">E-mail</label>
+            <input type="email" id="bc-email" placeholder="seuemail@email.com" autocomplete="email">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>CPF</label>
+            <input type="text" id="bc-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+          </div>
+        </div>
+        <div class="form-group">
+          <label data-i18n="res.colClient">Número do Cartão</label>
+          <input type="text" id="bc-number" placeholder="0000 0000 0000 0000" inputmode="numeric" maxlength="19">
+        </div>
+        <div class="form-group">
+          <label>Nome no cartão</label>
+          <input type="text" id="bc-name" placeholder="ex: JOAO M SILVA" style="text-transform:uppercase">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="form-group" style="margin:0">
+            <label>Validade</label>
+            <input type="text" id="bc-expiry" placeholder="MM/AA" maxlength="5">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>CVV</label>
+            <input type="text" id="bc-cvv" placeholder="123" inputmode="numeric" maxlength="4">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Parcelas</label>
+            <select id="bc-inst">
+              <option value="1">1x (+6%)</option>
+              <option value="2">2x (+10%)</option>
+              <option value="3">3x (+12%)</option>
+            </select>
+          </div>
+        </div>
+        <div id="buy-card-error" style="color:var(--error);font-size:.83rem;display:none;margin-top:4px"></div>
+        <div id="buy-card-status" style="color:var(--text2);font-size:.83rem;margin-top:4px;display:none"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1328,7 +1372,7 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
 <!-- ── MODAL: DETALHE DA LISTA ── -->
 <div class="overlay" id="modal-lista-detail">
   <div class="modal" style="max-width:520px">
-    <h3>✏️ Editar Lista</h3>
+    <h3 data-i18n="res.listDetailEditTitle">✏️ Editar Lista</h3>
     <input type="hidden" id="lista-detail-id">
     <input type="hidden" id="lista-detail-tipo">
 
@@ -1422,8 +1466,8 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-lista-detail')">Fechar</button>
-      <button class="btn btn-primary" onclick="saveListaDetail()">💾 Salvar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-lista-detail')" data-i18n="res.closeBtn">Fechar</button>
+      <button class="btn btn-primary" onclick="saveListaDetail()" data-i18n="res.saveBtn">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -1431,25 +1475,25 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
 <!-- ── MODAL: DESBLOQUEAR CANAL PARENTAL ── -->
 <div class="overlay" id="modal-parental-unlock">
   <div class="modal" style="max-width:460px">
-    <h3>🔓 Desbloquear Canal</h3>
+    <h3 data-i18n="res.parentalUnlockTitle">🔓 Desbloquear Canal</h3>
     <input type="hidden" id="pu-mac">
     <div class="form-group">
-      <label>Dispositivo</label>
+      <label data-i18n="res.colDevice">Dispositivo</label>
       <input type="text" id="pu-dispositivo" readonly style="opacity:.7">
     </div>
     <div class="form-group">
-      <label>Canal a desbloquear</label>
+      <label data-i18n="res.labelChannelToUnlock">Canal a desbloquear</label>
       <div id="pu-canais" style="display:flex;flex-wrap:wrap;gap:8px;min-height:36px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px"></div>
     </div>
     <input type="hidden" id="pu-canal-sel">
     <div class="form-group">
-      <label>Senha Parental</label>
+      <label data-i18n="res.labelParentalPw">Senha Parental</label>
       <input type="password" id="pu-pin" placeholder="Digite a senha" maxlength="6">
     </div>
-    <p style="font-size:.78rem;color:var(--text2);margin-top:4px">Em caso de senha esquecida, entre em contacto com o suporte.</p>
+    <p style="font-size:.78rem;color:var(--text2);margin-top:4px" data-i18n="res.parentalForgotNote">Em caso de senha esquecida, entre em contacto com o suporte.</p>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-parental-unlock')">Fechar</button>
-      <button class="btn btn-primary" onclick="confirmarDesbloqueioCanal()">🔓 Desbloquear</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-parental-unlock')" data-i18n="res.closeBtn">Fechar</button>
+      <button class="btn btn-primary" onclick="confirmarDesbloqueioCanal()" data-i18n="res.btnParentalUnlock">🔓 Desbloquear</button>
     </div>
   </div>
 </div>
@@ -1457,23 +1501,23 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
 <!-- ── MODAL: GERENCIAR SENHA PARENTAL ── -->
 <div class="overlay" id="modal-parental-pin">
   <div class="modal" style="max-width:460px">
-    <h3>🔑 Gerenciar Senha Parental</h3>
+    <h3 data-i18n="res.parentalPinTitle">🔑 Gerenciar Senha Parental</h3>
     <input type="hidden" id="pp-mac">
     <input type="hidden" id="pp-has-pin">
     <div class="form-group">
-      <label>Dispositivo</label>
+      <label data-i18n="res.colDevice">Dispositivo</label>
       <input type="text" id="pp-dispositivo" readonly style="opacity:.7">
     </div>
 
     <!-- Criar senha (sem PIN) -->
     <div id="pp-criar-section">
-      <p style="font-size:.83rem;color:var(--text2);margin-bottom:12px">Este dispositivo ainda não tem senha parental configurada.</p>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:12px" data-i18n="res.parentalNoPin">Este dispositivo ainda não tem senha parental configurada.</p>
       <div class="form-group">
-        <label>Nova senha (mín. 4 dígitos)</label>
+        <label data-i18n="res.labelNewPin">Nova senha (mín. 4 dígitos)</label>
         <input type="password" id="pp-new-pin" placeholder="••••••" maxlength="6">
       </div>
       <div class="form-group">
-        <label>Confirmar nova senha</label>
+        <label data-i18n="res.labelConfirmNewPin">Confirmar nova senha</label>
         <input type="password" id="pp-new-pin-confirm" placeholder="••••••" maxlength="6">
       </div>
     </div>
@@ -1481,23 +1525,23 @@ html[data-theme="light"] .sidebar-overlay{background:rgba(0,0,0,.25)}
     <!-- Redefinir senha (com PIN) -->
     <div id="pp-reset-section" style="display:none">
       <div class="form-group">
-        <label>Senha atual</label>
+        <label data-i18n="res.labelCurrentPin">Senha atual</label>
         <input type="password" id="pp-current-pin" placeholder="••••••" maxlength="6">
       </div>
       <div class="form-group">
-        <label>Nova senha (mín. 4 dígitos)</label>
+        <label data-i18n="res.labelNewPin">Nova senha (mín. 4 dígitos)</label>
         <input type="password" id="pp-reset-new" placeholder="••••••" maxlength="6">
       </div>
       <div class="form-group">
-        <label>Confirmar nova senha</label>
+        <label data-i18n="res.labelConfirmNewPin">Confirmar nova senha</label>
         <input type="password" id="pp-reset-confirm" placeholder="••••••" maxlength="6">
       </div>
     </div>
 
-    <p style="font-size:.78rem;color:var(--text2);margin-top:4px">Em caso de senha esquecida, entre em contacto com o suporte.</p>
+    <p style="font-size:.78rem;color:var(--text2);margin-top:4px" data-i18n="res.parentalForgotNote">Em caso de senha esquecida, entre em contacto com o suporte.</p>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-parental-pin')">Fechar</button>
-      <button class="btn btn-primary" onclick="salvarSenhaParental()">💾 Salvar Senha</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-parental-pin')" data-i18n="res.closeBtn">Fechar</button>
+      <button class="btn btn-primary" onclick="salvarSenhaParental()" data-i18n="res.btnParentalSavePin">💾 Salvar Senha</button>
     </div>
   </div>
 </div>
@@ -1595,10 +1639,10 @@ async function forgotPassword() {
   const email = document.getElementById('forgot-email').value.trim();
   const errEl = document.getElementById('forgot-error');
   errEl.style.display = 'none';
-  if (!email) { errEl.textContent = 'Informe o seu email.'; errEl.style.display = 'block'; return; }
+  if (!email) { errEl.textContent = t('res.errEmailRequired'); errEl.style.display = 'block'; return; }
 
   const btn = document.getElementById('btn-forgot-res');
-  btn.disabled = true; btn.textContent = 'Enviando...';
+  btn.disabled = true; btn.textContent = t('res.sending');
 
   try {
     const r = await fetch('/api/reseller/forgot-password', {
@@ -1606,13 +1650,13 @@ async function forgotPassword() {
       body: JSON.stringify({ email })
     });
     const data = await r.json();
-    if (!r.ok) { errEl.textContent = data.error || 'Erro ao enviar. Tente novamente.'; errEl.style.display = 'block'; return; }
+    if (!r.ok) { errEl.textContent = data.error || t('res.errSendLink'); errEl.style.display = 'block'; return; }
     document.getElementById('forgot-state-form').style.display = 'none';
     document.getElementById('forgot-state-success').style.display = '';
   } catch(e) {
-    errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block';
+    errEl.textContent = t('res.errConnectionRetry'); errEl.style.display = 'block';
   } finally {
-    btn.disabled = false; btn.textContent = 'Enviar link';
+    btn.disabled = false; btn.textContent = t('res.forgotSendBtn');
   }
 }
 
@@ -1622,12 +1666,12 @@ async function submitResellerReset() {
   const errEl = document.getElementById('reset-error');
   errEl.style.display = 'none';
 
-  if (!pw1 || !pw2) { errEl.textContent = 'Preencha os dois campos.'; errEl.style.display = 'block'; return; }
-  if (pw1.length < 6) { errEl.textContent = 'A senha deve ter pelo menos 6 caracteres.'; errEl.style.display = 'block'; return; }
-  if (pw1 !== pw2) { errEl.textContent = 'As senhas não coincidem.'; errEl.style.display = 'block'; return; }
+  if (!pw1 || !pw2) { errEl.textContent = t('res.errFillBoth'); errEl.style.display = 'block'; return; }
+  if (pw1.length < 6) { errEl.textContent = t('res.errPwMin6'); errEl.style.display = 'block'; return; }
+  if (pw1 !== pw2) { errEl.textContent = t('res.errPwNoMatch'); errEl.style.display = 'block'; return; }
 
   const btn = document.getElementById('btn-reset-res');
-  btn.disabled = true; btn.textContent = 'Salvando...';
+  btn.disabled = true; btn.textContent = t('res.saving');
 
   try {
     const res = await fetch('/api/auth/reset-password', {
@@ -1635,13 +1679,13 @@ async function submitResellerReset() {
       body: JSON.stringify({ token: window._resellerResetToken, newPassword: pw1 })
     });
     const data = await res.json();
-    if (!res.ok) { errEl.textContent = data.error || 'Erro ao redefinir senha.'; errEl.style.display = 'block'; return; }
+    if (!res.ok) { errEl.textContent = data.error || t('res.errResetPw'); errEl.style.display = 'block'; return; }
     document.getElementById('reset-state-form').style.display = 'none';
     document.getElementById('reset-state-success').style.display = '';
   } catch(e) {
-    errEl.textContent = 'Erro de conexão. Tente novamente.'; errEl.style.display = 'block';
+    errEl.textContent = t('res.errConnectionRetry'); errEl.style.display = 'block';
   } finally {
-    btn.disabled = false; btn.textContent = 'Salvar nova senha';
+    btn.disabled = false; btn.textContent = t('res.resetSaveBtn');
   }
 }
 
@@ -1873,7 +1917,7 @@ async function loadCreditsGeral() {
   tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${t('res.loading')}</td></tr>`;
   const r = await api('/credits/geral');
   if (!r?.ok) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Acesso negado ou erro.</td></tr>';
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${t('res.accessDenied')}</td></tr>`;
     return;
   }
   const fmt = iso => iso ? new Date(iso).toLocaleDateString('pt-BR') : '—';
@@ -2138,7 +2182,7 @@ async function loadParental() {
 function renderParental(list) {
   const tbody = document.getElementById('parental-body');
   if (!list.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum registo de controle parental encontrado.</td></tr>';
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">${t('res.noParentalRecords')}</td></tr>`;
     return;
   }
   tbody.innerHTML = list.map((p, i) => {
@@ -2149,11 +2193,11 @@ function renderParental(list) {
       ? canais.map(c => `<span class="badge" style="background:rgba(239,68,68,.15);color:#f87171;font-size:.68rem">${esc(c)}</span>`).join(' ')
       : '<span style="color:var(--text2);font-size:.8rem">—</span>';
     const pinBadge = p.has_pin
-      ? '<span class="badge badge-ok" style="font-size:.68rem">Configurada</span>'
-      : '<span class="badge badge-pending" style="font-size:.68rem">Sem senha</span>';
+      ? `<span class="badge badge-ok" style="font-size:.68rem">${t('res.pinConfigured')}</span>`
+      : `<span class="badge badge-pending" style="font-size:.68rem">${t('res.noPin')}</span>`;
     const dropId = `pdrop-${i}`;
     const unlockItem = canais.length
-      ? `<div class="drop-item" onclick="openParentalUnlock(${i});closeDrop()">🔓 Desbloquear canal</div>` : '';
+      ? `<div class="drop-item" onclick="openParentalUnlock(${i});closeDrop()">${t('res.unlockChannelAction')}</div>` : '';
     return `<tr>
       <td>${i+1}</td>
       <td>${esc(p.nome_cliente || '—')}</td>
@@ -2166,7 +2210,7 @@ function renderParental(list) {
           <button class="dot-btn" onclick="toggleDrop('${dropId}')">⋯</button>
           <div class="drop-menu" id="${dropId}">
             ${unlockItem}
-            <div class="drop-item" onclick="openParentalPin(${i});closeDrop()">🔑 ${p.has_pin ? 'Redefinir senha' : 'Criar senha'}</div>
+            <div class="drop-item" onclick="openParentalPin(${i});closeDrop()">🔑 ${p.has_pin ? t('res.resetPin') : t('res.createPin')}</div>
           </div>
         </div>
       </td>
@@ -2192,7 +2236,7 @@ function openParentalUnlock(idx) {
   const container = document.getElementById('pu-canais');
   const canais = p.canais_bloqueados || [];
   if (!canais.length) {
-    container.innerHTML = '<span style="color:var(--text2);font-size:.8rem">Nenhum canal bloqueado</span>';
+    container.innerHTML = `<span style="color:var(--text2);font-size:.8rem">${t('res.noBlockedChannels')}</span>`;
   } else {
     container.innerHTML = canais.map(c => {
       const ce = c.replace(/'/g, "\\'");
@@ -2212,14 +2256,14 @@ async function confirmarDesbloqueioCanal() {
   const mac   = document.getElementById('pu-mac').value;
   const canal = document.getElementById('pu-canal-sel').value;
   const pin   = document.getElementById('pu-pin').value;
-  if (!canal) return toast('Selecione um canal para desbloquear', 'err');
+  if (!canal) return toast(t('res.selectChannelToUnlock'), 'err');
   const r = await api('/parental/unlock-canal', { method:'POST', body:JSON.stringify({ mac, canal, pin }) });
   if (!r) return;
   if (r.ok) {
-    toast('Canal desbloqueado com sucesso');
+    toast(t('res.channelUnlocked'));
     closeModal('modal-parental-unlock');
     loadParental();
-  } else toast(r.data?.error || 'Erro ao desbloquear', 'err');
+  } else toast(r.data?.error || t('res.errUnlockChannel'), 'err');
 }
 
 function openParentalPin(idx) {
@@ -2250,17 +2294,17 @@ async function salvarSenhaParental() {
     newPin  = document.getElementById('pp-new-pin').value;
     confirm = document.getElementById('pp-new-pin-confirm').value;
   }
-  if (!newPin || newPin.length < 4) return toast('A senha deve ter pelo menos 4 dígitos', 'err');
-  if (newPin !== confirm) return toast('As senhas não coincidem', 'err');
+  if (!newPin || newPin.length < 4) return toast(t('res.errPinMin4'), 'err');
+  if (newPin !== confirm) return toast(t('res.errPwNoMatch'), 'err');
   const body = { mac, newPin };
   if (hasPin) body.currentPin = currentPin;
   const r = await api('/parental/set-pin', { method:'POST', body:JSON.stringify(body) });
   if (!r) return;
   if (r.ok) {
-    toast('Senha parental guardada com sucesso');
+    toast(t('res.parentalPinSaved'));
     closeModal('modal-parental-pin');
     loadParental();
-  } else toast(r.data?.error || 'Erro ao salvar senha', 'err');
+  } else toast(r.data?.error || t('res.errSavePin'), 'err');
 }
 
 function openListaDetail(l) {
@@ -2311,7 +2355,7 @@ async function saveListaDetail() {
   const pin     = document.getElementById('lista-detail-pin').value;
   const pinConf = document.getElementById('lista-detail-pin-confirm').value;
 
-  if (protect && pin && pin !== pinConf) { toast('PINs não coincidem', 'err'); return; }
+  if (protect && pin && pin !== pinConf) { toast(t('res.errPinMismatch'), 'err'); return; }
 
   const body = {
     id,
@@ -2336,8 +2380,8 @@ async function saveListaDetail() {
   }
 
   const r = await api('/listas/update-fields', { method: 'POST', body: JSON.stringify(body) });
-  if (r?.ok) { toast('Lista atualizada'); closeModal('modal-lista-detail'); loadListas(); }
-  else toast(r?.data?.error || 'Erro ao salvar', 'err');
+  if (r?.ok) { toast(t('res.listUpdated')); closeModal('modal-lista-detail'); loadListas(); }
+  else toast(r?.data?.error || t('res.errSaveList'), 'err');
 }
 
 async function deactivateLista(id) {
@@ -2417,7 +2461,7 @@ async function renovarLista() {
     toast(t('res.listRenewed') + exp);
     closeModal('modal-lista-renovar');
     loadListas();
-  } else toast(r?.data?.error || 'Erro ao renovar', 'err');
+  } else toast(r?.data?.error || t('res.errRenewList'), 'err');
 }
 
 function laSwitchType(tipo) {
@@ -2728,31 +2772,52 @@ function selectPkg(i) {
 
 async function openBuyModal() {
   selectedPkg = null;
+  buyPaymentId = null;
   document.getElementById('buy-payment-section').style.display = 'none';
   document.getElementById('buy-pix-section').style.display = 'none';
+  document.getElementById('buy-card-section').style.display = 'none';
   document.getElementById('buy-confirm-btn').style.display = 'none';
   document.getElementById('buy-status-msg').textContent = t('res.awaitingPayment');
-  if (buyStatusInterval) clearInterval(buyStatusInterval);
+  document.getElementById('buy-card-error').style.display = 'none';
+  document.getElementById('buy-card-status').style.display = 'none';
+  document.getElementById('buy-method').value = 'pix';
+  if (buyStatusInterval) { clearInterval(buyStatusInterval); buyStatusInterval = null; }
   openModal('modal-buy');
   await loadPackages();
+}
+
+function onBuyMethodChange() {
+  const method = document.getElementById('buy-method').value;
+  document.getElementById('buy-pix-section').style.display = 'none';
+  document.getElementById('buy-card-section').style.display = method === 'card' ? 'block' : 'none';
+  document.getElementById('buy-card-error').style.display = 'none';
+  document.getElementById('buy-card-status').style.display = 'none';
 }
 
 async function confirmBuy() {
   if (!selectedPkg) { toast(t('res.errSelectPackage'), 'err'); return; }
   const method = document.getElementById('buy-method').value;
-  const r = await api('/buy-credits', { method:'POST', body:JSON.stringify({packageId: selectedPkg.id, method}) });
-  if (!r) return;
-  if (!r.ok) { toast(r.data.error || 'Erro ao iniciar compra', 'err'); return; }
 
-  document.getElementById('buy-confirm-btn').style.display = 'none';
-
-  if (method === 'pix') {
-    document.getElementById('buy-pix-section').style.display = 'block';
-    document.getElementById('buy-qr').src = r.data.qrCodeBase64 || '';
-    document.getElementById('buy-pix-code').textContent = r.data.qrCodeText || '';
-    buyPaymentId = r.data.paymentId;
-    buyStatusInterval = setInterval(checkBuyStatus, 4000);
+  if (method === 'card') {
+    await confirmBuyCard();
+    return;
   }
+
+  // PIX
+  const btn = document.getElementById('buy-confirm-btn');
+  btn.disabled = true; btn.textContent = t('res.sending');
+  const r = await api('/buy-credits', { method:'POST', body:JSON.stringify({ packageId: selectedPkg.id }) });
+  btn.disabled = false; btn.textContent = t('res.confirmBuyBtn');
+  if (!r) return;
+  if (!r.ok) { toast(r.data?.error || 'Erro ao iniciar compra', 'err'); return; }
+
+  btn.style.display = 'none';
+  document.getElementById('buy-pix-section').style.display = 'block';
+  document.getElementById('buy-qr').src = r.data.qrCodeBase64 || '';
+  document.getElementById('buy-pix-code').textContent = r.data.qrCodeText || '';
+  buyPaymentId = r.data.paymentId;
+  if (buyStatusInterval) clearInterval(buyStatusInterval);
+  buyStatusInterval = setInterval(checkBuyStatus, 4000);
 }
 
 function copyPix() { copyText(document.getElementById('buy-pix-code').textContent); }
@@ -2761,14 +2826,109 @@ async function checkBuyStatus() {
   const r = await fetch(`/api/reseller/buy-credits/status?id=${buyPaymentId}`, { headers:{'x-reseller-token': SESSION?.token||''} });
   const data = await r.json();
   if (data.status === 'paid') {
-    clearInterval(buyStatusInterval);
+    clearInterval(buyStatusInterval); buyStatusInterval = null;
     document.getElementById('buy-status-msg').textContent = t('res.paymentConfirmed');
     toast(t('res.creditsAdded'));
-    loadDashboard();
-    loadTransactions();
+    loadDashboard(); loadTransactions();
     setTimeout(() => closeModal('modal-buy'), 2000);
   }
 }
+
+async function confirmBuyCard() {
+  const email   = document.getElementById('bc-email').value.trim();
+  const cpf     = document.getElementById('bc-cpf').value.replace(/\D/g, '');
+  const number  = document.getElementById('bc-number').value.replace(/\s/g, '');
+  const name    = document.getElementById('bc-name').value.trim().toUpperCase();
+  const expiry  = document.getElementById('bc-expiry').value.trim();
+  const cvv     = document.getElementById('bc-cvv').value.trim();
+  const inst    = document.getElementById('bc-inst').value;
+  const errEl   = document.getElementById('buy-card-error');
+  const statEl  = document.getElementById('buy-card-status');
+
+  errEl.style.display = 'none';
+  if (!email || !cpf || !number || !name || !expiry || !cvv) {
+    errEl.textContent = 'Preencha todos os campos do cartão.';
+    errEl.style.display = 'block'; return;
+  }
+  const [expMonth, expYear] = expiry.split('/');
+  if (!expMonth || !expYear) { errEl.textContent = 'Validade inválida.'; errEl.style.display = 'block'; return; }
+
+  const btn = document.getElementById('buy-confirm-btn');
+  btn.disabled = true; btn.textContent = 'Tokenizando...';
+  statEl.textContent = 'Processando cartão...'; statEl.style.display = 'block';
+
+  try {
+    // Busca public key
+    const cfgRes = await fetch('/api/config/public-key');
+    const { publicKey, mockPayments } = await cfgRes.json();
+
+    let cardToken;
+    if (mockPayments) {
+      cardToken = 'mock_token_test';
+    } else {
+      const tokenRes = await fetch(`https://api.pagar.me/core/v5/tokens?appId=${publicKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'card', card: { number, holder_name: name, exp_month: parseInt(expMonth, 10), exp_year: parseInt('20' + expYear, 10), cvv } })
+      });
+      const tokenData = await tokenRes.json();
+      if (!tokenData.id) throw new Error(tokenData.message || 'Falha ao tokenizar cartão');
+      cardToken = tokenData.id;
+    }
+
+    btn.textContent = 'Processando pagamento...';
+    const r = await api('/buy-credits/card', {
+      method: 'POST',
+      body: JSON.stringify({ packageId: selectedPkg.id, cardToken, customerEmail: email, customerDocument: cpf, installments: parseInt(inst, 10) })
+    });
+
+    if (!r) throw new Error('Sem resposta do servidor');
+    if (!r.ok) { errEl.textContent = r.data?.error || 'Pagamento recusado.'; errEl.style.display = 'block'; return; }
+
+    if (r.data.status === 'paid') {
+      statEl.textContent = t('res.paymentConfirmed');
+      toast(t('res.creditsAdded'));
+      loadDashboard(); loadTransactions();
+      setTimeout(() => closeModal('modal-buy'), 2000);
+    } else if (r.data.status === 'pending_3ds') {
+      statEl.textContent = 'Redirecionando para autenticação 3D Secure...';
+      window.location.href = r.data.redirectUrl;
+    } else {
+      buyPaymentId = r.data.paymentId;
+      statEl.textContent = t('res.awaitingPayment');
+      if (buyStatusInterval) clearInterval(buyStatusInterval);
+      buyStatusInterval = setInterval(checkBuyStatus, 4000);
+    }
+  } catch (e) {
+    errEl.textContent = e.message || 'Erro ao processar pagamento.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = t('res.confirmBuyBtn');
+  }
+}
+
+// Máscaras de input do cartão de créditos
+document.addEventListener('DOMContentLoaded', function() {
+  const bcNumber = document.getElementById('bc-number');
+  if (bcNumber) bcNumber.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim();
+  });
+  const bcExpiry = document.getElementById('bc-expiry');
+  if (bcExpiry) bcExpiry.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g,'').slice(0,4);
+    if (v.length >= 3) v = v.slice(0,2) + '/' + v.slice(2);
+    e.target.value = v;
+  });
+  const bcCpf = document.getElementById('bc-cpf');
+  if (bcCpf) bcCpf.addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g,'').slice(0,11);
+    if (v.length > 9) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+    else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+    else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+    e.target.value = v;
+  });
+  const bcName = document.getElementById('bc-name');
+  if (bcName) bcName.addEventListener('input', e => { e.target.value = e.target.value.toUpperCase(); });
+});
 
 // ── TRANSACTIONS ──────────────────────────────────────────────────────────────
 async function loadTransactions() {

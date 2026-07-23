@@ -2,12 +2,6 @@ package com.velvetiptv.app.ui.screens.tv
 
 import android.view.View
 import androidx.activity.compose.BackHandler
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -17,13 +11,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.LiveTv
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.*
@@ -34,7 +26,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -50,9 +41,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import org.videolan.libvlc.LibVLC
-import org.videolan.libvlc.Media
-import org.videolan.libvlc.util.VLCVideoLayout
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
 import com.velvetiptv.app.data.ActivationApiClient
 import com.velvetiptv.app.data.ChannelType
 import com.velvetiptv.app.data.EPGRepository
@@ -199,42 +193,41 @@ fun TVScreen(navController: NavController? = null) {
     val currentSelectedUrl    = rememberUpdatedState(selectedChannel?.url)
     val currentLoadState      = rememberUpdatedState(loadState)
     val lifecycleOwner        = LocalLifecycleOwner.current
+    // ExoPlayer — declarado antes do observer de lifecycle para poder ser
+    // referenciado directamente na lambda (pausa/retoma ao navegar entre ecrãs).
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            playWhenReady = true
+            volume = 1f
+        }
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                val rv       = currentChannelRV.value   ?: return@LifecycleEventObserver
-                val url      = currentSelectedUrl.value ?: return@LifecycleEventObserver
-                val channels = (currentLoadState.value as? LoadState.Success)?.channels
-                               ?: return@LifecycleEventObserver
-                val idx = channels.indexOfFirst { it.url == url }
-                if (idx >= 0)
-                    (rv.layoutManager as? LinearLayoutManager)
-                        ?.scrollToPositionWithOffset(idx, 120)
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    // Retoma quando TVScreen volta a primeiro plano (navegação ou sistema).
+                    if (selectedChannel != null && !exoPlayer.isPlaying) exoPlayer.play()
+                    // Scroll para o canal seleccionado
+                    val rv       = currentChannelRV.value   ?: return@LifecycleEventObserver
+                    val url      = currentSelectedUrl.value ?: return@LifecycleEventObserver
+                    val channels = (currentLoadState.value as? LoadState.Success)?.channels
+                                   ?: return@LifecycleEventObserver
+                    val idx = channels.indexOfFirst { it.url == url }
+                    if (idx >= 0)
+                        (rv.layoutManager as? LinearLayoutManager)
+                            ?.scrollToPositionWithOffset(idx, 120)
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    // Pausa quando TVScreen vai para o back-stack (utilizador navega
+                    // para Filmes/Séries). Liberta o decoder de hardware para o PlayerScreen.
+                    exoPlayer.pause()
+                }
+                else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-
-    // ── VLC — player primário para Live TV ───────────────────────────────────
-    //
-    // ExoPlayer é instável com trocas rápidas de canal em streams IPTV.
-    // LibVLC (o mesmo que usa o Dream TV) é muito mais robusto:
-    //   • Suporta HLS, MPEG-TS, RTSP, HTTP sem configuração especial
-    //   • Recupera automaticamente de erros de rede
-    //   • stop() + play() são thread-safe e não crasham com trocas rápidas
-    val libVLC = remember {
-        LibVLC(context, arrayListOf(
-            "--no-drop-late-frames",
-            "--no-skip-frames",
-            "--rtsp-tcp",
-            "--network-caching=300",
-            "--live-caching=300",
-            "--audio-time-stretch"
-        ))
-    }
-    val mediaPlayer = remember {
-        org.videolan.libvlc.MediaPlayer(libVLC).also { it.volume = 100 }
     }
 
     var isBuffering by remember { mutableStateOf(false) }
@@ -244,87 +237,52 @@ fun TVScreen(navController: NavController? = null) {
     val tvScope      = rememberCoroutineScope()
     val switchHolder = remember { object { var job: kotlinx.coroutines.Job? = null } }
 
-    // Referência ao VLCVideoLayout para re-attachar após minimizar a app
-    val vlcLayoutHolder = remember { object { var layout: VLCVideoLayout? = null } }
-
-    // Quando o app volta ao primeiro plano, re-attach da surface VLC para
-    // restaurar o vídeo. O LifecycleRegistry dispara ON_RESUME retroactivo
-    // imediatamente ao registar o observer (a composição já está em RESUMED),
-    // mas nesse ponto o AndroidView.factory já correu e attachViews já foi
-    // chamado — chamar de novo lançaria IllegalStateException. Por isso
-    // saltamos o primeiro ON_RESUME e só agimos nos seguintes (genuínos).
-    DisposableEffect(lifecycleOwner) {
-        var isInitial = true
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                if (isInitial) { isInitial = false; return@LifecycleEventObserver }
-                vlcLayoutHolder.layout?.let { layout ->
-                    try { mediaPlayer.detachViews() } catch (_: Throwable) {}
-                    mediaPlayer.attachViews(layout, null, false, false)
+    // Listener de eventos ExoPlayer
+    DisposableEffect(exoPlayer) {
+        val listener = object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                when (playbackState) {
+                    Player.STATE_BUFFERING -> isBuffering = true
+                    Player.STATE_READY     -> { isBuffering = false; playerError = "" }
+                    Player.STATE_ENDED     -> isBuffering = false
+                    else                   -> {}
                 }
             }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-
-    // Listener de eventos VLC — entregues na main thread pelo LibVLC
-    DisposableEffect(mediaPlayer) {
-        val listener = org.videolan.libvlc.MediaPlayer.EventListener { event ->
-            when (event.type) {
-                org.videolan.libvlc.MediaPlayer.Event.Playing -> {
-                    isBuffering = false
-                    playerError = ""
-                }
-                org.videolan.libvlc.MediaPlayer.Event.Buffering -> {
-                    // event.buffering: 0.0 → 100.0 (%)
-                    isBuffering = event.buffering < 100f
-                }
-                org.videolan.libvlc.MediaPlayer.Event.EncounteredError -> {
-                    isBuffering = false
-                    playerError = "⚠️  Erro ao reproduzir, escolha outra opção do mesmo canal"
-                }
-                org.videolan.libvlc.MediaPlayer.Event.EndReached -> {
-                    // Stream terminou (pouco comum em live TV) — não é erro
-                    isBuffering = false
-                }
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) { isBuffering = false; playerError = "" }
+            }
+            override fun onPlayerError(error: PlaybackException) {
+                isBuffering = false
+                playerError = "⚠️  Erro ao reproduzir, escolha outra opção do mesmo canal"
             }
         }
-        mediaPlayer.setEventListener(listener)
+        exoPlayer.addListener(listener)
         onDispose {
-            mediaPlayer.setEventListener(null)
-            mediaPlayer.stop()
-            mediaPlayer.detachViews()
-            mediaPlayer.release()
-            libVLC.release()
+            exoPlayer.removeListener(listener)
+            exoPlayer.stop()
+            exoPlayer.release()
         }
     }
 
-    // ── Trocar canal ──────────────────────────────────────────────────────────
-    //
-    // VLC é thread-safe e stop() é rápido/seguro — não crashaa como o ExoPlayer.
-    // Mantemos um debounce de 100ms para evitar carga desnecessária quando o
-    // utilizador navega muito rápido com o D-pad (cancela trocas intermédias).
+    // ── Trocar canal ─────────────────────────────────────────────────────────
+    // Debounce de 100ms — ignora canais intermédios quando o utilizador navega
+    // rápido com o D-pad. ExoPlayer aceita setMediaItem enquanto ainda está a
+    // reproduzir, parando o anterior automaticamente.
     fun playChannel(ch: M3UChannel) {
-        if (ch.url == selectedChannel?.url) return   // já está a reproduzir
-        selectedChannel = ch    // UI reage imediatamente (nome, highlight)
+        if (ch.url == selectedChannel?.url) return
+        selectedChannel = ch
         playerError = ""
         isBuffering = true
 
         switchHolder.job?.cancel()
         switchHolder.job = tvScope.launch {
             try {
-                delay(100)   // debounce: ignora canais intermédios em navegação rápida
-                mediaPlayer.stop()
-                val media = Media(libVLC, android.net.Uri.parse(ch.url)).apply {
-                    addOption(":network-caching=300")
-                    addOption(":live-caching=300")
-                }
-                mediaPlayer.media = media
-                media.release()   // libVLC fez a sua própria cópia — libertar a nossa
-                mediaPlayer.play()
+                delay(100)
+                exoPlayer.setMediaItem(MediaItem.fromUri(ch.url))
+                exoPlayer.prepare()
+                exoPlayer.play()
             } catch (_: kotlinx.coroutines.CancellationException) {
-                // Troca mais rápida que 100ms — a próxima já tomou conta → ok
+                // Canal mais recente já tomou conta — ok
             } catch (_: Exception) {
                 if (selectedChannel?.url == ch.url) {
                     playerError = "⚠️  Erro ao reproduzir, escolha outra opção do mesmo canal"
@@ -503,22 +461,12 @@ fun TVScreen(navController: NavController? = null) {
         }
     }
 
-    // Ao sair do TVScreen, o LibVLC mantém o último frame na surface por mais
-    // um instante do que o resto da UI (a surface nativa não desaparece no
-    // mesmo frame que os composables Compose) — sem isto via-se um flash do
-    // vídeo a ecrã inteiro entre o painel e o menu principal.
-    // Este overlay preto cobre essa surface de imediato, antes de navegar.
     var isExiting by remember { mutableStateOf(false) }
 
     fun exitToMenu() {
         isExiting = true
-        // Parar e desligar a surface do VLC já, em vez de esperar pelo onDispose
-        // (que só corre quando o composable sai de composição — um frame tarde
-        // de mais, o que deixava o último frame do vídeo visível a ecrã inteiro
-        // por instante antes do menu principal aparecer).
         switchHolder.job?.cancel()
-        mediaPlayer.stop()
-        mediaPlayer.detachViews()
+        exoPlayer.stop()
         navController?.navigateUp()
     }
 
@@ -654,18 +602,8 @@ fun TVScreen(navController: NavController? = null) {
     val isPortraitMobile = config.screenHeightDp > config.screenWidthDp
     val previewHeightFraction = 0.6f
 
-    // O VLCVideoLayout vive como filho DIRECTO do root Box — nunca é recriado.
-    // Mudar isFullscreen altera apenas os overlays acima dele, sem tocar na surface
-    // do VLC. Recriar o VLCVideoLayout (ou chamá-lo em branches distintos) destruía
-    // a surface → VLC crashava imediatamente ao entrar em ecrã inteiro.
     Box(Modifier.fillMaxSize().background(Color.Black)) {
 
-        // Surface VLC — persistente, mas dimensionada para coincidir exactamente
-        // com a área visível do preview em cada modo. O VLC centra o vídeo (com
-        // letterbox) dentro dos LIMITES desta view — se ela for maior do que a
-        // caixa de preview visível (ex.: fillMaxSize sempre), o vídeo acaba
-        // centrado no ecrã inteiro em vez de dentro da caixa, sobrando espaço
-        // vazio ou vazando para a lista/EPG por baixo.
         val videoModifier = when {
             isFullscreen     -> Modifier.fillMaxSize()
             isPortraitMobile -> Modifier.fillMaxWidth().fillMaxHeight(previewHeightFraction)
@@ -676,9 +614,10 @@ fun TVScreen(navController: NavController? = null) {
         }
         AndroidView(
             factory = { ctx ->
-                VLCVideoLayout(ctx).also { layout ->
-                    vlcLayoutHolder.layout = layout
-                    mediaPlayer.attachViews(layout, null, false, false)
+                PlayerView(ctx).apply {
+                    player = exoPlayer
+                    useController = false
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 }
             },
             modifier = videoModifier
@@ -1064,7 +1003,6 @@ private fun ChannelPreviewBox(
 //  1. RecyclerView recicla views nativas sem overhead de recomposição Compose
 //  2. ListAdapter + DiffUtil calcula diferenças em thread de fundo
 //  3. Bitmaps de logos descartados em onViewRecycled → sem acumulação OOM
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun ChannelPanel(
     modifier         : Modifier = Modifier.width(240.dp).fillMaxHeight(),
@@ -1105,8 +1043,10 @@ private fun ChannelPanel(
     // Actualizar estrelas sem rebind completo
     LaunchedEffect(favoriteUrls) { adapter.favoriteUrls = favoriteUrls }
 
-    val searchFocusRequester = remember { FocusRequester() }
-    val keyboardController   = LocalSoftwareKeyboardController.current
+    // Referência ao EditText nativo — compartilhada com o focusSearch do RecyclerView
+    // para que D-pad UP no primeiro item transfira o foco nativamente (sem cruzar
+    // a fronteira Compose/View, que é o que fazia o BasicTextField não funcionar).
+    val searchEditRef = remember { object { var view: android.widget.EditText? = null } }
 
     Column(modifier.background(Color(0xFF0d0d1a))) {
 
@@ -1131,49 +1071,64 @@ private fun ChannelPanel(
                     color = AccentPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold
                 )
             }
-            Row(
-                Modifier
+            // Campo de pesquisa — EditText nativo para que o foco via D-pad e o
+            // teclado do sistema funcionem sem cruzar a fronteira Compose/View.
+            AndroidView(
+                factory = { ctx ->
+                    android.widget.EditText(ctx).apply {
+                        hint = "Pesquisar..."
+                        setSingleLine(true)
+                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                        setTextColor(android.graphics.Color.WHITE)
+                        setHintTextColor(0x4DFFFFFF.toInt())
+                        textSize = 13f
+                        setPadding(0, 0, 0, 0)
+                        imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
+                        inputType = android.text.InputType.TYPE_CLASS_TEXT
+                        isFocusable = true
+                        isFocusableInTouchMode = true
+                        addTextChangedListener(object : android.text.TextWatcher {
+                            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
+                            override fun onTextChanged(s: CharSequence?, st: Int, b: Int, c: Int) {
+                                onSearchChange(s?.toString() ?: "")
+                            }
+                            override fun afterTextChanged(s: android.text.Editable?) {}
+                        })
+                        setOnFocusChangeListener { v, hasFocus ->
+                            if (hasFocus) {
+                                val imm = ctx.getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                                    as android.view.inputmethod.InputMethodManager
+                                v.postDelayed({
+                                    imm.showSoftInput(v, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+                                }, 150)
+                            }
+                        }
+                    }.also { searchEditRef.view = it }
+                },
+                update = { et ->
+                    if (et.text.toString() != search) {
+                        et.setText(search)
+                        et.setSelection(search.length)
+                    }
+                },
+                modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(DarkBackground)
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Default.Search, null, tint = TextLight.copy(0.4f), modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                BasicTextField(
-                    value = search, onValueChange = onSearchChange, singleLine = true,
-                    textStyle = TextStyle(color = TextLight, fontSize = 13.sp),
-                    cursorBrush = SolidColor(AccentPrimary),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    decorationBox = { inner ->
-                        if (search.isEmpty()) Text("Pesquisar...", color = TextLight.copy(0.3f), fontSize = 13.sp)
-                        inner()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(searchFocusRequester)
-                        .onFocusChanged { if (it.isFocused) keyboardController?.show() }
-                )
-            }
+                    .background(DarkBackground, RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+            )
         }
 
-        // Lista de canais — RecyclerView nativo (estável com 58K+ itens)
-        // weight(1f) em vez de fillMaxSize() — garante que o RV ocupa apenas
-        // o espaço restante após o cabeçalho/busca, sem sobrepor os elementos acima.
-        // Subclasse anônima sobrescreve focusSearch para que, ao pressionar D-pad UP
-        // no primeiro item, o foco escape para o campo de pesquisa acima (Compose).
-        // Sem isto, o RecyclerView consume o evento e o foco fica preso na lista.
+        // Lista de canais — RecyclerView nativo (estável com 58K+ itens).
+        // focusSearch sobrescrito: D-pad UP no item 0 devolve o EditText acima
+        // para que o sistema de foco nativo transfira o foco diretamente,
+        // sem cruzar a fronteira Compose/View.
         AndroidView(
             factory = { ctx ->
                 object : RecyclerView(ctx) {
                     override fun focusSearch(focused: android.view.View?, direction: Int): android.view.View? {
                         if (direction == View.FOCUS_UP && focused != null) {
-                            val pos = getChildAdapterPosition(focused)
-                            if (pos == 0) {
-                                searchFocusRequester.requestFocus()
-                                keyboardController?.show()
-                                return null
+                            if (getChildAdapterPosition(focused) == 0) {
+                                return searchEditRef.view ?: super.focusSearch(focused, direction)
                             }
                         }
                         return super.focusSearch(focused, direction)
@@ -1187,8 +1142,6 @@ private fun ChannelPanel(
                     setItemViewCacheSize(20)
                     clipToPadding = true
                     clipChildren  = true
-                    // Sem isto, o efeito "stretch" do overscroll (Android 12+) desenha
-                    // o primeiro item por cima da pesquisa ao puxar a lista para baixo.
                     overScrollMode = View.OVER_SCROLL_NEVER
                 }.also { onRVReady(it) }
             },

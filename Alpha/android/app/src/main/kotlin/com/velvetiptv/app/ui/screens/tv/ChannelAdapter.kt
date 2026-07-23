@@ -118,9 +118,11 @@ class ChannelAdapter(
         fun dp(v: Float) = (v * d + 0.5f).toInt()
 
         if (viewType == TYPE_CATEGORY) {
-            // Cartão arredondado com nome à esquerda e contagem alinhada à direita —
-            // mesmo estilo de lista de categorias (group-title) de outros players IPTV.
+            val cardId = View.generateViewId()
+            val lockId = View.generateViewId()
+
             val card = LinearLayout(ctx).apply {
+                id          = cardId
                 orientation = LinearLayout.HORIZONTAL
                 gravity     = Gravity.CENTER_VERTICAL
                 layoutParams = RecyclerView.LayoutParams(
@@ -129,6 +131,8 @@ class ChannelAdapter(
                 setPadding(dp(14f), 0, dp(14f), 0)
                 isFocusable = true
                 isClickable = true
+                descendantFocusability = ViewGroup.FOCUS_BEFORE_DESCENDANTS
+                nextFocusRightId = lockId   // seta DIREITA do remoto → cadeado
                 background = GradientDrawable().apply {
                     cornerRadius = dp(10f).toFloat()
                     setColor(C_CARD_BG)
@@ -148,14 +152,18 @@ class ChannelAdapter(
                 typeface = Typeface.DEFAULT_BOLD
                 setPadding(dp(8f), 0, 0, 0)
             }
-            // Cadeado — toca para bloquear/desbloquear esta categoria com senha.
-            // É uma área de toque própria (isClickable), separada do resto do
-            // cartão, para não entrar na categoria só por querer bloqueá-la.
+            // Cadeado — focusável via seta DIREITA do controlo remoto.
             val lock = TextView(ctx).apply {
-                textSize = 15f
+                id          = lockId
+                textSize    = 16f
                 isClickable = true
-                isFocusable = false
-                setPadding(dp(10f), 0, 0, 0)
+                isFocusable = true
+                nextFocusLeftId = cardId   // seta ESQUERDA → volta para o cartão
+                setPadding(dp(12f), 0, dp(4f), 0)
+                background = GradientDrawable().apply {
+                    cornerRadius = dp(8f).toFloat()
+                    setColor(Color.TRANSPARENT)
+                }
             }
             card.addView(name)
             card.addView(count)
@@ -163,8 +171,12 @@ class ChannelAdapter(
             return CategoryVH(card, name, count, lock, card)
         }
 
-        // Linha de canal — igual ao estilo anterior (indicador + logo + nome).
+        // Linha de canal.
+        val rootId = View.generateViewId()
+        val starId = View.generateViewId()
+
         val root = LinearLayout(ctx).apply {
+            id           = rootId
             orientation  = LinearLayout.VERTICAL
             layoutParams = RecyclerView.LayoutParams(
                 RecyclerView.LayoutParams.MATCH_PARENT,
@@ -172,7 +184,8 @@ class ChannelAdapter(
             )
             isFocusable  = true
             isClickable  = true
-            descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+            descendantFocusability = ViewGroup.FOCUS_BEFORE_DESCENDANTS
+            nextFocusRightId = starId   // seta DIREITA → estrela
         }
 
         val row = LinearLayout(ctx).apply {
@@ -208,10 +221,16 @@ class ChannelAdapter(
         }
 
         val star = TextView(ctx).apply {
+            id          = starId
             textSize    = 14f
             isClickable = true
-            isFocusable = false
-            setPadding(dp(6f), 0, dp(2f), 0)
+            isFocusable = true
+            nextFocusLeftId = rootId   // seta ESQUERDA → volta para a linha
+            setPadding(dp(6f), 0, dp(6f), 0)
+            background = GradientDrawable().apply {
+                cornerRadius = dp(6f).toFloat()
+                setColor(Color.TRANSPARENT)
+            }
         }
 
         row.addView(indicator)
@@ -250,12 +269,38 @@ class ChannelAdapter(
         holder.name.text  = row.name
         holder.count.text = "${row.count}"
         holder.lock.text  = if (row.locked) "🔒" else "🔓"
-        holder.lock.alpha = if (row.locked) 1f else 0.35f
-        holder.lock.visibility = if (row.canLock) View.VISIBLE else View.GONE
+        holder.lock.alpha = 1f
+        holder.lock.visibility = if (!row.canLock) View.GONE
+                                 else if (row.locked) View.VISIBLE
+                                 else View.INVISIBLE
         holder.card.setOnClickListener { onCategoryClick(row) }
         holder.lock.setOnClickListener { if (row.canLock) onCategoryLockToggle(row) }
+        // Long press no controlo remoto (OK longo) → bloqueia/desbloqueia categoria
+        holder.card.setOnLongClickListener {
+            if (row.canLock) { onCategoryLockToggle(row); true } else false
+        }
+        fun updateLockVisibility(cardFocused: Boolean, lockFocused: Boolean) {
+            if (!row.canLock) return
+            holder.lock.visibility = when {
+                row.locked                     -> View.VISIBLE   // bloqueado → sempre visível
+                cardFocused || lockFocused     -> View.VISIBLE   // em foco → mostra opção de trancar
+                else                           -> View.INVISIBLE  // desbloqueado + sem foco → escondido
+            }
+        }
+        updateLockVisibility(cardFocused = false, lockFocused = false)
+
         holder.card.setOnFocusChangeListener { _, hasFocus ->
             (holder.card.background as? GradientDrawable)?.setColor(if (hasFocus) C_CARD_FOCUS else C_CARD_BG)
+            updateLockVisibility(cardFocused = hasFocus, lockFocused = holder.lock.isFocused)
+        }
+        holder.lock.setOnFocusChangeListener { v, hasFocus ->
+            (v.background as? GradientDrawable)?.setColor(
+                if (hasFocus) 0x44FFFFFF else Color.TRANSPARENT
+            )
+            (holder.card.background as? GradientDrawable)?.setColor(
+                if (hasFocus) C_CARD_FOCUS else C_CARD_BG
+            )
+            updateLockVisibility(cardFocused = holder.card.isFocused, lockFocused = hasFocus)
         }
     }
 
@@ -297,8 +342,16 @@ class ChannelAdapter(
         holder.itemView.setOnLongClickListener { onChannelLongClick(ch); true }
         holder.star.setOnClickListener { onChannelLongClick(ch) }
 
-        // Foco D-pad: debounce 450 ms (como Dream TV — evita trocar canal em cada
-        // item ao percorrer a lista rapidamente com o controlo remoto)
+        // Estrela: feedback visual quando o D-pad a seleciona com seta DIREITA
+        holder.star.setOnFocusChangeListener { v, hasFocus ->
+            (v.background as? GradientDrawable)?.setColor(
+                if (hasFocus) 0x44FFCC00 else Color.TRANSPARENT
+            )
+            // Mantém o highlight da linha enquanto a estrela está em foco
+            applyFocusColor(holder, ch, hasFocus)
+        }
+
+        // Foco D-pad: debounce 450 ms (evita trocar canal ao percorrer rápido)
         holder.itemView.setOnFocusChangeListener { _, hasFocus ->
             applyFocusColor(holder, ch, hasFocus)
             if (hasFocus) {
@@ -340,7 +393,9 @@ class ChannelAdapter(
             holder.logo.setImageDrawable(null)
             holder.itemView.setOnFocusChangeListener(null)
             holder.itemView.setOnClickListener(null)
+            holder.itemView.setOnLongClickListener(null)
             holder.star.setOnClickListener(null)
+            holder.star.setOnFocusChangeListener(null)
         }
     }
 
