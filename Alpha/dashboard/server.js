@@ -1908,9 +1908,11 @@ app.get('/api/reseller/listas', authReseller, async (req, res) => {
   let atvQ = supabase.from('ativacoes')
     .select('mac_address, revendedor_id, nome_revendedor, modelo_dispositivo, validade, ativo, nome_cliente, nome_dispositivo')
     .not('revendedor_id', 'is', null)
-    .eq('ativo', true);
+    .eq('ativo', true)
+    .limit(10000);
   if (isAdmin) {
     if (filtro === 'revendedor' && revendedor_id) atvQ = atvQ.eq('revendedor_id', revendedor_id);
+    // filtro 'todos' ou ausente → sem restrição de revendedor
   } else {
     atvQ = atvQ.eq('revendedor_id', req.resellerId);
   }
@@ -1925,11 +1927,17 @@ app.get('/api/reseller/listas', authReseller, async (req, res) => {
 
   let listas = [];
   if (macs.length) {
-    const { data: lstData, error: lstErr } = await supabase.from('listas')
-      .select('id, mac_address, ativacao_id, nome_lista, tipo, url, url_epg, servidor, utilizador_xtream, nome_cliente, nome_dispositivo, device_key, protect_playlist, criado_em, expira_em, status, lista_local_id')
-      .in('mac_address', macs)
-      .order('criado_em', { ascending: false });
-    if (!lstErr) listas = lstData || [];
+    // Busca em lotes de 500 MACs para evitar URL muito longa no PostgREST
+    const BATCH = 500;
+    for (let i = 0; i < macs.length; i += BATCH) {
+      const batch = macs.slice(i, i + BATCH);
+      const { data: lstData, error: lstErr } = await supabase.from('listas')
+        .select('id, mac_address, ativacao_id, nome_lista, tipo, url, url_epg, servidor, utilizador_xtream, nome_cliente, nome_dispositivo, device_key, protect_playlist, criado_em, expira_em, status, lista_local_id')
+        .in('mac_address', batch)
+        .order('criado_em', { ascending: false })
+        .limit(10000);
+      if (!lstErr && lstData) listas = listas.concat(lstData);
+    }
   }
 
   const macsComLista = new Set(listas.map(l => l.mac_address));

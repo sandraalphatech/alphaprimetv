@@ -1670,6 +1670,7 @@ async function login() {
 
 function logout() {
   SESSION = null;
+  _listasRevLoaded = false;
   localStorage.removeItem('reseller_session');
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-page').style.display = 'flex';
@@ -1972,17 +1973,25 @@ function filterDevices(q) {
 }
 
 // ── LISTAS ────────────────────────────────────────────────────────────────────
+let _listasRevLoaded = false;
+
 async function loadListas() {
   let qs = '';
   if (isAdmin()) {
     const filtro = document.getElementById('lists-filtro')?.value || 'todos';
     const revSel = document.getElementById('lists-revendedor-sel');
-    if (revSel) revSel.style.display = filtro === 'revendedor' ? '' : 'none';
-    const revId = filtro === 'revendedor' ? (revSel?.value || '') : '';
+    const showRevSel = filtro === 'revendedor';
+    if (revSel) revSel.style.display = showRevSel ? '' : 'none';
+
+    // Carrega dropdown de revendedores se ainda não carregado ou se acabou de exibir
+    if (!_listasRevLoaded) {
+      await loadListaRevendedores();
+    }
+
+    const revId = showRevSel ? (revSel?.value || '') : '';
     const params = new URLSearchParams({ filtro });
     if (revId) params.set('revendedor_id', revId);
     qs = '?' + params.toString();
-    if (revSel && revSel.options.length <= 1) loadListaRevendedores();
   }
   const r = await api('/listas' + qs);
   if (!r?.ok) return;
@@ -1997,9 +2006,11 @@ async function loadListaRevendedores() {
   const sel = document.getElementById('lists-revendedor-sel');
   if (!sel) return;
   const current = sel.value;
+  const vendors = (r.data || []).filter(s => s.id);
   sel.innerHTML = `<option value="">${t('res.allResellers')}</option>` +
-    r.data.map(s => `<option value="${s.id}">${esc(s.nome || s.email)}</option>`).join('');
+    vendors.map(s => `<option value="${s.id}">${esc(s.nome || s.email)}</option>`).join('');
   if (current) sel.value = current;
+  _listasRevLoaded = true;
 }
 
 function renderListas(list, semLista) {
