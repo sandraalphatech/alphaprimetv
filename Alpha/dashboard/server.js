@@ -531,7 +531,7 @@ async function saveAtivacao({ mac, deviceKey, plan, deviceName, deviceModel, use
     if (error) console.error('Supabase ativacoes insert error:', error.message, '| mac:', mac);
   }
 
-  // Atualiza nome_cliente e nome_dispositivo em listas do mesmo dispositivo
+  // Atualiza nome_cliente em listas do mesmo dispositivo
   if (nome_cliente) {
     let lstQ = supabase.from('listas').update({ nome_cliente, atualizado_em: agora });
     lstQ = (isGenericMac && deviceKey) ? lstQ.eq('device_key', deviceKey) : lstQ.eq('mac_address', macNorm);
@@ -3165,13 +3165,12 @@ app.post('/api/auth/register', async (req, res) => {
         .is('usuario_id', null);
       if (favErr) console.error('[register] erro ao preencher favoritos:', favErr.message);
 
-      // 3. Atualiza nome_cliente em listas do mesmo dispositivo
+      // Atualiza nome_cliente em listas do mesmo dispositivo
       let lstQ = supabase.from('listas')
         .update({ nome_cliente: nome, atualizado_em: agora });
       lstQ = deviceKey ? lstQ.eq('device_key', deviceKey) : lstQ.eq('mac_address', macNorm);
       const { error: lstErr } = await lstQ;
       if (lstErr) console.error('[register] erro ao atualizar listas:', lstErr.message);
-      else console.log('[register] nome_cliente atualizado em listas | mac:', macNorm, '| key:', deviceKey);
     }
 
     const token = crypto.randomBytes(32).toString('hex');
