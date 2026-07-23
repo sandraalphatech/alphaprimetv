@@ -1,4 +1,4 @@
-require('dotenv').config();
+equire('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -2539,47 +2539,61 @@ function mesRange(mes) {
 
 async function fetchFatTransacoes(mes, filtro, revId) {
   const { inicio, fim } = mesRange(mes);
-  let q = supabase.from('transacoes_ativacao')
-    .select('pagamento_id, origem, valor_pago, revendedor_id, data, status, tipo_pagamento, identificador, nome, criado_em')
+
+  const aplicarFiltro = (q, campo) => {
+    if (filtro === 'autonomo')           return q.is(campo, null);
+    if (filtro === 'revendedor' && revId) return q.eq(campo, revId);
+    return q;
+  };
+
+  let qTx = supabase.from('transacoes')
+    .select('pagamento_id, origem, valor_pago, revendedor_id, data, status, tipo_pagamento, mac_address, nome, criado_em')
     .eq('status', 'pago')
     .gte('data', inicio).lt('data', fim);
-  if (filtro === 'autonomo')                 q = q.is('revendedor_id', null);
-  else if (filtro === 'revendedor' && revId) q = q.eq('revendedor_id', revId);
-  const { data, error } = await q;
+  qTx = aplicarFiltro(qTx, 'revendedor_id');
 
-  // Fallback: se tabela transacoes não existe ainda, usa ativacoes + creditos
-  if (error) {
-    console.warn('[faturamento] tabela transacoes indisponível — usando fallback');
-    const [ativRows, credRows] = await Promise.all([
-      (async () => {
-        let qa = supabase.from('ativacoes').select('plano, revendedor_id, criado_em, mac_address, nome_cliente')
-          .neq('pagamento_id', 'CREDITO REVENDA').not('pagamento_id', 'is', null)
-          .gte('criado_em', inicio).lt('criado_em', fim);
-        if (filtro === 'autonomo')                 qa = qa.is('revendedor_id', null);
-        else if (filtro === 'revendedor' && revId) qa = qa.eq('revendedor_id', revId);
-        const { data: d } = await qa;
-        return (d || []).map(r => ({
-          origem: 'ativacao', valor_pago: PLAN_PRICE_MAP[r.plano] || 0,
-          revendedor_id: r.revendedor_id, data: r.criado_em, status: 'pago',
-          identificador: r.mac_address, nome: r.nome_cliente
-        }));
-      })(),
-      (async () => {
-        let qc = supabase.from('creditos').select('valor_pago, revendedor_id, data_compra, nome_revendedor, tipo_pagamento')
-          .eq('status', 'pago').gte('data_compra', inicio).lt('data_compra', fim);
-        if (filtro === 'autonomo')                 qc = qc.is('revendedor_id', null);
-        else if (filtro === 'revendedor' && revId) qc = qc.eq('revendedor_id', revId);
-        const { data: d } = await qc;
-        return (d || []).map(r => ({
-          origem: 'credito', valor_pago: parseFloat(r.valor_pago) || 0,
-          revendedor_id: r.revendedor_id, data: r.data_compra, status: 'pago',
-          identificador: r.revendedor_id, nome: r.nome_revendedor
-        }));
-      })()
-    ]);
-    return [...ativRows, ...credRows];
-  }
-  return data || [];
+  let qCred = supabase.from('creditos')
+    .select('transacao_id, valor_pago, revendedor_id, data_compra, nome_revendedor, tipo_pagamento')
+    .eq('status', 'pago')
+    .gte('data_compra', inicio).lt('data_compra', fim);
+  qCred = aplicarFiltro(qCred, 'revendedor_id');
+
+  const [{ data: txData, error: txErr }, { data: credData, error: credErr }] = await Promise.all([qTx, qCred]);
+  if (txErr)   console.warn('[faturamento] transacoes error:', txErr.message);
+  if (credErr) console.warn('[faturamento] creditos error:', credErr.message);
+
+  const rows = (txData || []).map(r => ({
+    pagamento_id:   r.pagamento_id,
+    origem:         r.origem,
+    valor_pago:     parseFloat(r.valor_pago) || 0,
+    revendedor_id:  r.revendedor_id,
+    data:           r.data,
+    status:         r.status,
+    tipo_pagamento: r.tipo_pagamento,
+    identificador:  r.mac_address,
+    nome:           r.nome,
+    criado_em:      r.criado_em
+  }));
+
+  // Adiciona creditos da tabela creditos que nao estao em transacoes (evita duplicacao)
+  const txCreditIds = new Set(rows.filter(r => r.origem === 'credito').map(r => r.pagamento_id).filter(Boolean));
+  (credData || []).forEach(c => {
+    if (c.transacao_id && txCreditIds.has(c.transacao_id)) return;
+    rows.push({
+      pagamento_id:   c.transacao_id || null,
+      origem:         'credito',
+      valor_pago:     parseFloat(c.valor_pago) || 0,
+      revendedor_id:  c.revendedor_id,
+      data:           c.data_compra,
+      status:         'pago',
+      tipo_pagamento: c.tipo_pagamento,
+      identificador:  c.revendedor_id,
+      nome:           c.nome_revendedor,
+      criado_em:      c.data_compra
+    });
+  });
+
+  return rows;
 }
 
 app.get('/api/reseller/faturamento/resumo', authReseller, async (req, res) => {
@@ -2656,7 +2670,7 @@ app.get('/api/reseller/faturamento/historico', authReseller, async (req, res) =>
 
     // Tenta transacoes primeiro; se vazio, usa direto
     const { data: txData, error: txErr } = await supabase
-      .from('transacoes_ativacao').select('origem, valor_pago')
+      .from('transacoes').select('origem, valor_pago')
       .eq('status', 'pago').gte('data', inicio).lt('data', fim);
 
     let atv = 0, crd = 0;
@@ -2678,7 +2692,7 @@ app.get('/api/reseller/faturamento/grafico-mes', authReseller, async (req, res) 
   const { inicio, fim } = mesRange(mes);
 
   const { data, error } = await supabase
-    .from('transacoes_ativacao')
+    .from('transacoes')
     .select('origem, valor_pago')
     .gte('data', inicio).lt('data', fim);
 
@@ -2700,7 +2714,7 @@ app.get('/api/reseller/faturamento/transacoes', authReseller, async (req, res) =
   const revId  = req.query.revendedor_id || null;
   const { inicio, fim } = mesRange(mes);
 
-  let q = supabase.from('transacoes_ativacao')
+  let q = supabase.from('transacoes')
     .select('pagamento_id, origem, data, status, tipo_pagamento, identificador, nome, valor_pago, revendedor_id, criado_em')
     .gte('data', inicio).lt('data', fim)
     .order('data', { ascending: false });
@@ -2732,7 +2746,7 @@ app.get('/api/reseller/faturamento/por-revendedor', authReseller, async (req, re
 
   // Tenta tabela transacoes primeiro
   const { data: txRows, error: txErr } = await supabase
-    .from('transacoes_ativacao')
+    .from('transacoes')
     .select('revendedor_id, valor_pago')
     .eq('origem', 'ativacao').eq('status', 'pago')
     .gte('data', inicio).lt('data', fim);
