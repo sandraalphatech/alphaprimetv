@@ -2648,7 +2648,7 @@ async function fetchFatDireto(inicio, fim, filtro, revId) {
 
   let qCred = supabase.from('creditos')
     .select('valor_pago, revendedor_id, data_compra')
-    .eq('status', 'pago')
+    .or('status.eq.pago,status.is.null')
     .gte('data_compra', inicio).lt('data_compra', fim);
   qCred = aplicarFiltro(qCred, 'revendedor_id');
 
@@ -2714,18 +2714,24 @@ app.get('/api/reseller/faturamento/transacoes', authReseller, async (req, res) =
   const revId  = req.query.revendedor_id || null;
   const { inicio, fim } = mesRange(mes);
 
+  let rows;
   let q = supabase.from('transacoes')
-    .select('pagamento_id, origem, data, status, tipo_pagamento, identificador, nome, valor_pago, revendedor_id, criado_em')
+    .select('pagamento_id, origem, data, status, tipo_pagamento, mac_address, nome, valor_pago, revendedor_id, criado_em')
     .gte('data', inicio).lt('data', fim)
     .order('data', { ascending: false });
   if (filtro === 'autonomo')                 q = q.is('revendedor_id', null);
   else if (filtro === 'revendedor' && revId) q = q.eq('revendedor_id', revId);
 
   const { data, error } = await q;
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    // transacoes nao existe — busca combinada em transacoes + creditos
+    const combined = await fetchFatTransacoes(mes, filtro, revId);
+    rows = combined.sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+  } else {
+    rows = (data || []).map(r => ({ ...r, identificador: r.mac_address }));
+  }
 
   // Resolver nomes dos revendedores
-  const rows = data || [];
   const revIds = [...new Set(rows.map(r => r.revendedor_id).filter(Boolean))];
   let nomesMap = {};
   if (revIds.length) {
