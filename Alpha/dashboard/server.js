@@ -1524,19 +1524,32 @@ app.get('/api/reseller/dashboard', authReseller, async (req, res) => {
   const linksToday = links.filter(l => new Date(l.criado_em) >= startOfDay).length;
   const actByLinks = links.reduce((s, l) => s + (l.ativacoes || 0), 0);
 
-  // ── Ganhos (admin only): soma transacoes com status='pago' ──
+  // ── Ganhos (admin only): soma transacoes + creditos com status='pago' ──
   let earnings = { mes: 0, anterior: 0, hoje: 0 };
   if (isAdmin) {
     const soma = (arr) => (arr || []).reduce((s, x) => s + (parseFloat(x.valor_pago) || 0), 0);
-    const [{ data: rHoje }, { data: rMes }, { data: rPrev }] = await Promise.all([
+    const [
+      { data: rHoje },  { data: rMes },  { data: rPrev },
+      { data: cHoje },  { data: cMes },  { data: cPrev }
+    ] = await Promise.all([
       supabase.from('transacoes').select('valor_pago').eq('status', 'pago')
         .gte('data', startOfDay.toISOString()).lte('data', endOfDay.toISOString()),
       supabase.from('transacoes').select('valor_pago').eq('status', 'pago')
         .gte('data', startOfMonth.toISOString()).lt('data', startOfNextMonth.toISOString()),
       supabase.from('transacoes').select('valor_pago').eq('status', 'pago')
         .gte('data', startOfPrevMonth.toISOString()).lt('data', startOfMonth.toISOString()),
+      supabase.from('creditos').select('valor_pago').or('status.eq.pago,status.is.null')
+        .gte('data_compra', startOfDay.toISOString()).lte('data_compra', endOfDay.toISOString()),
+      supabase.from('creditos').select('valor_pago').or('status.eq.pago,status.is.null')
+        .gte('data_compra', startOfMonth.toISOString()).lt('data_compra', startOfNextMonth.toISOString()),
+      supabase.from('creditos').select('valor_pago').or('status.eq.pago,status.is.null')
+        .gte('data_compra', startOfPrevMonth.toISOString()).lt('data_compra', startOfMonth.toISOString()),
     ]);
-    earnings = { mes: soma(rMes), anterior: soma(rPrev), hoje: soma(rHoje) };
+    earnings = {
+      mes:      soma(rMes)  + soma(cMes),
+      anterior: soma(rPrev) + soma(cPrev),
+      hoje:     soma(rHoje) + soma(cHoje),
+    };
   }
 
   res.json({
