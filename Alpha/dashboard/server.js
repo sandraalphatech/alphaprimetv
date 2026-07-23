@@ -2686,50 +2686,23 @@ app.get('/api/reseller/faturamento/historico', authReseller, async (req, res) =>
   res.json(results);
 });
 
-// Gráfico do mês atual — lê direto de transacoes sem filtro de status
+// Gráfico do mês atual — combina transacoes + creditos
 app.get('/api/reseller/faturamento/grafico-mes', authReseller, async (req, res) => {
   const mes = new Date().toISOString().slice(0, 7);
-  const { inicio, fim } = mesRange(mes);
-
-  const { data, error } = await supabase
-    .from('transacoes')
-    .select('origem, valor_pago')
-    .gte('data', inicio).lt('data', fim);
-
-  if (error) {
-    // Fallback: busca diretamente nas tabelas de origem
-    const d = await fetchFatDireto(inicio, fim, 'geral', null);
-    return res.json({ mes, ativacao: d.ativacoes, credito: d.creditos, total: d.ativacoes + d.creditos, fonte: 'direto' });
-  }
-
-  const rows = data || [];
+  const rows = await fetchFatTransacoes(mes, 'geral', null);
   const ativacao = rows.filter(r => r.origem === 'ativacao').reduce((s, r) => s + (parseFloat(r.valor_pago) || 0), 0);
   const credito  = rows.filter(r => r.origem === 'credito' ).reduce((s, r) => s + (parseFloat(r.valor_pago) || 0), 0);
-  res.json({ mes, ativacao, credito, total: ativacao + credito, fonte: 'transacoes', registros: rows.length });
+  res.json({ mes, ativacao, credito, total: ativacao + credito, registros: rows.length });
 });
 
 app.get('/api/reseller/faturamento/transacoes', authReseller, async (req, res) => {
   const mes    = req.query.mes    || new Date().toISOString().slice(0, 7);
   const filtro = req.query.filtro || 'geral';
   const revId  = req.query.revendedor_id || null;
-  const { inicio, fim } = mesRange(mes);
 
-  let rows;
-  let q = supabase.from('transacoes')
-    .select('pagamento_id, origem, data, status, tipo_pagamento, mac_address, nome, valor_pago, revendedor_id, criado_em')
-    .gte('data', inicio).lt('data', fim)
-    .order('data', { ascending: false });
-  if (filtro === 'autonomo')                 q = q.is('revendedor_id', null);
-  else if (filtro === 'revendedor' && revId) q = q.eq('revendedor_id', revId);
-
-  const { data, error } = await q;
-  if (error) {
-    // transacoes nao existe — busca combinada em transacoes + creditos
-    const combined = await fetchFatTransacoes(mes, filtro, revId);
-    rows = combined.sort((a, b) => (b.data || '').localeCompare(a.data || ''));
-  } else {
-    rows = (data || []).map(r => ({ ...r, identificador: r.mac_address }));
-  }
+  // Sempre combina transacoes + creditos para nao perder nenhum pagamento
+  const combined = await fetchFatTransacoes(mes, filtro, revId);
+  const rows = combined.sort((a, b) => (b.data || '').localeCompare(a.data || ''));
 
   // Resolver nomes dos revendedores
   const revIds = [...new Set(rows.map(r => r.revendedor_id).filter(Boolean))];
