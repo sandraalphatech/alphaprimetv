@@ -2426,7 +2426,6 @@ app.get('/api/reseller/transactions', authReseller, async (req, res) => {
     .from('saldo')
     .select('id, tipo, quantidade, descricao, saldo_resultante, referencia_id, criado_em')
     .eq('revendedor_id', req.resellerId)
-    .eq('tipo', 'compra')
     .order('criado_em', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
   const rows = (data || []).map(r => ({

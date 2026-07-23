@@ -2777,14 +2777,20 @@ async function loadTransactions() {
   const tbody = document.getElementById('transactions-body');
   const list = r.data;
   if (!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${t('res.noTransactions')}</td></tr>`; return; }
-  tbody.innerHTML = list.map((t, i) => `<tr>
-    <td>${i+1}</td>
-    <td>${fmtDate(t.criado_em)}</td>
-    <td style="color:var(--text2);font-size:.85rem">${t.descricao||'—'}</td>
-    <td style="color:var(--gold);font-weight:600">+${t.quantidade}</td>
-    <td style="color:var(--text2)">${t.saldo_inicial}</td>
-    <td style="color:var(--gold);font-weight:600">${t.saldo_final}</td>
-  </tr>`).join('');
+  const tipoLabel = tp => ({ compra: '💳 Compra', uso: '📱 Uso', transferencia_enviada: '➡️ Enviado', transferencia_recebida: '⬅️ Recebido' })[tp] || tp;
+  tbody.innerHTML = list.map((tx, i) => {
+    const positivo = tx.quantidade > 0;
+    const cor = positivo ? 'var(--success,#4caf50)' : 'var(--error,#f44336)';
+    const sinal = positivo ? '+' : '';
+    return `<tr>
+      <td>${i+1}</td>
+      <td>${fmtDate(tx.criado_em)}</td>
+      <td style="color:var(--text2);font-size:.85rem">${tx.descricao || tipoLabel(tx.tipo) || '—'}</td>
+      <td style="color:${cor};font-weight:600">${sinal}${tx.quantidade}</td>
+      <td style="color:var(--text2)">${tx.saldo_inicial}</td>
+      <td style="color:${cor};font-weight:600">${tx.saldo_final}</td>
+    </tr>`;
+  }).join('');
 }
 
 async function loadActivationsLog() {
